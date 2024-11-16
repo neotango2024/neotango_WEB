@@ -1,0 +1,15 @@
+.home_label{
+    max-width: 360px !important;
+    width: 80vw !important;
+}
+.home_label ul{
+    width: 100%;
+    padding: 0px 5px 0 15px;
+}
+.home_label li{
+    margin-bottom: 10px;
+}
+
+@media (min-width: 1024px){
+        
+}

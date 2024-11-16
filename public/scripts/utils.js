@@ -31,3 +31,7 @@ export function checkCheckoutButtons(){
         });
     });
 }
+
+export function activateAccordions() {
+    $('.ui.accordion').accordion(); // Activa los acordeones
+}

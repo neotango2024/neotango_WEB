@@ -148,3 +148,49 @@ export function addressCard(props) {
 
     return card;
 }
+
+export function homeLabel(props)  {
+  // Crear el contenedor principal
+  const accordion = document.createElement('div');
+  accordion.className = 'ui styled fluid accordion home_label';
+
+  // Crear el título
+  const title = document.createElement('div');
+  title.className = 'title';
+
+  const icon = document.createElement('i');
+  icon.className = 'dropdown icon';
+
+  const titleText = document.createTextNode(props.name);
+
+  title.appendChild(icon);
+  title.appendChild(titleText);
+
+  // Crear el contenido
+  const content = document.createElement('div');
+  content.className = 'content';
+
+  // Verificar si desc tiene más de un elemento
+  if (Array.isArray(props.desc) && props.desc.length > 1) {
+      const ul = document.createElement('ul');
+      props.desc.forEach(item => {
+          const li = document.createElement('li');
+          li.textContent = item;
+          ul.appendChild(li);
+      });
+      const paragraph = document.createElement('p');
+      paragraph.appendChild(ul);
+      content.appendChild(paragraph);
+  } else {
+      const paragraph = document.createElement('p');
+      paragraph.className = 'transition hidden';
+      paragraph.textContent = Array.isArray(props.desc) ? props.desc[0] : props.desc;
+      content.appendChild(paragraph);
+  }
+
+  // Ensamblar el contenedor
+  accordion.appendChild(title);
+  accordion.appendChild(content);
+
+  return accordion;
+}

@@ -1,5 +1,5 @@
-import { addressCard, checkoutCard } from "./componentRenderer.js";
-import { checkCheckoutButtons } from "./utils.js";
+import { addressCard, checkoutCard, homeLabel } from "./componentRenderer.js";
+import { activateAccordions, checkCheckoutButtons } from "./utils.js";
 
 window.addEventListener('load',()=>{
     
@@ -92,21 +92,32 @@ window.addEventListener('load',()=>{
             default: false
         },
     ];
+    let homeLabels = [
+        {
+            id: 1,
+            name: "Formas de pago",
+            desc: ["Para las compras dentro de Argentina te ofrecemos depósito o transferencia bancaria o tarjeta de crédito. El pago se realiza a través de Mercado Pago","Para compras internacionales las compras se realizan a través de Paypal"]
+        },
+        {
+            id: 2,
+            name: "Envíos",
+            desc: ["Los envíos se realizan a través de Andreani"]
+        },
+        {
+            id: 3,
+            name: "Cambios",
+            desc: ["Dentro de los 30 dias"]
+        }
+    ]
+;   
     const addresWrapper = document.querySelector('.main');
     addresWrapper.innerHTML = '';
-    addressList.forEach(address => {
-        let card = addressCard({
-            id: address.id,
-            name: address.name,
-            street: address.street,
-            detail: address.detail,
-            zip: address.zip,
-            city: address.city,
-            country: address.country,
-            default: address.default
+    homeLabels.forEach(label => {
+        let card = homeLabel({
+            name: label.name,
+            desc: label.desc,
         });        
         addresWrapper.appendChild(card);
-        
     });
-    // checkCheckoutButtons();
+    activateAccordions();
 });
