@@ -73,3 +73,78 @@ export function checkoutCard (props) {
   
     return container;
   }
+
+export function addressCard(props) {
+    // Crear el contenedor principal con clases y data-id
+    const card = document.createElement('div');
+    card.className = 'card address_card';
+    card.setAttribute('data-id', props.id);
+
+    // Crear la sección superior de la tarjeta
+    const cardTopContent = document.createElement('div');
+    cardTopContent.className = 'card_top_content';
+
+    const cardHeader = document.createElement('p');
+    cardHeader.className = 'card_header address_name';
+    cardHeader.textContent = props.name || 'Casa';
+
+    const defaultAddressMarker = document.createElement('div');
+    defaultAddressMarker.className = `default_address_marker ${props.default ? "default_address_marker_active" : ""}`;
+
+    cardTopContent.appendChild(cardHeader);
+    cardTopContent.appendChild(defaultAddressMarker);
+
+    // Crear la sección de contenido de la tarjeta
+    const cardContent = document.createElement('div');
+    cardContent.className = 'card_content';
+
+    const street = document.createElement('p');
+    street.className = 'card_text address_street';
+    street.textContent = props.street;
+
+    const detail = document.createElement('p');
+    detail.className = 'card_text address_detail';
+    detail.textContent = props.detail;
+
+    const zip = document.createElement('p');
+    zip.className = 'card_text';
+    zip.innerHTML = `CP: <span class="address_zip">${props.zip}</span>`;
+
+    const city = document.createElement('p');
+    city.className = 'card_text address_city';
+    city.textContent = props.city;
+
+    const country = document.createElement('p');
+    country.className = 'card_text address_country';
+    country.textContent = props.country;
+
+    cardContent.appendChild(street);
+    cardContent.appendChild(detail);
+    cardContent.appendChild(zip);
+    cardContent.appendChild(city);
+    cardContent.appendChild(country);
+
+    // Crear la sección inferior de la tarjeta
+    const cardBottomContainer = document.createElement('div');
+    cardBottomContainer.className = 'card_botton_container';
+
+    const editLink = document.createElement('a');
+    editLink.href = '#';
+    editLink.className = 'card_link';
+    editLink.textContent = 'Editar';
+
+    const deleteLink = document.createElement('a');
+    deleteLink.href = '#';
+    deleteLink.className = 'card_link';
+    deleteLink.textContent = 'Eliminar';
+
+    cardBottomContainer.appendChild(editLink);
+    cardBottomContainer.appendChild(deleteLink);
+
+    // Ensamblar la tarjeta
+    card.appendChild(cardTopContent);
+    card.appendChild(cardContent);
+    card.appendChild(cardBottomContainer);
+
+    return card;
+}

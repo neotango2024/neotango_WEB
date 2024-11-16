@@ -1,4 +1,4 @@
-import { checkoutCard } from "./componentRenderer.js";
+import { addressCard, checkoutCard } from "./componentRenderer.js";
 import { checkCheckoutButtons } from "./utils.js";
 
 window.addEventListener('load',()=>{
@@ -39,19 +39,74 @@ window.addEventListener('load',()=>{
         "category": "Zapatos Hombre",
         "filename": "/img/product/shoe_1.png"
         }
-    ]
-    const productWrapper = document.querySelector('.main');
-    productWrapper.innerHTML = '';
-    products.forEach(prod => {
-        let card = checkoutCard({
-            name: prod.name,
-            price: prod.price,
-            category: prod.category,
-            filename: prod.filename || 'default.png',
-            quantity: prod.quantity || 1,
+    ];
+    const addressList = [
+        {
+            id: '1',
+            name: 'Casa',
+            street: 'Av. Libertador 1555',
+            detail: '6to B',
+            zip: '1429',
+            city: 'Buenos Aires',
+            country: 'Argentina',
+            default: false
+        },
+        {
+            id: '2',
+            name: 'Oficina',
+            street: 'Calle Corrientes 200',
+            detail: 'Piso 12',
+            zip: '1043',
+            city: 'Buenos Aires',
+            country: 'Argentina',
+            default: false
+        },
+        {
+            id: '3',
+            name: 'Casa de Verano',
+            street: 'Av. del Mar 550',
+            detail: '',
+            zip: '7600',
+            city: 'Mar del Plata',
+            country: 'Argentina',
+            default: true
+        },
+        {
+            id: '4',
+            name: 'Departamento',
+            street: 'San Martín 1120',
+            detail: '3er A',
+            zip: '8300',
+            city: 'Neuquén',
+            country: 'Argentina',
+            default: false
+        },
+        {
+            id: '5',
+            name: 'Casa de Familia',
+            street: 'Av. Roca 3200',
+            detail: '',
+            zip: '4600',
+            city: 'San Salvador de Jujuy',
+            country: 'Argentina',
+            default: false
+        },
+    ];
+    const addresWrapper = document.querySelector('.main');
+    addresWrapper.innerHTML = '';
+    addressList.forEach(address => {
+        let card = addressCard({
+            id: address.id,
+            name: address.name,
+            street: address.street,
+            detail: address.detail,
+            zip: address.zip,
+            city: address.city,
+            country: address.country,
+            default: address.default
         });        
-        productWrapper.appendChild(card);
+        addresWrapper.appendChild(card);
         
     });
-    checkCheckoutButtons();
+    // checkCheckoutButtons();
 });
