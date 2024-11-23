@@ -112,12 +112,12 @@ window.addEventListener('load',()=>{
 ;   
     const addresWrapper = document.querySelector('.main');
     addresWrapper.innerHTML = '';
-    homeLabels.forEach(label => {
-        let card = homeLabel({
-            name: label.name,
-            desc: label.desc,
-        });        
+    products.forEach(product => {
+        const card = checkoutCard(product);
         addresWrapper.appendChild(card);
     });
-    activateAccordions();
+    addressList.forEach(add => {
+        const card = addressCard(add);
+        addresWrapper.appendChild(card);
+    });
 });
