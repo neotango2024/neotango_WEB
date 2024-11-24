@@ -109,15 +109,15 @@ window.addEventListener('load',()=>{
             desc: ["Dentro de los 30 dias"]
         }
     ]
-;   
-    const addresWrapper = document.querySelector('.main');
-    addresWrapper.innerHTML = '';
-    products.forEach(product => {
-        const card = checkoutCard(product);
-        addresWrapper.appendChild(card);
-    });
-    addressList.forEach(add => {
-        const card = addressCard(add);
-        addresWrapper.appendChild(card);
-    });
+// ;   
+//     const addresWrapper = document.querySelector('.main');
+//     addresWrapper.innerHTML = '';
+//     products.forEach(product => {
+//         const card = checkoutCard(product);
+//         addresWrapper.appendChild(card);
+//     });
+//     addressList.forEach(add => {
+//         const card = addressCard(add);
+//         addresWrapper.appendChild(card);
+//     });
 });
