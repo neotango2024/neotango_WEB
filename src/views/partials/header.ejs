@@ -1,0 +1,96 @@
+<header>
+    <div class="header-container">
+        <div class="overlay"></div>
+        <div class="logo-container">
+            <img src="/img/logo/logo.jpg" alt="">
+        </div>
+        <nav>
+            <ul class="desktop-pages-links-container">
+                <% navbarLinks.forEach(link => { %>
+                    <% const {name, target} = link %>
+                    <li class="page-link-item">
+                        <a href="<%= target %>"><%= name %></a>
+                    </li>
+                <% }) %>
+            </ul>
+            <ul class="user-actions-container">
+                <li class="user-action-item cart-icon">
+                    <i class='bx bx-cart'></i>
+                </li>
+                <li class="user-action-item user-icon">
+                    <i class='bx bx-user'></i>
+                    <aside class="no-logged-user-modal modal">
+                        <div class="close-menu-container">
+                            <i class='bx bx-x close-sign-in-modal'></i>
+                        </div>
+                        <div class="triangle"></div>
+                        <div class="form-container">
+                            
+                        </div>
+                    </aside> 
+                </li>
+                <li class="user-action-item menu-container">
+                    <i class='bx bx-menu menu-icon'></i>
+                    <i class='bx bx-menu-alt-left menu-icon hidden' ></i>
+                </li>
+                <li class="user-action-item active-flag-container">
+                    <img class="active-flag" src="" alt="">
+                </li>
+                <li class="user-action-item"></li>
+            </ul>
+        </nav>
+        <aside class="mobile-navbar">
+            <div class="close-menu-container">
+                <i class='bx bx-x close-navbar'></i>
+            </div>
+            <ul class="mobile-navbar-ul">
+                <% navbarLinks.forEach(link => { %>
+                    <% const {name, target} = link %>
+                    <% const isShopItem = name === 'Tienda' %>
+                    <li class="page-link-item">
+                        <a href="<%= target %>" class="mobile-anchor">
+                            <span><%= name %></span>
+                            <% if(isShopItem) { %>
+                                <i class='bx bx-chevron-down shop-arrow'></i>
+                            <% } %>    
+                        </a>
+                        <% if(isShopItem) { %>
+                            <ul class="shop-dropdown">
+                                <% shopCategories.forEach(cat => { %>
+                                    <li class="shop-category-item">
+                                        <a href="<%= cat.target %>"> <%= cat.name %></a>
+                                    </li>
+                                <% }) %>
+                            </ul>
+                        <% } %>
+                    </li>
+                <% }) %>
+            </ul>
+            
+        </aside>
+        <aside class="languages-modal modal">
+            <div class="close-menu-container">
+                <i class='bx bx-x close-language-modal'></i>
+            </div>
+            <div class="intros-container">
+                <p class="lang-modal-intro">Please select a language</p>
+                <p class="lang-modal-intro">Por favor seleccione un idioma</p>
+            </div>
+            <div class="line"></div>
+            <div class="languages-container">
+                <% languages.forEach(lang => { %>
+                    <% const {name,src} = lang %>
+                    <div class="language-container">
+                        <div class="modal-flag-container">
+                            <img src="<%= src %>" alt="<%= name %>-flag" id="<%= name %>">
+                        </div>
+                        <p><%= name %></p>
+                    </div>
+        
+                <% })%>
+            </div>
+            
+        </aside>
+        
+    </div>
+</header>

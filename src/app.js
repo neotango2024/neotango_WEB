@@ -1,8 +1,16 @@
-const express =require('express');
+import express from 'express';
+import path from 'path';
+import { fileURLToPath } from 'url';
+import session from 'express-session';
+import cookieParser from 'cookie-parser';
+import methodOverride from 'method-override';
+import mainRouter from './routes/mainRouter.js';
 
 const app = express();
+// way to replace __dirname in es modules 
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
-const path = require('path');
 
 app.set('view engine','ejs');
 app.set('views',path.resolve(__dirname,'./views'))
@@ -13,7 +21,6 @@ app.use(express.urlencoded({extended:false}));
 app.use(express.json());
 
 // Express-session
-const session = require('express-session');
 app.use(session({
     secret: "Conf middleware global session",
     resave: false,
@@ -21,15 +28,12 @@ app.use(session({
 }));
 
 // Cookie-parser
-const cookieParser =require('cookie-parser');
 app.use(cookieParser());
 
 // Mehtod-override --> Para usar put y delete (?_method=...)
-const methodOverride = require('method-override');
 app.use(methodOverride('_method'));
 
 // Rutas
-const mainRouter = require('./routes/mainRouter.js');
 app.use('/',mainRouter);
 
 

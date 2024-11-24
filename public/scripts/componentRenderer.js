@@ -1,3 +1,4 @@
+
 export function checkoutCard (props) {
     const container = document.createElement("div");
     container.className = "card checkout_card";
@@ -6,7 +7,7 @@ export function checkoutCard (props) {
     const imageDiv = document.createElement("div");
     imageDiv.className = "card_image";
     const img = document.createElement("img");
-    img.src = props.filename; // Usa la propiedad filename para la imagen
+    img.src = `/img/product/${props.filename}`; // Usa la propiedad filename para la imagen
     img.alt = `Image_${Math.random().toString(36).substring(7)}`; // Genera un alt aleatorio
     imageDiv.appendChild(img);
   
@@ -193,4 +194,106 @@ export function homeLabel(props)  {
   accordion.appendChild(content);
 
   return accordion;
+}
+
+export function form (props) {
+    const { inputProps, formTitle, formAction, method } = props;
+    const container = document.querySelector('.form-container');
+
+    const h3Element = document.createElement("h3");
+    h3Element.className = "title";
+    h3Element.textContent = formTitle;
+    container.appendChild(h3Element);
+
+    const form = document.createElement("form");
+    form.action = formAction;
+    form.method = method || 'POST';
+    form.className = "custom-form";
+    container.appendChild(form);
+
+    inputProps.forEach((input) => {
+        const inputContainer = document.createElement("div");
+        inputContainer.className = 'input-container';
+        inputContainer.style.width = `${input.width}%`
+  
+        if (input.label) {
+          const label = document.createElement("label");
+          label.textContent = input.label;
+          label.htmlFor = input.id || "";
+          inputContainer.appendChild(label);
+        }
+
+        const inputElement = document.createElement("input");
+        inputElement.type = input.type || "text"; 
+        inputElement.placeholder = input.placeholder || "";
+        inputElement.value = input.value || "";
+        if(inputElement.id) inputElement.id = input.id;
+        inputElement.name = input.name || "";
+        inputElement.required = input.required || false;
+        inputElement.className = `form-input ${input.className}`
+  
+        inputContainer.appendChild(inputElement);
+        form.appendChild(inputContainer);
+      });
+
+
+}
+
+export function button(props) {
+
+    const button = document.createElement("button");
+    button.className = 'custom-btn'
+    button.textContent = props.text || 'Submit';
+
+    button.style.width = `${props.width}%`;
+    button.style.backgroundColor = props.backgroundColor || '#bf0c12';
+    button.style.color = props.fontColor || 'white';
+    button.style.fontSize = `${props.fontSize}%`;
+    button.style.marginTop = props.marginTop ? `${props.marginTop}%` : '3%';
+    button.style.marginBottom = props.marginBottom ? `${props.marginBottom}%` : '3%';
+
+    if (typeof props.onClick === 'function') {
+      button.onclick = props.onClick;
+    }
+
+    const formContainer = document.querySelector(props.container);
+    formContainer.appendChild(button);
+}
+
+export function productCard (prod, infoFontSize) {
+  const {name, filename, price, id} = prod;
+  const container = document.querySelector('.products-container');
+
+  const card = document.createElement('div');
+  card.className = 'product-card';
+  container.appendChild(card)
+
+  const cardAnchor = document.createElement('a');
+  cardAnchor.className = 'product-card-anchor';
+  cardAnchor.href = `products/${id}`;
+  card.appendChild(cardAnchor);
+
+  const imgContainer = document.createElement('div');
+  imgContainer.className = 'prod-img-container';
+  cardAnchor.appendChild(imgContainer);
+
+  const img = document.createElement('img');
+  img.className = 'prod-img';
+  img.src = `/img/product/${filename}`;
+  imgContainer.appendChild(img);
+
+  const productInfoContainer = document.createElement('div');
+  productInfoContainer.className = 'product-info-container';
+  cardAnchor.appendChild(productInfoContainer);
+  
+  const productName = document.createElement('span');
+  productName.textContent = name;
+  productName.style.fontSize = infoFontSize ? `${infoFontSize}%` : '120%'
+
+  const productPrice = document.createElement('span');
+  productPrice.textContent = `$${price}`;
+  productPrice.style.fontSize = infoFontSize ? `${infoFontSize}%` : '120%'
+
+  productInfoContainer.appendChild(productName);
+  productInfoContainer.appendChild(productPrice);
 }

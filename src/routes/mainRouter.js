@@ -1,8 +1,8 @@
-const express = require('express');
+import express from 'express';
+import mainController from '../controllers/mainController.js';
 const router = express.Router();
-const mainController = require('../controllers/mainController');
 
 router.get('/',mainController.index);
 
 
-module.exports=router;
+export default router;
