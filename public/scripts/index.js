@@ -140,6 +140,7 @@ window.addEventListener('load',()=>{
             name: "Cambios",
             desc: ["Dentro de los 30 dias"]
         }
+<<<<<<< HEAD
     ];   
     // const addresWrapper = document.querySelector('.main');
     // addresWrapper.innerHTML = '';

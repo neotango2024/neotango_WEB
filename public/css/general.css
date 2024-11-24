@@ -31,8 +31,13 @@ img{
     align-items: center;
     padding-top: 5vh;
     gap: 1vh;
+<<<<<<< HEAD
     overflow: hidden;
     background-color: var(--light-grey-color);
+=======
+    height: 100%;
+    background-color: #aaa;
+>>>>>>> facb8b00386a133736878e81c24d4e01ca095ad4
 }
 /* CARDS */
 .card{
@@ -41,6 +46,7 @@ img{
     box-shadow: 2px 5px 3px var(--box-shadow-color); /* Ajusta los valores según tus preferencias */
     border-radius: 2rem;
     height: auto;
+    background-color: #fff;
 }
 .card_image{
     width: 35%;
