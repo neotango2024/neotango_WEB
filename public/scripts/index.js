@@ -140,7 +140,6 @@ window.addEventListener('load',()=>{
             name: "Cambios",
             desc: ["Dentro de los 30 dias"]
         }
-<<<<<<< HEAD
     ];   
     // const addresWrapper = document.querySelector('.main');
     // addresWrapper.innerHTML = '';
@@ -169,17 +168,3 @@ const renderProducts = () => {
     })
     checkCheckoutButtons();
 }
-
-    ]
-// ;   
-//     const addresWrapper = document.querySelector('.main');
-//     addresWrapper.innerHTML = '';
-//     products.forEach(product => {
-//         const card = checkoutCard(product);
-//         addresWrapper.appendChild(card);
-//     });
-//     addressList.forEach(add => {
-//         const card = addressCard(add);
-//         addresWrapper.appendChild(card);
-//     });
-});
