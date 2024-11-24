@@ -2,11 +2,16 @@
     margin: 0;
     padding: 0;
     box-sizing: border-box;
+    font-family: "Raleway", sans-serif;
 }
+
+/* TODO - DIFFERENT RED TONES*/ 
 :root {
-    --grey-color: #f2f2f2;
+    --light-grey-color: #e7e6e6;
+    --grey-color: #dfdede;
     --dark-grey-color: #646464;
-    --red-color: rgb(178, 0, 0);
+    --light-red-color: #ce7c7f;
+    --red-color:#bf0c12;
     --background-grey: #f9f9f9;
     --box-shadow-color: rgba(0, 0, 0, 0.2);
     --black-transparent-color: rgba(0, 0, 0, .4)
@@ -26,8 +31,13 @@ img{
     align-items: center;
     padding-top: 5vh;
     gap: 1vh;
+<<<<<<< HEAD
+    overflow: hidden;
+    background-color: var(--light-grey-color);
+=======
     height: 100%;
     background-color: #aaa;
+>>>>>>> facb8b00386a133736878e81c24d4e01ca095ad4
 }
 /* CARDS */
 .card{
@@ -88,6 +98,22 @@ img{
     opacity: .4;
     pointer-events: none;
 }
+ul{
+    list-style-type: none;
+}
+.unreachable {
+    pointer-events: none;
+}
+.title {
+    color: var(--red-color);
+}
+.custom-btn {
+    border: 0;
+    outline: 0;
+    padding: 3% 0;
+    border-radius: 5px;
+}
+
 @media(min-width:1024px){
     .card_content{
         padding: 10px;
@@ -101,5 +127,11 @@ img{
     .number_button{
         border-radius: 6px !important;
         padding: 10px !important;
+    }
+    .close-menu-container i {
+        cursor: pointer;
+    }
+    .modal {
+        border-radius: 8px;
     }
 }

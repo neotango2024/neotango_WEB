@@ -1,45 +1,77 @@
-import { addressCard, checkoutCard, homeLabel } from "./componentRenderer.js";
-import { activateAccordions, checkCheckoutButtons } from "./utils.js";
+import {  productCard, checkoutCard } from "./componentRenderer.js";
+import { checkCheckoutButtons } from "./utils.js";
+//import { LANGUAGES } from "../../src/utils/staticDB/constants.js";
+const SCREEN_WIDTH = window.innerWidth;
 
-window.addEventListener('load',()=>{
-    
-    let products = [
-        {
-        "name": "Zapato Tango 1",
-        "price": 180,
-        "quantity": 3,
-        "category": "Zapatos Mujer",
-        "filename": "/img/product/shoe_1.png"
-        },
-        {
-        "name": "Zapato Clásico 2",
-        "price": 250,
-        "quantity": 1,
-        "category": "Botines",
-        "filename": "/img/product/shoe_1.png"
-        },
-        {
+const products = [
+    {
+    "name": "Ladeado Cuero negro negro negr",
+    "price": 180,
+    "quantity": 3,
+    "category": "Zapatos Mujer",
+    "filename": "IMG_5490.png"
+    },
+    {
+    "name": "Zapato Clásico 2",
+    "price": 250,
+    "quantity": 1,
+    "category": "Botines",
+    "filename": "IMG_5492.png"
+    },
+    {
+    "name": "Zapato Moderno 3",
+    "price": 130,
+    "quantity": 4,
+    "category": "Deportivos",
+    "filename": "IMG_5496.png"
+    },
+    {
         "name": "Zapato Moderno 3",
         "price": 130,
         "quantity": 4,
         "category": "Deportivos",
-        "filename": "/img/product/shoe_1.png"
-        },
-        {
-        "name": "Zapato Elegante 4",
-        "price": 200,
-        "quantity": 2,
-        "category": "Sandalias",
-        "filename": "/img/product/shoe_1.png"
-        },
-        {
-        "name": "Zapato Casual 5",
-        "price": 300,
-        "quantity": 5,
-        "category": "Zapatos Hombre",
-        "filename": "/img/product/shoe_1.png"
-        }
-    ];
+        "filename": "IMG_5495.png"
+    },
+    {
+        "name": "Zapato Moderno 3",
+        "price": 130,
+        "quantity": 4,
+        "category": "Deportivos",
+        "filename": "IMG_5490.png"
+    },
+    {
+        "name": "Zapato Moderno 5",
+        "price": 130,
+        "quantity": 4,
+        "category": "Deportivos",
+        "filename": "IMG_5496.png"
+    },
+    {
+        "name": "Zapato Moderno 5",
+        "price": 130,
+        "quantity": 4,
+        "category": "Deportivos",
+        "filename": "IMG_5492.png"
+    },
+    {
+        "name": "Zapato Moderno 5",
+        "price": 130,
+        "quantity": 4,
+        "category": "Deportivos",
+        "filename": "IMG_5506.png"
+    },
+    {
+        "name": "Zapato Moderno 5",
+        "price": 130,
+        "quantity": 4,
+        "category": "Deportivos",
+        "filename": "IMG_5506.png"
+    },
+];
+
+
+window.addEventListener('load',()=>{
+    
     const addressList = [
         {
             id: '1',
@@ -108,6 +140,36 @@ window.addEventListener('load',()=>{
             name: "Cambios",
             desc: ["Dentro de los 30 dias"]
         }
+<<<<<<< HEAD
+    ];   
+    // const addresWrapper = document.querySelector('.main');
+    // addresWrapper.innerHTML = '';
+    // homeLabels.forEach(label => {
+    //     let card = homeLabel({
+    //         name: label.name,
+    //         desc: label.desc,
+    //     });        
+    //     addresWrapper.appendChild(card);
+    // });
+    // activateAccordions();
+   
+    renderProducts();
+    //renderCheckoutCard()
+});
+
+const renderCheckoutCard = () => {
+    products.forEach(prod => checkoutCard(prod));
+}
+
+const renderProducts = () => {
+    const main = document.querySelector('.main');
+    products.forEach(prod => {
+        const card = checkoutCard(prod);
+        main.appendChild(card);
+    })
+    checkCheckoutButtons();
+}
+
     ]
 // ;   
 //     const addresWrapper = document.querySelector('.main');
