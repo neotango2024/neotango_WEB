@@ -1,9 +1,14 @@
 .checkout_card{
     width: 90vw;
+    height: 30vh;
     max-width: 600px;
     max-height: 130px;
 }
-
+.checkout_card .card_image{
+    width: 30%;
+    max-width: 110px;
+    padding: 5px;
+}
 
 .card_amount_container{
     width: 100%;
