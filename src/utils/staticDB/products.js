@@ -1,4 +1,4 @@
-module.exports =  [
+export default [
     {
     "name": "Zapato Tango 1",
     "price": 180,
