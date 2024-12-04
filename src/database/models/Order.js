@@ -9,7 +9,8 @@ export default (sequelize, dataTypes) => {
             allowNull: false,
         },
         tra_id: { type: dataTypes.STRING(15) },
-        cart_id: { type: dataTypes.INTEGER },
+        cart_id: { type: dataTypes.STRING(36) },
+        user_id: { type: dataTypes.STRING(36) },
         order_status_id: { type: dataTypes.INTEGER },
         total: { type: dataTypes.DECIMAL },
         billing_address_id: { type: dataTypes.STRING(36) },
@@ -30,6 +31,18 @@ export default (sequelize, dataTypes) => {
         Order.belongsTo(Cart, {
             as: 'cart',
             foreignKey: 'cart_id'
+        })
+        Order.belongsTo(Cart, {
+            as: 'user',
+            foreignKey: 'user_id'
+        })
+        Order.belongsTo(Cart, {
+            as: 'billingAddress',
+            foreignKey: 'billing_address_id'
+        })
+        Order.belongsTo(Cart, {
+            as: 'shippingAddress',
+            foreignKey: 'shipping_address_id'
         })
     };
 

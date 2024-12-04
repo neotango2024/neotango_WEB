@@ -5,8 +5,16 @@ export default {
             es: '¡Usuario creado correctamente!'
         },
         createFailed: {
-            en: 'There was an error creating user, please try again later',
-            es: 'Hubo un problema al crear el usuario, intenta nuevamente'
+            en: 'There was an error while creating the user, please try again later',
+            es: 'Hubo un problema al crear el usuario, por favor intenta nuevamente'
+        },
+        updateSuccesfull: {
+            en: 'User succesfully updated!',
+            es: '¡Usuario actualizado correctamente!'
+        },
+        updateFailed: {
+            en: 'There was an error while updating the user, please try again later',
+            es: 'Hubo un problema al actualizar el usuario, por favor intenta nuevamente'
         },
     },
     formMsg: {

@@ -9,13 +9,14 @@ export default (sequelize, dataTypes) => {
         },
         first_name: { type: dataTypes.STRING(200) },
         last_name: { type: dataTypes.STRING(200) },
-        username: { type: dataTypes.STRING(200) },
         password: { type: dataTypes.STRING(255) },
         email: { type: dataTypes.STRING(255) },
         user_role_id: { type: dataTypes.INTEGER },
-        phone_number_id: { type: dataTypes.STRING(36) },
+        gender_id: { type: dataTypes.INTEGER },
         password_token: { type: dataTypes.TEXT },
         verified_email: { type: dataTypes.TINYINT },
+        verification_code: { type: dataTypes.STRING(6) },
+        expiration_time: { type: dataTypes.DATE },
     }
 
     let config = {
@@ -28,9 +29,13 @@ export default (sequelize, dataTypes) => {
     const User = sequelize.define(alias, cols, config);
 
     User.associate = (models) => {
-        const {Cart} = models;
+        const {Cart, Order} = models;
         User.hasOne(Cart, {
             as: 'cart',
+            foreignKey: 'user_id'
+        });
+        User.hasMany(Order, {
+            as: 'orders',
             foreignKey: 'user_id'
         });
     };
