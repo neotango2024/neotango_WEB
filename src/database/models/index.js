@@ -3,7 +3,8 @@
 import fs from 'fs';
 import path from 'path';
 import Sequelize from 'sequelize';
-import config from __dirname + '/../config/config.js'[env];
+import configData from '../config/config.js';
+const config = configData[env];
 const env = process.env.NODE_ENV || 'development';
 const basename = path.basename(__filename);
 const db = {};
