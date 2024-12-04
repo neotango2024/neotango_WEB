@@ -1,14 +1,16 @@
 
 import express from 'express';
+const app = express();
 import path from 'path';
 import { fileURLToPath } from 'url';
+import "dotenv/config.js"; // En ESM se importa asi
 import session from 'express-session';
 import cookieParser from 'cookie-parser';
-import methodOverride from 'method-override';
 import mainRouter from './routes/mainRouter.js';
 import apiUserRouter from './routes/api/apiUserRouter.js';
+import methodOverride from 'method-override';
 
-const app = express();
+
 // way to replace __dirname in es modules 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -24,7 +26,7 @@ app.use(express.json());
 
 // Express-session
 app.use(session({
-    secret: "Conf middleware global session",
+    secret: process.env.SESSION_SECRET,
     resave: false,
     saveUninitialized: false
 }));

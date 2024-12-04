@@ -13,7 +13,7 @@ export default (sequelize, dataTypes) => {
         taco_id: { type: dataTypes.INTEGER },
         size_id: { type: dataTypes.INTEGER },
         category_id: { type: dataTypes.INTEGER },
-        created_at: { type: dataTypes.DATETIME }
+        created_at: { type: dataTypes.DATE }
     }
 
     let config = {

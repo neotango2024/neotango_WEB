@@ -1,15 +1,10 @@
 import db from "../../database/models/index.js";
 // Librerias
-// const Sequelize = require("sequelize");
-// const { Op } = require("sequelize");
+import Sequelize from "sequelize";
+import { Op } from "sequelize";
 import { v4 as uuidv4 } from 'uuid';
 import bcrypt from"bcryptjs";
-// const capitalizeFirstLetter = require("../../utils/capitalizeFirstLetter");
-// const capitalizeFirstLetterOfEachWord = require("../../utils/capitalizeFirstLetterOfEachWord");
-// const jwt = require("jsonwebtoken");
-// const fs = require("fs");
-// const path = require("path");
-// const ExcelJS = require("exceljs");
+
 // UTILS
 import systemMessages from "../../utils/staticDB/systemMessages.js";
 import generateRandomCodeWithExpiration from "../../utils/generateRandomCodeWithExpiration.js";
@@ -18,7 +13,9 @@ import capitalizeFirstLetterOfEachWord from "../../utils/capitalizeFirstLetterOf
 
 const controller = {
   createUser: async (req, res) => {
-    try {
+    try {      
+      let countries = await db.Country.findAll();
+      return res.status(200).json({countries})
       // Traigo errores
       let errors = validationResult(req);
       // return res.send(errors);
