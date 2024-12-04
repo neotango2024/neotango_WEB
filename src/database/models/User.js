@@ -28,13 +28,9 @@ export default (sequelize, dataTypes) => {
     const User = sequelize.define(alias, cols, config);
 
     User.associate = (models) => {
-        const {Cart, UserPhoneNumber} = models;
+        const {Cart } = models;
         User.hasOne(Cart, {
             as: 'cart',
-            foreignKey: 'user_id'
-        })
-        User.hasMany(UserPhoneNumber, {
-            as: 'phoneNumber',
             foreignKey: 'user_id'
         })
     };

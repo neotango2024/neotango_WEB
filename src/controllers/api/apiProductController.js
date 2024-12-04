@@ -2,29 +2,29 @@ import Product from '../../database/models/Product';
 import { INTERNAL_SERVER_ERROR_RESPONSE } from '../../utils/constants/constants';
 
 export const controller = {
-    getAllProducts: () => {
+    getAllProducts: (req, res) => {
         try {
             const products = Product.findAll();
-            return {
-                statusCode: 200,
-                data: products,
-                message: 'Succesfully fetched all products'
-            }
+            return res.status(200).json
         } catch (error) {
             console.log(`error in getAllProducts: ${e}`);
             return INTERNAL_SERVER_ERROR_RESPONSE;
         }
     },
-    getOneProduct: (productId) => {
+    getOneProduct: (req, res) => {
         try {
+            const {productId} = req.query;
             const product = Product.findByPk(productId);
             if(!product){
-                return {
-                    statusCode: 404,
+                return res.status(404).json({
                     data: null,
-                    message: `Product with id ${productId} not found`
-                }
+                    message: `Product with id ${productId} was not found`
+                })
             }
+            return res.status(200).json({
+                data: product,
+                message: 'Successfully fetched product'
+            })
         } catch (error) {
             console.log(`error in getOneProduct: ${e}`);
             return INTERNAL_SERVER_ERROR_RESPONSE;

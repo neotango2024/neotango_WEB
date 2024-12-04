@@ -10,7 +10,7 @@ export default (sequelize, dataTypes) => {
         },
         temp_cart_item_id: { type: dataTypes.INTEGER },
         user_id: { type: dataTypes.INTEGER },
-        created_at: { type: dataTypes.DATETIME }
+        created_at: { type: dataTypes.DATE }
     }
 
     let config = {
