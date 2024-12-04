@@ -1,3 +1,4 @@
+
 import express from 'express';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -5,6 +6,7 @@ import session from 'express-session';
 import cookieParser from 'cookie-parser';
 import methodOverride from 'method-override';
 import mainRouter from './routes/mainRouter.js';
+import apiUserRouter from './routes/api/apiUserRouter.js';
 
 const app = express();
 // way to replace __dirname in es modules 
@@ -34,6 +36,7 @@ app.use(cookieParser());
 app.use(methodOverride('_method'));
 
 // Rutas
+app.use('/api/user',apiUserRouter);
 app.use('/',mainRouter);
 
 

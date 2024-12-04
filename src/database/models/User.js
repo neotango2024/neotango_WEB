@@ -13,6 +13,7 @@ export default (sequelize, dataTypes) => {
         password: { type: dataTypes.STRING(255) },
         email: { type: dataTypes.STRING(255) },
         user_role_id: { type: dataTypes.INTEGER },
+        phone_number_id: { type: dataTypes.STRING(36) },
         password_token: { type: dataTypes.TEXT },
         verified_email: { type: dataTypes.TINYINT },
     }
