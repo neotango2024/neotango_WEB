@@ -2,13 +2,13 @@ import db from "../../database/models/index.js";
 // Librerias
 import Sequelize from "sequelize";
 import { Op } from "sequelize";
-import { v4 as uuidv4 } from 'uuid';
-import bcrypt from"bcryptjs";
-import jwt from"jsonwebtoken";
-import fs from 'fs';
-import path from 'path';
-import { fileURLToPath } from 'url';
-// way to replace __dirname in es modules 
+import { v4 as uuidv4 } from "uuid";
+import bcrypt from "bcryptjs";
+import jwt from "jsonwebtoken";
+import fs from "fs";
+import path from "path";
+import { fileURLToPath } from "url";
+// way to replace __dirname in es modules
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 // UTILS
@@ -25,11 +25,10 @@ const webTokenSecret = process.env.JSONWEBTOKEN_SECRET;
 
 const controller = {
   createUser: async (req, res) => {
-    try {      
-    
+    try {
       // Traigo errores
       // let errors = validationResult(req);
-      
+
       // if (!errors.isEmpty()) {
       //   //Si hay errores en el back...
       //   errors = errors.mapped();
@@ -50,14 +49,11 @@ const controller = {
 
       // Datos del body
       let { first_name, last_name, email, password, rePassword } = req.body;
-      // Genero el codigo de verificacion
-      const { verificationCode, expirationTime } =
-        generateRandomCodeWithExpiration();
-      console.log(first_name);
       
+
       //Nombres y apellidos van capitalziados
-      first_name = capitalizeFirstLetterOfEachWord(first_name,true);
-      last_name = capitalizeFirstLetterOfEachWord(last_name,true);
+      first_name = capitalizeFirstLetterOfEachWord(first_name, true);
+      last_name = capitalizeFirstLetterOfEachWord(last_name, true);
 
       let userDataToDB = {
         id: uuidv4(),
@@ -67,12 +63,10 @@ const controller = {
         password: bcrypt.hashSync(password, 10), //encripta la password ingresada ,
         user_role_id: 2, //User
         verified_email: false,
-        verification_code: verificationCode,
-        expiration_time: expirationTime,
       };
-      await sendVerificationCodeMail(verificationCode, userDataToDB.email);
-
-      return res.status(201).json({userDataToDB})
+      
+      await generateAndInstertEmailCode(userDataToDB);
+      return res.status(201).json({ userDataToDB });
       const userCreated = await db.User.create(userDataToDB); //Creo el usuario
       // Lo tengo que loggear directamente
       const cookieTime = 1000 * 60 * 60 * 24 * 7; //1 Semana
@@ -91,15 +85,14 @@ const controller = {
       // Le  mando ok con el redirect al email verification view
       return res.status(201).json({
         meta: {
-            status: 201,
-            url: "/api/user",
-            method: "POST",
+          status: 201,
+          url: "/api/user",
+          method: "POST",
         },
         ok: true,
         msg: systemMessages.userMsg.createSuccesfull.es, //TODO: ver tema idioma
-        redirect: '/'
-      })
-       
+        redirect: "/",
+      });
     } catch (error) {
       console.log(`Falle en apiUserController.createUser`);
       console.log(error);
@@ -107,11 +100,10 @@ const controller = {
     }
   },
   updateUser: async (req, res) => {
-    try {      
-    
+    try {
       // Traigo errores
       // let errors = validationResult(req);
-      
+
       // if (!errors.isEmpty()) {
       //   //Si hay errores en el back...
       //   errors = errors.mapped();
@@ -131,20 +123,21 @@ const controller = {
       // }
 
       // Datos del body
-      let { user_id, first_name, last_name, gender_id} = req.body;
-      
-      let userFromDB = await db.User.findByPk(user_id);
-      if(!userFromDB) return res
-      .status(400)
-      .json({ ok: false, msg: systemMessages.userMsg.updateSuccesfull.es });
+      let { user_id, first_name, last_name, gender_id } = req.body;
+
+      let userFromDB = await getUserByPK(user_id);
+      if (!userFromDB)
+        return res
+          .status(400)
+          .json({ ok: false, msg: systemMessages.userMsg.updateSuccesfull.es });
       //Nombres y apellidos van capitalziados
-      first_name = capitalizeFirstLetterOfEachWord(first_name,true);
-      last_name = capitalizeFirstLetterOfEachWord(last_name,true);
+      first_name = capitalizeFirstLetterOfEachWord(first_name, true);
+      last_name = capitalizeFirstLetterOfEachWord(last_name, true);
 
       let keysToUpdate = {
         first_name,
         last_name,
-        gender_id: gender_id || null
+        gender_id: gender_id || null,
       };
       await db.User.update(keysToUpdate, {
         where: {
@@ -155,42 +148,41 @@ const controller = {
       // Le  mando ok con el redirect al email verification view
       return res.status(200).json({
         meta: {
-            status: 200,
-            url: "/api/user",
-            method: "PUT",
+          status: 200,
+          url: "/api/user",
+          method: "PUT",
         },
         ok: true,
-        msg: systemMessages.userMsg.updateSuccesfull.es //TODO: ver tema idioma
-      })
-       
+        msg: systemMessages.userMsg.updateSuccesfull.es, //TODO: ver tema idioma
+      });
     } catch (error) {
       console.log(`Falle en apiUserController.updateUser`);
       console.log(error);
       return res.status(500).json({ error });
     }
   },
-  destroyUser: async (res,res)=>{
+  destroyUser: async (res, res) => {
     try {
       let { user_id } = req.body;
-    // Lo borro de db
-    await db.User.destroy({
-      where: {
-        id: user_id
-      }
-    });
-    // Borro cookie y session
-    res.clearCookie("userAccessToken");
-    delete req.session.userLoggedId;
-    return res.status(200).json({
-      meta: {
+      // Lo borro de db
+      await db.User.destroy({
+        where: {
+          id: user_id,
+        },
+      });
+      // Borro cookie y session
+      res.clearCookie("userAccessToken");
+      delete req.session.userLoggedId;
+      return res.status(200).json({
+        meta: {
           status: 201,
           url: "/api/user",
           method: "destroy",
-      },
-      ok: true,
-      msg: systemMessages.userMsg.updateSuccesfull.es, //TODO: ver tema idioma
-      redirect: '/'
-    })
+        },
+        ok: true,
+        msg: systemMessages.userMsg.updateSuccesfull.es, //TODO: ver tema idioma
+        redirect: "/",
+      });
     } catch (error) {
       console.log(`Falle en apiUserController.destroyUser`);
       console.log(error);
@@ -281,7 +273,6 @@ const controller = {
             item.file_url = url;
           }
         }
-
       }
 
       return res.status(200).json({
@@ -291,9 +282,8 @@ const controller = {
           method: "GET",
         },
         ok: true,
-        orders: userOrders
-      })
-      
+        orders: userOrders,
+      });
     } catch (error) {
       console.log(`Falle en apiUserController.getUserOrders`);
       console.log(error);
@@ -303,17 +293,16 @@ const controller = {
   generateNewEmailCode: async (req, res) => {
     try {
       let { user_id } = req.body;
-      // Genero el codigo de verificacion
-      const { verificationCode, expirationTime } =
-        generateRandomCodeWithExpiration();
-      await db.User.update({
-        verification_code: verificationCode,
-        expiration_time: expirationTime,
-      });
-
+      // busco el usuario
+      const userFromDB = await getUserByPK(user_id)
+      if(!userFromDB) return res
+      .status(400)
+      .json({ ok: false, msg: systemMessages.generalMsg.failed.es });
+      //Aca lo encontro, genero el codigo
+      await generateAndInstertEmailCode(userFromDB);
       return res.status(200).json({
         ok: true,
-        msg: "Se ha enviado el codigo de verificacion al mail",
+        msg: systemMessages.userMsg.verificationCodeSuccess.es,
       });
     } catch (error) {
       console.log("Falle en apiUserController.getEmailCode:", error);
@@ -323,3 +312,50 @@ const controller = {
 };
 
 export default controller;
+
+export async function generateAndInstertEmailCode(user) {
+  try {
+    // Genero el codigo de verificacion
+  const { verificationCode, expirationTime } =
+  generateRandomCodeWithExpiration();
+  await sendVerificationCodeMail(verificationCode, user.email);
+  let objectToDB = {
+    verification_code: verificationCode,
+    expiration_time: expirationTime,
+  };
+  //Lo cambio en db
+  await db.User.update({objectToDB},{
+    where: {
+      id: user.id
+    }
+  });
+  } catch (error) {
+    console.log(`Falle en generateAndInstertEmailCode`);
+    return console.log(error);
+  }
+}
+
+export async function getUserByPK(id) {
+  try {
+  //busco el usuario
+  let user = await db.User.findByPk(id,{
+    include: ['cart','orders']
+  });
+  return user
+  } catch (error) {
+    console.log(`Falle en getUserByPK`);
+    return console.log(error);
+  }
+}
+export async function getUsers() {
+  try {
+  //busco los usuarios
+  let users = await db.User.findAll({
+    include: ['cart','orders']
+  });
+  return users
+  } catch (error) {
+    console.log(`Falle en getUserByPK`);
+    return console.log(error);
+  }
+}
