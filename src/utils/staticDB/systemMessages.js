@@ -32,6 +32,33 @@ export default {
         },
        
     },
+    addressMsg: {
+        createSuccesfull: {
+            en: 'Address succesfully created!',
+            es: '¡Direccion creada correctamente!'
+        },
+        createFailed: {
+            en: 'There was an error while creating the address, please try again later',
+            es: 'Hubo un problema al crear la direccion, por favor intente nuevamente'
+        },
+        updateSuccesfull: {
+            en: 'Address succesfully updated!',
+            es: '¡Direccion actualizada correctamente!'
+        },
+        updateFailed: {
+            en: 'There was an error while updating the address, please try again later',
+            es: 'Hubo un problema al actualizar la direccion, por favor intente nuevamente'
+        },
+        destroySuccesfull: {
+            en: 'Address succesfully destroyed!',
+            es: '¡Direccion borrada correctamente!'
+        },
+        destroyFailed: {
+            en: 'There was an error while destroying the address, please try again later',
+            es: 'Hubo un problema al borrar la direccion, por favor intente nuevamente'
+        },
+       
+    },
     formMsg: {
         validationError: {
             en: "Please complete the form in the proper way",

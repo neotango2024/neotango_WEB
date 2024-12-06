@@ -6,9 +6,10 @@ import { fileURLToPath } from 'url';
 import "dotenv/config.js"; // En ESM se importa asi
 import session from 'express-session';
 import cookieParser from 'cookie-parser';
+import methodOverride from 'method-override';
 import mainRouter from './routes/mainRouter.js';
 import apiUserRouter from './routes/api/apiUserRouter.js';
-import methodOverride from 'method-override';
+import apiAddressRouter from './routes/api/apiAddressRouter.js';
 
 
 // way to replace __dirname in es modules 
@@ -39,6 +40,7 @@ app.use(methodOverride('_method'));
 
 // Rutas
 app.use('/api/user',apiUserRouter);
+app.use('/api/address',apiAddressRouter);
 app.use('/',mainRouter);
 
 

@@ -5,6 +5,7 @@ import apiUserController from '../../controllers/api/apiUserController.js';
 // Validators
 
 // GET
+router.get('/address',apiUserController.getUserAddresses);
 
 
 // POST

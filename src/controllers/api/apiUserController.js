@@ -20,6 +20,7 @@ import getDeepCopy from "../../utils/getDeepCopy.js";
 import countries from "../../utils/staticDB/countries.js";
 import sendVerificationCodeMail from "../../utils/sendverificationCodeMail.js";
 import ordersStatuses from "../../utils/staticDB/ordersStatuses.js";
+import { getUserAddressesFromDB } from "./apiAddressController.js";
 // ENV
 const webTokenSecret = process.env.JSONWEBTOKEN_SECRET;
 
@@ -128,8 +129,8 @@ const controller = {
       let userFromDB = await getUserByPK(user_id);
       if (!userFromDB)
         return res
-          .status(400)
-          .json({ ok: false, msg: systemMessages.userMsg.updateSuccesfull.es });
+          .status(404)
+          .json({ ok: false, msg: systemMessages.userMsg.updateFailed.es });
       //Nombres y apellidos van capitalziados
       first_name = capitalizeFirstLetterOfEachWord(first_name, true);
       last_name = capitalizeFirstLetterOfEachWord(last_name, true);
@@ -161,7 +162,7 @@ const controller = {
       return res.status(500).json({ error });
     }
   },
-  destroyUser: async (res, res) => {
+  destroyUser: async (req, res) => {
     try {
       let { user_id } = req.body;
       // Lo borro de db
@@ -177,7 +178,7 @@ const controller = {
         meta: {
           status: 201,
           url: "/api/user",
-          method: "destroy",
+          method: "DELETE",
         },
         ok: true,
         msg: systemMessages.userMsg.updateSuccesfull.es, //TODO: ver tema idioma
@@ -286,6 +287,25 @@ const controller = {
       });
     } catch (error) {
       console.log(`Falle en apiUserController.getUserOrders`);
+      console.log(error);
+      return res.status(500).json({ error });
+    }
+  },
+  getUserAddresses: async(req,res) =>{
+    try {
+      let { userLoggedId } = req.session;
+      let userAddresses = await getUserAddressesFromDB(userLoggedId);
+      return res.status(200).json({
+        meta: {
+          status: 200,
+          url: "/api/user/address",
+          method: "GET",
+        },
+        ok: true,
+        addresses: userAddresses || [],
+      });
+    } catch (error) {
+      console.log(`Falle en apiUserController.getUserAddresses`);
       console.log(error);
       return res.status(500).json({ error });
     }

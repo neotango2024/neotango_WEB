@@ -8,6 +8,7 @@ export default (sequelize, dataTypes) => {
             primaryKey: true,
             allowNull: false,
         },
+        user_id: { type: dataTypes.STRING(36)},
         street: { type: dataTypes.STRING(255) },
         detail: { type: dataTypes.STRING(45) },
         city: { type: dataTypes.STRING(100) },
@@ -15,7 +16,8 @@ export default (sequelize, dataTypes) => {
         zip_code: { type: dataTypes.STRING(10) },
         label: {type: dataTypes.STRING(100)},
         country_id: { type: dataTypes.STRING(36)},
-        user_id: { type: dataTypes.STRING(36)},
+        first_name: { type: dataTypes.STRING(255) },
+        last_name: { type: dataTypes.STRING(255) },
     }
 
     let config = {
