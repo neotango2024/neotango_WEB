@@ -7,6 +7,7 @@ import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import fs from "fs";
 import path from "path";
+import { validationResult } from "express-validator";
 import { fileURLToPath } from "url";
 // way to replace __dirname in es modules
 const __filename = fileURLToPath(import.meta.url);
@@ -21,6 +22,7 @@ import countries from "../../utils/staticDB/countries.js";
 import sendVerificationCodeMail from "../../utils/sendverificationCodeMail.js";
 import ordersStatuses from "../../utils/staticDB/ordersStatuses.js";
 import { getUserAddressesFromDB } from "./apiAddressController.js";
+
 // ENV
 const webTokenSecret = process.env.JSONWEBTOKEN_SECRET;
 
@@ -28,28 +30,33 @@ const controller = {
   createUser: async (req, res) => {
     try {
       // Traigo errores
-      // let errors = validationResult(req);
+      let errors = validationResult(req);
+      
+      
+      if (!errors.isEmpty()) {
+        //Si hay errores en el back...
+        //Para saber los parametros que llegaron..
+        let errorsParams = errors.errors?.map(er=>er.param);
+        console.log(errorsParams);
+        errors = errors.mapped(); //ahi ya accedo a cada una
+        // return res.status(201).json({errors});
 
-      // if (!errors.isEmpty()) {
-      //   //Si hay errores en el back...
-      //   errors = errors.mapped();
-
-      //   // Ver como definir los errors
-      //   // return res.send(errors)
-      //   return res.status(422).json({
-      //       meta: {
-      //           status: 422,
-      //           url: '/api/user',
-      //           method: "POST"
-      //       },
-      //       ok: false,
-      //       errors,
-      //       msg: systemMessages.formMsg.validationError.es
-      //   });
-      // }
-
+        // Ver como definir los errors
+        // return res.send(errors)
+        return res.status(422).json({
+            meta: {
+                status: 422,
+                url: '/api/user',
+                method: "POST"
+            },
+            ok: false,
+            errors,
+            params: errorsParams,
+            msg: systemMessages.formMsg.validationError.es
+        });
+      }
       // Datos del body
-      let { first_name, last_name, email, password, rePassword } = req.body;
+      let { first_name, last_name, email, password } = req.body;
       
 
       //Nombres y apellidos van capitalziados
