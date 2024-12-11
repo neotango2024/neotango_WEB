@@ -36,13 +36,7 @@ const controller = {
       if (!errors.isEmpty()) {
         //Si hay errores en el back...
         //Para saber los parametros que llegaron..
-        let errorsParams = errors.errors?.map(er=>er.param);
-        console.log(errorsParams);
-        errors = errors.mapped(); //ahi ya accedo a cada una
-        // return res.status(201).json({errors});
-
-        // Ver como definir los errors
-        // return res.send(errors)
+        let {errorsParams,errorsMapped} = getMappedErrors(errors);
         return res.status(422).json({
             meta: {
                 status: 422,
@@ -50,7 +44,7 @@ const controller = {
                 method: "POST"
             },
             ok: false,
-            errors,
+            errors: errorsMapped,
             params: errorsParams,
             msg: systemMessages.formMsg.validationError.es
         });
@@ -385,4 +379,11 @@ export async function getUsers() {
     console.log(`Falle en getUserByPK`);
     return console.log(error);
   }
+}
+
+export function getMappedErrors(errors){
+  let errorsParams = errors.errors?.map(er=>er.param);
+  let errorsMapped = errors.mapped(); //ahi ya accedo a cada una
+
+  return {errorsParams,errorsMapped}
 }

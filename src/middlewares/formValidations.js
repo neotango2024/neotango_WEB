@@ -2,7 +2,7 @@ import { body } from "express-validator";
 import validatePasswordString from "../utils/validatePasswordString.js";
 import isJson from "../utils/isJson.js";
 import db from "../database/models/index.js";
-
+import countries from "../utils/staticDB/countries.js";
 export default {
   productFields: [
     body([
@@ -134,5 +134,30 @@ export default {
         throw new Error("Las contraseñas deben coincidir");
       return true;
     }),
+  ],
+  addressFields: [
+    body(["street", "label", "detail", "zip_code", "city", "province", "country_id", "first_name", "last_name"])
+    .custom((value, { req }) => {
+      // que sea de tipo string
+      // Si viene formato json entonces lo parseo, sino me fijo directamente
+      if (isJson(value)) value = JSON.parse(value);
+      if (typeof value !== "string") {
+        throw new Error();
+      }
+      return true;
+    }),
+    body(["street", "label", "zip_code", "city", "province", "country_id", "first_name", "last_name"])
+      .notEmpty()
+      .withMessage("Complete todos los campos necesarios")
+      .bail(),
+    body(["country_id"]) //Me fijo que el pais este
+      .custom((value, { req }) => {
+        //No puede ingresar un email que ya esta
+        let countrieFromDB = countries.find(count=>count.id == value);
+        if (!countrieFromDB) {
+          throw new Error("Pais no encontrado, intente nuevamente");
+        }
+        return true;
+      }),
   ],
 };

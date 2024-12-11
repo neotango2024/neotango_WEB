@@ -8,6 +8,7 @@ import jwt from "jsonwebtoken";
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
+import { validationResult } from "express-validator";
 // way to replace __dirname in es modules
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -17,7 +18,7 @@ import capitalizeFirstLetterOfEachWord from "../../utils/capitalizeFirstLetterOf
 import getDeepCopy from "../../utils/getDeepCopy.js";
 
 import countries from "../../utils/staticDB/countries.js";
-import { getUserByPK } from "./apiUserController.js";
+import { getMappedErrors, getUserByPK } from "./apiUserController.js";
 
 // ENV
 
@@ -25,25 +26,22 @@ const controller = {
   createAddress: async (req, res) => {
     try {
       // Traigo errores
-      // let errors = validationResult(req);
+      let errors = validationResult(req);
 
-      // if (!errors.isEmpty()) {
-      //   //Si hay errores en el back...
-      //   errors = errors.mapped();
-
-      //   // Ver como definir los errors
-      //   // return res.send(errors)
-      //   return res.status(422).json({
-      //       meta: {
-      //           status: 422,
-      //           url: '/api/user',
-      //           method: "POST"
-      //       },
-      //       ok: false,
-      //       errors,
-      //       msg: systemMessages.formMsg.validationError.es
-      //   });
-      // }
+      if (!errors.isEmpty()) {
+        let {errorsParams,errorsMapped} = getMappedErrors(errors);
+        return res.status(422).json({
+            meta: {
+                status: 422,
+                url: '/api/user',
+                method: "POST"
+            },
+            ok: false,
+            errors: errorsMapped,
+            params: errorsParams,
+            msg: systemMessages.formMsg.validationError.es
+        });
+      }
 
       // Datos del body
       let { user_id, street, label, detail, zip_code, city, province, country_id, first_name, last_name } = req.body;
@@ -92,25 +90,18 @@ const controller = {
   updateAddress: async (req, res) => {
     try {
       // Traigo errores
-      // let errors = validationResult(req);
-
-      // if (!errors.isEmpty()) {
-      //   //Si hay errores en el back...
-      //   errors = errors.mapped();
-
-      //   // Ver como definir los errors
-      //   // return res.send(errors)
-      //   return res.status(422).json({
-      //       meta: {
-      //           status: 422,
-      //           url: '/api/user',
-      //           method: "POST"
-      //       },
-      //       ok: false,
-      //       errors,
-      //       msg: systemMessages.formMsg.validationError.es
-      //   });
-      // }
+      let {errorsParams,errorsMapped} = getMappedErrors(errors);
+        return res.status(422).json({
+            meta: {
+                status: 422,
+                url: '/api/user',
+                method: "PUT"
+            },
+            ok: false,
+            errors: errorsMapped,
+            params: errorsParams,
+            msg: systemMessages.formMsg.validationError.es
+        });
 
       // Datos del body
       let { address_id, street, label, detail, zip_code, city, province, country_id, first_name, last_name } = req.body;
