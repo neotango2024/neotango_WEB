@@ -1,15 +1,21 @@
 
 import express from 'express';
+const app = express();
 import path from 'path';
 import { fileURLToPath } from 'url';
+import "dotenv/config.js"; // En ESM se importa asi
 import session from 'express-session';
 import cookieParser from 'cookie-parser';
 import methodOverride from 'method-override';
 import mainRouter from './routes/mainRouter.js';
 import apiUserRouter from './routes/api/apiUserRouter.js';
+<<<<<<< HEAD
 import apiProductRouter from './routes/api/apiProductRouter.js';
+=======
+import apiAddressRouter from './routes/api/apiAddressRouter.js';
 
-const app = express();
+>>>>>>> 86f6f95408ee59a6d8c31643bc8cfc861c0a4b37
+
 // way to replace __dirname in es modules 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -24,7 +30,7 @@ app.use(express.json());
 
 // Express-session
 app.use(session({
-    secret: "Conf middleware global session",
+    secret: process.env.SESSION_SECRET,
     resave: false,
     saveUninitialized: false
 }));
@@ -37,7 +43,11 @@ app.use(methodOverride('_method'));
 
 // Rutas
 app.use('/api/user',apiUserRouter);
+<<<<<<< HEAD
 app.use('/api/product',apiProductRouter);
+=======
+app.use('/api/address',apiAddressRouter);
+>>>>>>> 86f6f95408ee59a6d8c31643bc8cfc861c0a4b37
 app.use('/',mainRouter);
 
 const PORT = process.env.PORT || 3500;

@@ -8,8 +8,10 @@ export default (sequelize, dataTypes) => {
             primaryKey: true,
             allowNull: false,
         },
+        cart_id: { type: dataTypes.STRING(36) },
+        user_id: { type: dataTypes.STRING(36) },
+        phone_id: { type: dataTypes.STRING(36) },
         tra_id: { type: dataTypes.STRING(15) },
-        cart_id: { type: dataTypes.INTEGER },
         order_status_id: { type: dataTypes.INTEGER },
         total: { type: dataTypes.DECIMAL },
         billing_address_id: { type: dataTypes.STRING(36) },
@@ -26,10 +28,26 @@ export default (sequelize, dataTypes) => {
     const Order = sequelize.define(alias, cols, config);
 
     Order.associate = (models) => {
-        const { Cart } = models;
+        const { Cart, User, Address, PhoneNumber } = models;
         Order.belongsTo(Cart, {
             as: 'cart',
             foreignKey: 'cart_id'
+        })
+        Order.belongsTo(PhoneNumber, {
+            as: 'phone',
+            foreignKey: 'phone_id'
+        })
+        Order.belongsTo(User, {
+            as: 'user',
+            foreignKey: 'user_id'
+        })
+        Order.belongsTo(Address, {
+            as: 'billingAddress',
+            foreignKey: 'billing_address_id'
+        })
+        Order.belongsTo(Address, {
+            as: 'shippingAddress',
+            foreignKey: 'shipping_address_id'
         })
     };
 
