@@ -27,8 +27,8 @@ export default (sequelize, dataTypes) => {
     const Product = sequelize.define(alias, cols, config);
 
     Product.associate = (models) => {
-        const {ProductFile, ProductSizeTacoQuantity} = models;
-        Product.hasMany(ProductFile, {
+        const {File, ProductSizeTacoQuantity} = models;
+        Product.hasMany(File, {
             as: 'files',
             foreignKey: 'product_id'
         })

@@ -22,6 +22,8 @@ import countries from "../../utils/staticDB/countries.js";
 import sendVerificationCodeMail from "../../utils/sendverificationCodeMail.js";
 import ordersStatuses from "../../utils/staticDB/ordersStatuses.js";
 import { getUserAddressesFromDB } from "./apiAddressController.js";
+import getFileType from "../../utils/getFileType.js";
+import { destroyFilesFromAWS, getFilesFromAWS, uploadFilesToAWS } from "../../utils/awsHandler.js";
 
 // ENV
 const webTokenSecret = process.env.JSONWEBTOKEN_SECRET;
@@ -330,6 +332,34 @@ const controller = {
       return res.json({ error });
     }
   },
+  testAWS: async(req,res)=>{
+    try {
+      let filesToGet = [
+        {
+          filename: "index-jyz6jr6yu1",
+          file_types_id: 1
+        },
+        {
+          filename: "index-rrkw09emzp",
+          file_types_id: 1
+        },
+        {
+          filename: "index-gzkz01oqlv.mp4",
+          file_types_id: 2
+        }
+      ];
+      let objectToGet = {
+        folderName: "index",
+        files: filesToGet
+      }
+      let files = await getFilesFromAWS(objectToGet)
+      return res.status(200).json({files})
+    } catch (error) {
+      console.log(error);
+      return
+      
+    }
+  }
 };
 
 export default controller;
