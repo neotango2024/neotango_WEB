@@ -19,15 +19,15 @@ export default (sequelize, dataTypes) => {
         underscored: true
     }
 
-    const UserPhoneNumber = sequelize.define(alias, cols, config);
+    const PhoneNumber = sequelize.define(alias, cols, config);
 
-    UserPhoneNumber.associate = (models) => {
+    PhoneNumber.associate = (models) => {
         const {Order} = models;
-        UserPhoneNumber.hasMany(Order, {
+        PhoneNumber.hasMany(Order, {
             as: 'orders',
             foreignKey: 'phone_id'
         })
     };
 
-    return UserPhoneNumber;
+    return PhoneNumber;
 }

@@ -7,7 +7,6 @@ import { fileURLToPath, pathToFileURL } from 'url';
 
 const env = process.env.NODE_ENV || 'development';
 const config = configData[env];
-console.log(config);
 
 // Reemplazo de __dirname en ES modules
 const __filename = fileURLToPath(import.meta.url);
@@ -22,15 +21,17 @@ if (config.use_env_variable) {
 } else {
   sequelize = new Sequelize(config.database, config.username, config.password, config);
 }
+sequelize.authenticate()
+  .then(() => console.log('Conexión exitosa a la base de datos.'))
+  .catch((err) => console.error('Error de conexión a la base de datos:', err));
 
-// Leer los modelos y cargarlos dinámicamente
 const files = fs.readdirSync(__dirname).filter(file => {
   return (file.indexOf('.') !== 0) && (file !== basename) && (file.slice(-3) === '.js');
 });
 
 for (const file of files) {
-  const modelPath = pathToFileURL(path.join(__dirname, file)); // Convertir a file:// URL
-  const { default: model } = await import(modelPath.href); // Usar href para importar
+  const modelPath = pathToFileURL(path.join(__dirname, file)); 
+  const { default: model } = await import(modelPath.href); 
   const modelInstance = model(sequelize, Sequelize.DataTypes);
   db[modelInstance.name] = modelInstance;
 }

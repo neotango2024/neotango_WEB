@@ -27,13 +27,13 @@ export default (sequelize, dataTypes) => {
     const Product = sequelize.define(alias, cols, config);
 
     Product.associate = (models) => {
-        const {ProductFile, ProductSizeTacoQuantity} = models;
+        const {ProductFile, ProductSizeTacoColorQuantity} = models;
         Product.hasMany(ProductFile, {
             as: 'files',
             foreignKey: 'product_id'
         })
-        Product.hasMany(ProductSizeTacoQuantity, {
-            as: 'sizeTacoQuantity',
+        Product.hasMany(ProductSizeTacoColorQuantity, {
+            as: 'sizeTacoColorQuantity',
             foreignKey: 'product_id'
         })
     };

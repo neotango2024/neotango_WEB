@@ -152,3 +152,18 @@ FOREIGN KEY (phone_number_id) REFERENCES phone_numbers(id)
 ON DELETE CASCADE
 ON UPDATE CASCADE;
 
+RENAME TABLE products_sizes_tacos_quantity TO products_sizes_tacos_colors_quantity;
+
+CREATE TABLE colors (
+	id INT PRIMARY KEY AUTO_INCREMENT,
+    color VARCHAR(255)
+);
+
+ALTER TABLE products_sizes_tacos_colors_quantity
+ADD COLUMN color_id INT NOT NULL;
+
+ALTER TABLE products_sizes_tacos_colors_quantity
+ADD CONSTRAINT fk_color_id
+FOREIGN KEY (color_id) REFERENCES colors(id)
+ON DELETE CASCADE
+ON UPDATE CASCADE;

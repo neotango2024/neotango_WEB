@@ -1,9 +1,11 @@
+import dotenv from 'dotenv';
+dotenv.config()
 const config = {
   "development": {
     "username": process.env.DEV_USER,
     "password": process.env.DEV_PASSWORD,
     "database": process.env.DEV_DATABASE,
-    "host": process.env.HOST,
+    "host": '127.0.0.1',
     "dialect": "mysql"
   },
   "test": {
@@ -21,4 +23,5 @@ const config = {
     "dialect": "mysql"
   }
 }
+console.log(config)
 export default config;

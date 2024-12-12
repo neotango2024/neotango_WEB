@@ -7,6 +7,7 @@ import cookieParser from 'cookie-parser';
 import methodOverride from 'method-override';
 import mainRouter from './routes/mainRouter.js';
 import apiUserRouter from './routes/api/apiUserRouter.js';
+import apiProductRouter from './routes/api/apiProductRouter.js';
 
 const app = express();
 // way to replace __dirname in es modules 
@@ -36,10 +37,8 @@ app.use(methodOverride('_method'));
 
 // Rutas
 app.use('/api/user',apiUserRouter);
+app.use('/api/product',apiProductRouter);
 app.use('/',mainRouter);
-
-
-// Correr el servidor
 
 const PORT = process.env.PORT || 3500;
 
