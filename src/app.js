@@ -15,7 +15,7 @@ app.use(express.json());
 // Express-session
 const session = require('express-session');
 app.use(session({
-    secret: "Conf middleware global session",
+    secret: process.env.SECRET_SESSION,
     resave: false,
     saveUninitialized: false
 }));
