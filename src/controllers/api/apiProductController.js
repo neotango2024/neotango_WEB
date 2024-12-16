@@ -89,7 +89,6 @@ const controller = {
                     msg: createFailed.es
                 });
             }
-            // todo - recibir el array de imagenes en el body
             // pasar folder al object
             const files = req.files;
             files.forEach(img => {
@@ -203,7 +202,6 @@ const controller = {
             return [false, null];
         }
     },
-    
     updateProductInDb: async (body, productId) => {
         try {
             await Product.update(body, {
