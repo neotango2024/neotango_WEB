@@ -3,13 +3,16 @@ const { Product } = db;
 import { validationResult } from 'express-validator';
 import systemMessages from '../../utils/staticDB/systemMessages.js';
 import { v4 as UUIDV4 } from 'uuid';
-import productFileController from '../productFileController.js';
+import productFileController, { insertFilesInDb } from '../productFileController.js';
 import productSizeTacoColorQuantityController from '../productSizeTacoColorQuantityController.js';
 import { getMappedErrors } from '../../utils/getMappedErrors.js';
+import getFileType from '../../utils/getFileType.js';
+import { uploadFilesToAWS } from '../../utils/awsHandler.js';
 const {productMsg} = systemMessages;
 const { fetchFailed, notFound, fetchSuccessfull, createFailed, updateFailed, findFilesInDb, createSuccessfull } = productMsg;
 const { handleCreateFiles, deleteFileInDb } = productFileController;
 const {insertVariationsInDb, findVariationsInDb, getVariationsToDelete, deleteVariationInDb} = productSizeTacoColorQuantityController;
+const PRODUCTS_FOLDER_NAME = 'products';
 
 const controller = {
     handleGetAllProducts: async (req, res) => {
@@ -86,14 +89,27 @@ const controller = {
                     msg: createFailed.es
                 });
             }
-            // const images = req.files;
-            // const isCreatingImagesSuccessful = await handleCreateFiles(images, productId);
-            // if(!isCreatingImagesSuccessful){
-            //     return res.status(500).json({
-            //         ok: false,
-            //         msg: createFailed.es
-            //     });
-            // }
+            // todo - recibir el array de imagenes en el body
+            // pasar folder al object
+            const files = req.files;
+            files.forEach(img => {
+                img.file_types_id = getFileType(img);
+                img.product_id = productId;
+                // agregar main image
+            })
+            const objectToUpload = {
+                files,
+                folderName: PRODUCTS_FOLDER_NAME,
+                sections_id: 2
+            }
+            const filesToInsertInDb = await uploadFilesToAWS(images);
+            const isSuccessful = await insertFilesInDb(filesToInsertInDb);
+            if(!isSuccessful){
+                return res.status(500).json({
+                    ok: false,
+                    msg: createFailed.es
+                });
+            }
             const { variations } = body;
             const isCreatingVariationsSuccessful = await insertVariationsInDb(variations, productId);
             if(!isCreatingVariationsSuccessful){

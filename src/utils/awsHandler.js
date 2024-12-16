@@ -103,8 +103,8 @@ export async function uploadFilesToAWS(object) {
       let fileObject = {
         id: uuidv4(),
         filename: randomName ? randomName : multerFile.filename, //Si no viene randomName es que ya estaba en db
-        file_types_id: multerFile.file_types_id, //imagen, video
         main_image: multerFile.mainImage ? 1 : 0,
+        file_types_id: multerFile.file_types_id, //imagen, video
         sections_id: object.sections_id,
       };
       filesToInsertDB?.push(fileObject);

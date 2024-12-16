@@ -27,7 +27,6 @@ const controller = {
                     ...variation
                 })
             });
-            console.log(mappedVariationsWithId)
             ProductSizeTacoColorQuantity.bulkCreate(mappedVariationsWithId);
             return true;
         } catch (error) {
