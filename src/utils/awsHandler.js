@@ -30,6 +30,7 @@ export async function uploadFilesToAWS(object) {
     // Voy por los home_files
     let randomName, buffer, command, params, filesToInsertDB;
     filesToInsertDB = [];
+    relationsToReturn = [];
     for (let i = 0; i < object.files.length; i++) {
       randomName = null;
       const multerFile = object.files[i];
@@ -108,8 +109,16 @@ export async function uploadFilesToAWS(object) {
         sections_id: object.sections_id,
       };
       filesToInsertDB?.push(fileObject);
+      //Aca, si tiene, tengo que pushear la relacion
+      if(multerFile.variation_id){
+        relationsToReturn.push({
+          file_id: fileObject.id,
+          variation_id: multerFile.variation_id
+        })
+      }
+      
     }
-    return filesToInsertDB;
+    return { filesToInsertDB, relationsToReturn};
   } catch (error) {
     console.log(`Falle en uploadFileToAWS`);
     return console.log(error);

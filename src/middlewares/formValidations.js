@@ -65,11 +65,14 @@ export default {
       .isEmail()
       .withMessage("Tipo de email invalido")
       .bail()
-      .custom(async (value, { req }) => {
+      .custom(async (value, { req }) => { //TODO:
         //No puede ingresar un email que ya esta
         let userEmail = value?.toLowerCase();
         let emailInDataBase = await db.User.findOne({
-          where: { email: userEmail?.trim() },
+          where: { 
+            email: userEmail?.trim(),
+            verified_email: 1
+          },
         });
         if (emailInDataBase) {
           throw new Error("Email ya registrado, ingrese otro");

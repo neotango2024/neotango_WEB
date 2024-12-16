@@ -88,36 +88,45 @@ const controller = {
                     ok: false,
                     msg: createFailed.es
                 });
+            };
+            const { variations, filesArray } = body;
+            let objectToSendVariations = {
+                variations, 
+                productId,
+                filesArray
             }
-            // todo - recibir el array de imagenes en el body
+            const [isCreatingVariationsSuccessful,returnedArray] = await insertVariationsInDb(objectToSendVariations);
+            if(!isCreatingVariationsSuccessful){
+                return res.status(500).json({
+                    ok: false,
+                    msg: createFailed.es
+                });
+            };
+            
+            // todo - administras filesArray
             // pasar folder al object
             const files = req.files;
-            files.forEach(img => {
-                img.file_types_id = getFileType(img);
-                img.product_id = productId;
-                // agregar main image
-            })
+            files.forEach(multerFile => {
+                let fileFromArray = returnedArray.find(file=>file.filename == multerFile.originalname);
+                multerFile.file_types_id = getFileType(multerFile);
+                multerFile.main_image = fileFromArray.main_image;
+                multerFile.variation_id = fileFromArray.product_variation_id;
+            });
             const objectToUpload = {
                 files,
                 folderName: PRODUCTS_FOLDER_NAME,
                 sections_id: 2
             }
-            const filesToInsertInDb = await uploadFilesToAWS(images);
+            const { filesToInsertInDb, relationsToReturn} = await uploadFilesToAWS(objectToUpload);
             const isSuccessful = await insertFilesInDb(filesToInsertInDb);
+            
             if(!isSuccessful){
                 return res.status(500).json({
                     ok: false,
                     msg: createFailed.es
                 });
             }
-            const { variations } = body;
-            const isCreatingVariationsSuccessful = await insertVariationsInDb(variations, productId);
-            if(!isCreatingVariationsSuccessful){
-                return res.status(500).json({
-                    ok: false,
-                    msg: createFailed.es
-                });
-            }
+            //TODO: tambien hay que hacer el bulkUpdate de las relaciones en la tabla pivot entre files y variation
             return res.status(200).json({
                 ok: true,
                 msg: createSuccessfull.en,
@@ -225,14 +234,14 @@ async function insertProductInDb (body) {
         const newProductId = UUIDV4();
         const newProduct = {
             id: newProductId,
-            name,
+            name, //TODO: agregar en ingles/espan
             english_description,
             spanish_description,
             ars_price,
             usd_price,
             sku,
             category_id,
-            created_at: Date.now(),
+            created_at: Date.now(), //TODO: ver si funciona sin esto
             updated_at: Date.now(),
             deleted_at: null
         };

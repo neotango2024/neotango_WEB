@@ -16,22 +16,36 @@ const controller = {
             return null;
         }
     },
-    insertVariationsInDb: async (variations, productId) => {
+    insertVariationsInDb: async (object) => {
         try {
             const mappedVariationsWithId = [];
-            variations.forEach(variation => {
+            
+            object?.variations?.forEach(variation => { //{ size_id, taco_id, color_id, stock}
                 const newVariationId = UUIDV4();
                 mappedVariationsWithId.push({
                     id: newVariationId,
-                    product_id: productId,
+                    product_id: object.productId,
                     ...variation
-                })
+                });
             });
+            //Ahora recorro el array de fileObjects y junto por color_id
+            let arrayToReturn = [];
+            object.filesArray?.forEach(fileObj=>{ //{filename, color_id, main_image}
+                //Aca tengo que ir pusheando la variacion con su file
+                let colorIDToFilter = fileObj.color_id;
+                //aca obtengo array de los ids de la variacion para este archivo
+                let array =  mappedVariationsWithId.filter(obj=>obj.color_id == colorIDToFilter).map(obj=>({
+                    product_variation_id: obj.id,
+                    filename: fileObj.filename,
+                    main_image: fileObj.main_image,
+                }));
+                arrayToReturn = [...arrayToReturn,...array]; //Lo pusheo al array
+            })
             ProductSizeTacoColorQuantity.bulkCreate(mappedVariationsWithId);
-            return true;
+            return [true,arrayToReturn];
         } catch (error) {
             console.log(`Error inserting variations in db: ${error}`);
-            return false;
+            return [false,null];
         }
     },
     getVariationsToDelete: (bodyVariations, dbVariations) => {
