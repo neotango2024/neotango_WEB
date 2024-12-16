@@ -1,7 +1,6 @@
 import sharp from 'sharp';
-import awsCommands from '../utils/aws/awsCommands.js';
-import ProductFile from '../database/models/ProductFile.js';
-const {putFile} = awsCommands;
+import db from '../database/models/index.js';
+const { ProductFile } = db;
 
 const controller = {
     handleCreateFiles: async (files, productId) => {

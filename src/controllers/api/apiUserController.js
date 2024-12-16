@@ -411,9 +411,3 @@ export async function getUsers() {
   }
 }
 
-export function getMappedErrors(errors){
-  let errorsParams = errors.errors?.map(er=>er.param);
-  let errorsMapped = errors.mapped(); //ahi ya accedo a cada una
-
-  return {errorsParams,errorsMapped}
-}

@@ -1,5 +1,6 @@
-import ProductSizeTacoColorQuantity from '../database/models/ProductSizeTacoColorQuantity.js';
+import db from '../database/models/index.js';
 import { v4 as UUIDV4 } from 'uuid';
+const {ProductSizeTacoColorQuantity} = db;
 
 const controller = {
     findVariationsInDb: async (productId) => {
@@ -26,6 +27,7 @@ const controller = {
                     ...variation
                 })
             });
+            console.log(mappedVariationsWithId)
             ProductSizeTacoColorQuantity.bulkCreate(mappedVariationsWithId);
             return true;
         } catch (error) {

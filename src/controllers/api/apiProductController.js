@@ -5,10 +5,11 @@ import systemMessages from '../../utils/staticDB/systemMessages.js';
 import { v4 as UUIDV4 } from 'uuid';
 import productFileController from '../productFileController.js';
 import productSizeTacoColorQuantityController from '../productSizeTacoColorQuantityController.js';
+import { getMappedErrors } from '../../utils/getMappedErrors.js';
 const {productMsg} = systemMessages;
 const { fetchFailed, notFound, fetchSuccessfull, createFailed, updateFailed, findFilesInDb, createSuccessfull } = productMsg;
 const { handleCreateFiles, deleteFileInDb } = productFileController;
-const {inserVariationsInDb, findVariationsInDb, getVariationsToDelete, deleteVariationInDb} = productSizeTacoColorQuantityController;
+const {insertVariationsInDb, findVariationsInDb, getVariationsToDelete, deleteVariationInDb} = productSizeTacoColorQuantityController;
 
 const controller = {
     handleGetAllProducts: async (req, res) => {
@@ -69,10 +70,12 @@ const controller = {
         try {     
             const errors = validationResult(req);
             if(!errors.isEmpty()){
+                let {errorsParams,errorsMapped} = getMappedErrors(errors);
                 return res.status(404).json({
                     ok: false,
                     msg: createFailed.es,
-                    errors: errors.mapped()
+                    errors: errorsMapped,
+                    params: errorsParams,
                 })
             }
             const body = req.body;
@@ -83,16 +86,16 @@ const controller = {
                     msg: createFailed.es
                 });
             }
-            const images = req.files;
-            const isCreatingImagesSuccessful = await handleCreateFiles(images, productId);
-            if(!isCreatingImagesSuccessful){
-                return res.status(500).json({
-                    ok: false,
-                    msg: createFailed.es
-                });
-            }
+            // const images = req.files;
+            // const isCreatingImagesSuccessful = await handleCreateFiles(images, productId);
+            // if(!isCreatingImagesSuccessful){
+            //     return res.status(500).json({
+            //         ok: false,
+            //         msg: createFailed.es
+            //     });
+            // }
             const { variations } = body;
-            const isCreatingVariationsSuccessful = await inserVariationsInDb(variations, productId);
+            const isCreatingVariationsSuccessful = await insertVariationsInDb(variations, productId);
             if(!isCreatingVariationsSuccessful){
                 return res.status(500).json({
                     ok: false,

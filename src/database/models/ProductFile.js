@@ -1,6 +1,6 @@
 export default (sequelize, dataTypes) => {
 
-    let alias = "File";
+    let alias = "ProductFile";
 
     let cols = {
         id: {

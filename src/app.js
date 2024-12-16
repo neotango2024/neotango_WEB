@@ -9,12 +9,9 @@ import cookieParser from 'cookie-parser';
 import methodOverride from 'method-override';
 import mainRouter from './routes/mainRouter.js';
 import apiUserRouter from './routes/api/apiUserRouter.js';
-<<<<<<< HEAD
 import apiProductRouter from './routes/api/apiProductRouter.js';
-=======
 import apiAddressRouter from './routes/api/apiAddressRouter.js';
 
->>>>>>> 86f6f95408ee59a6d8c31643bc8cfc861c0a4b37
 
 // way to replace __dirname in es modules 
 const __filename = fileURLToPath(import.meta.url);
@@ -43,11 +40,8 @@ app.use(methodOverride('_method'));
 
 // Rutas
 app.use('/api/user',apiUserRouter);
-<<<<<<< HEAD
 app.use('/api/product',apiProductRouter);
-=======
 app.use('/api/address',apiAddressRouter);
->>>>>>> 86f6f95408ee59a6d8c31643bc8cfc861c0a4b37
 app.use('/',mainRouter);
 
 const PORT = process.env.PORT || 3500;

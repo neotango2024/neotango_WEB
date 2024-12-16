@@ -19,31 +19,33 @@ export default {
       .bail(),
     body(["email"]).isEmail().withMessage("Tipo de email invalido").bail(),
     body(["variations"])
-      .notEmpty()
-      .withMessage("Necesita tener al menos una variación")
-      .bail()
       .isArray()
-      .withMessage("Formato incorrecto de variaciones")
       .bail()
       .custom((variationsArray) => {
-        variationsArray.forEach((variation) => {
+        const allValid = variationsArray.every((variation) => {
+    
           const allNecesaryFields =
             typeof variation.size_id === "number" &&
             typeof variation.taco_id === "number" &&
             typeof variation.color_id === "number" &&
             typeof variation.quantity === "number";
-          if (!allNecesaryFields) {
-            throw new Error("Faltan propiedades necesarias en las variaciones");
-          }
+    
+          return allNecesaryFields;
         });
+    
+        if (!allValid) {
+          throw new Error("Faltan propiedades necesarias en las variaciones");
+        }
+    
+        return true; 
       }),
-    body(["images"])
-      .notEmpty()
-      .withMessage("Adjunte al menos una imagen")
-      .bail()
-      .isArray()
-      .withMessage("Formato incorrecto de imagenes")
-      .bail(),
+    // body(["images"])
+    //   .notEmpty()
+    //   .withMessage("Adjunte al menos una imagen")
+    //   .bail()
+    //   .isArray()
+    //   .withMessage("Formato incorrecto de imagenes")
+    //   .bail(),
   ],
   userCreateFields: [
     body(["first_name", "last_name", "email", "password", "rePassword"])
