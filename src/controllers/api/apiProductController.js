@@ -221,16 +221,16 @@ const controller = {
                 msg: updateFailed.en
             })
         }
-        let filesToUpdateInDb = [
-            ...imagesToKeep
-        ];
+        let normalizedFilesToUpdateInDb = imagesToKeep.map(file => ({
+            ...file
+        }));
         if(req.files){
             const files = req.files;
             const { filesFromArray } = body;
             files.forEach(multerFile => {
-                const fileFromFilesArray = filesFromArray.filter(arrFile => arrFile.filename === multerFile.originalname)
+                const fileFromFilesArrayFiltered = filesFromArray.find(arrFile => arrFile.filename === multerFile.originalname)
                 multerFile.file_types_id = getFileType(multerFile);
-                multerFile.main_file = fileFromFilesArray.main_file;
+                multerFile.main_file = fileFromFilesArrayFiltered.main_file;
             });
             const objectToUpload = {
                 files,
@@ -238,10 +238,11 @@ const controller = {
                 sections_id: 2
             }
             const filesToInsertInDb = await uploadFilesToAWS(objectToUpload);
-            filesToUpdateInDb = [
-                ...filesToUpdateInDb,
+            normalizedFilesToUpdateInDb = [
+                ...normalizedFilesToUpdateInDb,
                 ...filesToInsertInDb
             ]
+
             if(!filesToInsertInDb){
                 return res.status(500).json({
                     ok: false,
@@ -250,7 +251,7 @@ const controller = {
             }
             
         }
-        const isInsertingFilesSuccessful = await insertFilesInDb(filesToUpdateInDb, productId);
+        const isInsertingFilesSuccessful = await insertFilesInDb(normalizedFilesToUpdateInDb, productId);
             if(!isInsertingFilesSuccessful){
                 return res.status(500).json({
                     ok: false,
