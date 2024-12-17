@@ -23,7 +23,7 @@ export default (sequelize, dataTypes) => {
     const Variation = sequelize.define(alias, cols, config);
 
     Variation.associate = (models) => {
-        const {Product, Color} = models;
+        const {Product } = models;
         Variation.belongsTo(Product, {
             as: 'product',
             foreignKey: 'product_id'

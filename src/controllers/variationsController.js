@@ -1,6 +1,8 @@
 import db from '../database/models/index.js';
 import { v4 as UUIDV4 } from 'uuid';
 import { normalizeToString } from '../utils/normalizeData.js';
+import tacos from '../utils/staticDB/tacos.js';
+import sizes from '../utils/staticDB/sizes.js';
 const {Variation} = db;
 
 const controller = {
@@ -98,6 +100,21 @@ const controller = {
             console.log(`Error deleting variation in db ${error}`);
             return false;
         }
+    },
+    populateVariations(variations){
+        return variations.map(variation => {
+            const { size_id, taco_id, quantity, product_id } = variation;
+    
+            const sizePopulated = sizes.find(size => size.id === size_id);
+            const tacoPopulated = tacos.find(taco => taco.id === taco_id);
+
+            return {
+                quantity,
+                product_id,
+                taco: tacoPopulated,
+                size: sizePopulated
+            };
+        });
     }
 }
 

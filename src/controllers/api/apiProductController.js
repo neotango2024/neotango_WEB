@@ -8,24 +8,48 @@ import variationsController from '../variationsController.js';
 import { getMappedErrors } from '../../utils/getMappedErrors.js';
 import getFileType from '../../utils/getFileType.js';
 import { destroyFilesFromAWS, uploadFilesToAWS } from '../../utils/awsHandler.js';
+
 const {productMsg} = systemMessages;
 const { fetchFailed, notFound, fetchSuccessfull, createFailed, updateFailed, deleteSuccess, createSuccessfull, deleteFailed } = productMsg;
-const {insertVariationsInDb, findVariationsInDb, getVariationsToDelete, deleteVariationInDb, getVariationsToAdd} = variationsController;
+const { insertVariationsInDb, findVariationsInDb, getVariationsToDelete, deleteVariationInDb, getVariationsToAdd, populateVariations} = variationsController;
 const PRODUCTS_FOLDER_NAME = 'products';
 
 const controller = {
     handleGetAllProducts: async (req, res) => {
         try {
-            const categoryId = req.params.categoryId;
+            const categoryId = req.query.categoryId;
+            const productId = req.query.productId;
             let products;
-            if(categoryId){
-                products = await Product.findAll({
-                    where: {
-                        category_id: categoryId
-                    }
-                });
+            if(productId){
+                const [success, foundProduct] = await findProductInDb(productId);
+                if(success && !foundProduct){
+                    return res.status(404).json({
+                        ok: false,
+                        msg: notFound.es,
+                        data: []
+                    })
+                } else if (!success){
+                    return res.status(500).json({
+                        ok: false,
+                        msg: fetchFailed.es,
+                        data: []
+                    })
+                }
+                foundProduct.variations = populateVariations(foundProduct.variations);
+                products = [foundProduct];
             } else {
-                products = await Product.findAll();
+                const [success, productsFetched] = await findProductsInDb(categoryId);
+                productsFetched.forEach(prod => {
+                    prod.variations = populateVariations(prod.variations);
+                })
+                if (!success){
+                    return res.status(500).json({
+                        ok: false,
+                        msg: fetchFailed.es,
+                        data: []
+                    })
+                }
+                products = productsFetched;
             }
             return res.status(200).json({
                 ok: true,
@@ -33,35 +57,6 @@ const controller = {
             })
         } catch (error) {
             console.log(`error in handleGetAllProducts: ${e}`);
-            return res.status(500).json({
-                ok: false,
-                msg: fetchFailed.en
-            })
-        }
-    },
-    handleGetOneProduct: async (req, res) => {
-        try {
-            const {productId} = req.query;
-            const [isSuccessful, product] = await findProductInDb(productId);
-            if(!product && !isSuccessful){
-                return res.status(500).json({
-                    ok: false,
-                    msg: fetchFailed.en
-                })
-            }
-            if(!product && isSuccessful){
-                return res.status(404).json({
-                    ok: false,
-                    msg: notFound.en
-                })
-            }
-            return res.status(200).json({
-                ok: true,
-                data: product,
-                msg: fetchSuccessfull.en
-            })
-        } catch (error) {
-            console.log(`error in handleGetOneProduct: ${e}`);
             return res.status(500).json({
                 ok: false,
                 msg: fetchFailed.en
@@ -289,10 +284,42 @@ const controller = {
 
 export default controller;
 
+async function findProductsInDb(categoryId) {
+    try {
+        let products;
+        if(categoryId){
+            products = await Product.findAll({
+                where: {
+                    category_id: categoryId
+                },
+                include: [
+                    'files',
+                    'variations'
+                ]
+            });
+        } else {
+            products = await Product.findAll({
+                include: [
+                    'files',
+                    'variations'
+                ]
+            })
+        }
+        return [true, products];
+    } catch (error) {
+        console.log(`error finding products in db: ${error}`);
+        return [false, null]
+    }
+}
 
 async function findProductInDb (productId) {
     try {
-        const product = Product.findByPk(productId);
+        const product = await Product.findByPk(productId, {
+            include: [
+                'files',
+                'variations'
+            ]
+        });
         return [true, product];
     } catch (error) {
         console.log(`Error finding product in db: ${error}`);
