@@ -1,6 +1,6 @@
 import sharp from 'sharp';
 import db from '../database/models/index.js';
-const { ProductFile } = db;
+const { File } = db;
 
 const controller = {
     handleCreateFiles: async (req, res) => {
@@ -31,9 +31,10 @@ const controller = {
 
 export default controller;
 
+
 export async function findFilesInDb(productId)  {
     try {
-        const files = await ProductFile.findAll({
+        const files = await File.findAll({
             where: {
                 product_id: productId
             }
@@ -45,12 +46,11 @@ export async function findFilesInDb(productId)  {
     }
 }
 
-export async function deleteFileInDb(file, productId)  {
+export async function deleteFileInDb(imageId)  {
     try {
-        await ProductFile.destroy({
+        await File.destroy({
             where: {
-                product_id: productId,
-                file
+                id: imageId
             }
         })
         return true;
@@ -60,10 +60,17 @@ export async function deleteFileInDb(file, productId)  {
     }
 }
 
-export async function insertFilesInDb(files) {
+export async function insertFilesInDb(files, productId) {
     try {
-        await ProductFile.bulkCreate(files, {
+        const filesWithProductId = files.map(file => ({
+            ...file,
+            product_id: productId,
+        }));
+        await File.bulkCreate(filesWithProductId, {
             validate: true,
+            updateOnDuplicate: [
+                'main_file'
+            ]
         });
         return true;
     } catch (error) {

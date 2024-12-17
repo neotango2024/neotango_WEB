@@ -47,6 +47,6 @@ app.use('/',mainRouter);
 const PORT = process.env.PORT || 3500;
 
 app.listen(PORT,()=>{
-    console.log(" 🚀 Se levanto proyecto en htpp://localhost:"+PORT)
+    console.log(" 🚀 Se levanto proyecto en puerto "+PORT)
 })
 

@@ -67,6 +67,7 @@ export async function uploadFilesToAWS(object) {
           for (let j = 0; j < imageSizes.length; j++) {
             const imageToUpload = imageSizes[j];
             //  no se necesita tan gde
+            console.log('buffering image...')
             buffer = await sharp(validBuffer)
               .resize(imageToUpload.width, undefined, {
                 fit: "contain",
@@ -81,8 +82,10 @@ export async function uploadFilesToAWS(object) {
               Body: buffer,
               ContentType: "image/webp",
             };
+            console.log('uploading image...')
             command = new PutObjectCommand(params);
-        await s3.send(command);
+            await s3.send(command);
+            console.log('image succesfully uploaded')
           }
         } else{
             const videoExtension = path.extname(multerFile.originalname); // Obtiene ".mp4", ".jpg", etc.
@@ -100,25 +103,29 @@ export async function uploadFilesToAWS(object) {
         }        
       }
       // Si estoy aca entonces lo pusheo en db
+      console.log('multer file handler')
+      console.log(multerFile)
       let fileObject = {
         id: uuidv4(),
         filename: randomName ? randomName : multerFile.filename, //Si no viene randomName es que ya estaba en db
-        main_image: multerFile.mainImage ? 1 : 0,
+        main_file: multerFile.main_file,
         file_types_id: multerFile.file_types_id, //imagen, video
         sections_id: object.sections_id,
       };
-      filesToInsertDB?.push(fileObject);
+      filesToInsertDB?.push(fileObject);   
     }
     return filesToInsertDB;
   } catch (error) {
-    console.log(`Falle en uploadFileToAWS`);
-    return console.log(error);
+    console.log(`Falle en uploadFileToAWS: ${error}`);
+    return null;
   }
 }
 
 //No retorna nada
 export async function destroyFilesFromAWS(object){
+  try {
     let params,command;
+    console.log('iterating over files...')
     for (let i = 0; i < object.files.length; i++) {
         let file = object.files[i];
         if(file.file_types_id == 1){
@@ -132,6 +139,7 @@ export async function destroyFilesFromAWS(object){
                 };
                 command = new DeleteObjectCommand(params);
                 // Hago el delete de la base de datos
+                console.log('deleting photo...')
                 await s3.send(command);
               }
         } else{
@@ -142,11 +150,17 @@ export async function destroyFilesFromAWS(object){
               };
               command = new DeleteObjectCommand(params);
               // Hago el delete de la base de datos
+              console.log('deleting video...')
               await s3.send(command);
         }
         
     }
-    return
+    return true;
+  } catch (error) {
+    console.log(`error destroying files in aws: ${error}`);
+    return false;
+  }
+    
 }
 
 //Retorna los files con sus urls

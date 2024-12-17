@@ -3,15 +3,14 @@ const { Product } = db;
 import { validationResult } from 'express-validator';
 import systemMessages from '../../utils/staticDB/systemMessages.js';
 import { v4 as UUIDV4 } from 'uuid';
-import productFileController, { insertFilesInDb } from '../productFileController.js';
-import productSizeTacoColorQuantityController from '../productSizeTacoColorQuantityController.js';
+import fileController, { insertFilesInDb, findFilesInDb, deleteFileInDb} from '../fileController.js';
+import variationsController from '../variationsController.js';
 import { getMappedErrors } from '../../utils/getMappedErrors.js';
 import getFileType from '../../utils/getFileType.js';
-import { uploadFilesToAWS } from '../../utils/awsHandler.js';
+import { destroyFilesFromAWS, uploadFilesToAWS } from '../../utils/awsHandler.js';
 const {productMsg} = systemMessages;
-const { fetchFailed, notFound, fetchSuccessfull, createFailed, updateFailed, findFilesInDb, createSuccessfull } = productMsg;
-const { handleCreateFiles, deleteFileInDb } = productFileController;
-const {insertVariationsInDb, findVariationsInDb, getVariationsToDelete, deleteVariationInDb} = productSizeTacoColorQuantityController;
+const { fetchFailed, notFound, fetchSuccessfull, createFailed, updateFailed, deleteSuccess, createSuccessfull, deleteFailed } = productMsg;
+const {insertVariationsInDb, findVariationsInDb, getVariationsToDelete, deleteVariationInDb, getVariationsToAdd} = variationsController;
 const PRODUCTS_FOLDER_NAME = 'products';
 
 const controller = {
@@ -82,36 +81,43 @@ const controller = {
                 })
             }
             const body = req.body;
-            const [isCreated, productId] = await insertProductInDb(body);
+            const [isCreated, newProductId] = await insertProductInDb(body);
             if(!isCreated){
                 return res.status(500).json({
                     ok: false,
                     msg: createFailed.es
                 });
-            }
-            // pasar folder al object
+            };
+
+            // vamos a recibir variaciones que contienen size_id, taco_id, quantity
+            const { variations, filesFromArray } = body;
+            const isCreatingVariationsSuccessful = await insertVariationsInDb(variations, newProductId);
+            if(!isCreatingVariationsSuccessful){
+                return res.status(500).json({
+                    ok: false,
+                    msg: createFailed.es
+                });
+            };
             const files = req.files;
-            files.forEach(img => {
-                img.file_types_id = getFileType(img);
-                img.product_id = productId;
-                // agregar main image
-            })
+            files.forEach(multerFile => {
+                const fileFromFilesArrayFiltered = filesFromArray.find(arrFile => arrFile.filename === multerFile.originalname)
+                multerFile.file_types_id = getFileType(multerFile);
+                multerFile.main_file = fileFromFilesArrayFiltered.main_file;
+            });
             const objectToUpload = {
                 files,
                 folderName: PRODUCTS_FOLDER_NAME,
                 sections_id: 2
             }
-            const filesToInsertInDb = await uploadFilesToAWS(images);
-            const isSuccessful = await insertFilesInDb(filesToInsertInDb);
-            if(!isSuccessful){
+            const filesToInsertInDb = await uploadFilesToAWS(objectToUpload);
+            if(!filesToInsertInDb){
                 return res.status(500).json({
                     ok: false,
                     msg: createFailed.es
                 });
             }
-            const { variations } = body;
-            const isCreatingVariationsSuccessful = await insertVariationsInDb(variations, productId);
-            if(!isCreatingVariationsSuccessful){
+            const isInsertingFilesSuccessful = await insertFilesInDb(filesToInsertInDb, newProductId);
+            if(!isInsertingFilesSuccessful){
                 return res.status(500).json({
                     ok: false,
                     msg: createFailed.es
@@ -120,7 +126,7 @@ const controller = {
             return res.status(200).json({
                 ok: true,
                 msg: createSuccessfull.en,
-                data: productId
+                data: newProductId
             })
         } catch (error) {
             console.log(`Error in handleCreateProduct: ${error}`);
@@ -148,35 +154,10 @@ const controller = {
                 msg: updateFailed.en
             })
         }
-        const currentProductImages = await findFilesInDb(productId);
-        const imagesToKeep = req.body.images_to_keep;
-        const imagesToDelete = currentProductImages.filter(img => !imagesToKeep.includes(img.file));
-        const deleteImagesPromises = imagesToDelete.map(async img => {
-            const { file } = img;
-            const deleteResult = await deleteFileInDb(file, productId);
-            return deleteResult;
-        })
-        const results = await Promise.all(deleteImagesPromises);
-        const isAllDeleted = results.every(res => res === true);
-        if(!isAllDeleted){
-            return res.status(500).json({
-                ok: false,
-                msg: updateFailed.en
-            })
-        }
-        if(req.files){
-            const isCreatingImagesSuccessful = await handleCreateFiles(images, productId);
-            if(!isCreatingImagesSuccessful){
-                return res.status(500).json({
-                    ok: false,
-                    msg: createFailed.es
-                });
-            }
-        }
         const variationsInDb = await findVariationsInDb(productId);
         const { variations } = req.body;
-        const variationsToDelete = getVariationsToDelete(variations, variationsInDb);
-        const deleteVariationsPromises = variationsToDelete.forEach(async variationToDelete => {
+        const variationsToDelete = getVariationsToDelete(variations, variationsInDb, productId);
+        const deleteVariationsPromises = variationsToDelete.map(async variationToDelete => {
             const isDeleteSuccessful = await deleteVariationInDb(variationToDelete);
             return isDeleteSuccessful;
         })
@@ -188,53 +169,162 @@ const controller = {
                 msg: createFailed.es
             });
         }
+        const variationsToAdd = getVariationsToAdd(variations, variationsInDb,productId);
+        const isInsertingVariationsSuccessful = await insertVariationsInDb(variationsToAdd, productId);
+        if(!isInsertingVariationsSuccessful){
+            return res.status(500).json({
+                ok: false,
+                msg: updateFailed.es
+            });
+        }
+        const imagesInDb = await findFilesInDb(productId);
+        const imagesToKeep = req.body.current_images;
+        // current_images
+        // [
+            // id: fileid
+            // filename: randomName
+            // main_image: 1
+        //]
+        // filesFromArray
+        // [
+            // filename: filename
+            // main_image: 0 
+        // ]
+        // req.files
+        let imagesToDelete;
+        if(imagesToKeep && imagesToKeep.length > 0){
+            imagesToDelete = imagesInDb.filter(img => !imagesToKeep.includes(img.filename));
+        } else {
+            imagesToDelete = imagesInDb;
+        }
+        const objectToDestroyInAws = {
+            files: imagesToDelete,
+            folderName: PRODUCTS_FOLDER_NAME
+        }
+        const isDeletionInAwsSuccessful = await destroyFilesFromAWS(objectToDestroyInAws);
+        if(!isDeletionInAwsSuccessful){
+            return res.status(500).json({
+                ok: false,
+                msg: updateFailed.es
+            });
+        }
+        const deleteImagesPromises = imagesToDelete.map(async img => {
+            const { id } = img;
+            const deleteResult = await deleteFileInDb(id);
+            return deleteResult;
+        })
+        const results = await Promise.all(deleteImagesPromises);
+        const isAllDeleted = results.every(res => res === true);
+        if(!isAllDeleted){
+            return res.status(500).json({
+                ok: false,
+                msg: updateFailed.en
+            })
+        }
+        let filesToUpdateInDb = [
+            ...imagesToKeep
+        ];
+        if(req.files){
+            const files = req.files;
+            const { filesFromArray } = body;
+            files.forEach(multerFile => {
+                const fileFromFilesArray = filesFromArray.filter(arrFile => arrFile.filename === multerFile.originalname)
+                multerFile.file_types_id = getFileType(multerFile);
+                multerFile.main_file = fileFromFilesArray.main_file;
+            });
+            const objectToUpload = {
+                files,
+                folderName: PRODUCTS_FOLDER_NAME,
+                sections_id: 2
+            }
+            const filesToInsertInDb = await uploadFilesToAWS(objectToUpload);
+            filesToUpdateInDb = [
+                ...filesToUpdateInDb,
+                ...filesToInsertInDb
+            ]
+            if(!filesToInsertInDb){
+                return res.status(500).json({
+                    ok: false,
+                    msg: createFailed.es
+                });
+            }
+            
+        }
+        const isInsertingFilesSuccessful = await insertFilesInDb(filesToUpdateInDb, productId);
+            if(!isInsertingFilesSuccessful){
+                return res.status(500).json({
+                    ok: false,
+                    msg: createFailed.es
+                });
+            }
         return res.status(200).json({
             ok: true,
-            msg: createSuccessfull.es
         })
     },
-    findProductInDb: async (productId) => {
+    handleDeleteProduct: async (req, res) => {
         try {
-            const product = Product.findByPk(productId);
-            return [true, product];
+            const { productId } = productId;
+            const isDeletedSuccessfully = await deleteProductInDb(productId);
+            if(!isDeletedSuccessfully){
+                return res.status(500).json({
+                    ok: false,
+                    msg: deleteFailed.es
+                })
+            }
+            return res.status(200).json({
+                ok: true,
+                msg: deleteSuccess.es,
+                data: productId
+            })
         } catch (error) {
-            console.log(`Error finding product in db: ${error}`);
-            return [false, null];
+            console.log(`Error handling product deletion: ${error}`);
+            return res.status(500).json({
+                ok: false,
+                msg: deleteFailed.es
+            })
         }
     },
-    updateProductInDb: async (body, productId) => {
-        try {
-            await Product.update(body, {
-                where: {
-                    id: productId
-                }
-            })
-            return true;
-        } catch (error) {
-            console.log(`Error updating product in db ${error}`);
-            return false;
-        }
-    }
 };
+
+export default controller;
+
+
+async function findProductInDb (productId) {
+    try {
+        const product = Product.findByPk(productId);
+        return [true, product];
+    } catch (error) {
+        console.log(`Error finding product in db: ${error}`);
+        return [false, null];
+    }
+}
+
+async function deleteProductInDb (productId) {
+    try {
+        await Product.destroy({
+            where: {
+                product_id: productId
+            }
+        })
+        return productId;
+    } catch (error) {
+        console.log(`error deleting product in db: ${error}`);
+        return null;
+    }
+}  
 
 async function insertProductInDb (body) {
     try {
-        const { name, english_description, spanish_description, ars_price, usd_price, sku, category_id } = body;
         const newProductId = UUIDV4();
         const newProduct = {
             id: newProductId,
-            name,
-            english_description,
-            spanish_description,
-            ars_price,
-            usd_price,
-            sku,
-            category_id,
-            created_at: Date.now(),
+            ...body,
+            created_at: Date.now(), //TODO: ver si funciona sin esto
             updated_at: Date.now(),
             deleted_at: null
         };
         await Product.create(newProduct);
+
         return [true, newProductId];
     } catch (error) {
         console.log(`Error in insertProductInDb: ${error}`);
@@ -242,4 +332,16 @@ async function insertProductInDb (body) {
     }
 }
 
-export default controller;
+async function updateProductInDb(body, productId){
+    try {
+        await Product.update(body, {
+            where: {
+                id: productId
+            }
+        })
+        return true;
+    } catch (error) {
+        console.log(`error updating product in db: ${error}`);
+        return false;
+    }
+}

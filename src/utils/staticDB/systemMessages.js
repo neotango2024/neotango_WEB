@@ -89,6 +89,14 @@ export default {
         updateFailed: {
             en: 'There was an error updating the product, try again later',
             es: 'Hubo un problema al actualizar el producto, intenta nuevamente!'
+        },
+        deleteSuccess: {
+            es: 'Product eliminado satisfactoriamente',
+            en: 'Product successfully deleted'
+        },
+        deleteFailed: {
+            es: 'Hubo un problema al eliminar el producto, intente nuevamente',
+            en: 'There was a problem deleting the product, try again later'
         }
     }
     

@@ -1,6 +1,6 @@
 export default (sequelize, dataTypes) => {
 
-    let alias = "ProductSizeTacoColorQuantity";
+    let alias = "Variation";
 
     let cols = {
         id: {
@@ -11,28 +11,24 @@ export default (sequelize, dataTypes) => {
         product_id: { type: dataTypes.STRING(36) },
         taco_id: { type: dataTypes.INTEGER },
         size_id: { type: dataTypes.INTEGER },
-        color_id: { type: dataTypes.INTEGER },
+        // color_id: { type: dataTypes.INTEGER },
         quantity: { type: dataTypes.INTEGER },
     }
 
     let config = {
-        tableName: 'products_sizes_tacos_colors_quantity',
+        tableName: 'variations',
         timestamps: false
     }
 
-    const ProductSizeTacoQuantity = sequelize.define(alias, cols, config);
+    const Variation = sequelize.define(alias, cols, config);
 
-    ProductSizeTacoQuantity.associate = (models) => {
+    Variation.associate = (models) => {
         const {Product, Color} = models;
-        ProductSizeTacoQuantity.belongsTo(Product, {
+        Variation.belongsTo(Product, {
             as: 'product',
             foreignKey: 'product_id'
         })
-        ProductSizeTacoQuantity.belongsTo(Color, {
-            as: 'color',
-            foreignKey: 'color_id'
-        })
     };
 
-    return ProductSizeTacoQuantity;
+    return Variation;
 }

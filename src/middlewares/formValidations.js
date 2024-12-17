@@ -6,7 +6,8 @@ import countries from "../utils/staticDB/countries.js";
 export default {
   productFields: [
     body([
-      "name",
+      "es_name",
+      "eng_name",
       "ars_price",
       "usd_price",
       "english_description",
@@ -27,7 +28,7 @@ export default {
           const allNecesaryFields =
             typeof variation.size_id === "number" &&
             typeof variation.taco_id === "number" &&
-            typeof variation.color_id === "number" &&
+            // typeof variation.color_id === "number" &&
             typeof variation.quantity === "number";
     
           return allNecesaryFields;
@@ -65,11 +66,14 @@ export default {
       .isEmail()
       .withMessage("Tipo de email invalido")
       .bail()
-      .custom(async (value, { req }) => {
+      .custom(async (value, { req }) => { //TODO:
         //No puede ingresar un email que ya esta
         let userEmail = value?.toLowerCase();
         let emailInDataBase = await db.User.findOne({
-          where: { email: userEmail?.trim() },
+          where: { 
+            email: userEmail?.trim(),
+            verified_email: 1
+          },
         });
         if (emailInDataBase) {
           throw new Error("Email ya registrado, ingrese otro");
