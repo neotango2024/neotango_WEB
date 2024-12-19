@@ -14,12 +14,12 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 // UTILS
 import systemMessages from "../../utils/staticDB/systemMessages.js";
-import capitalizeFirstLetterOfEachWord from "../../utils/capitalizeFirstLetterOfString.js";
-import getDeepCopy from "../../utils/getDeepCopy.js";
+import capitalizeFirstLetterOfEachWord from "../../utils/helpers/capitalizeFirstLetterOfString.js";
+import getDeepCopy from "../../utils/helpers/getDeepCopy.js";
 
 import countries from "../../utils/staticDB/countries.js";
 import { getUserByPK } from "./apiUserController.js";
-import { getMappedErrors } from "../../utils/getMappedErrors.js";
+import { getMappedErrors } from "../../utils/helpers/getMappedErrors.js";
 
 // ENV
 

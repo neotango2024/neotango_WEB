@@ -1,8 +1,7 @@
 import db from '../database/models/index.js';
 import { v4 as UUIDV4 } from 'uuid';
-import { normalizeToString } from '../utils/normalizeData.js';
-import tacos from '../utils/staticDB/tacos.js';
-import sizes from '../utils/staticDB/sizes.js';
+import { normalizeToString } from '../utils/helpers/normalizeData.js';
+import { populateSize, populateTaco } from '../utils/helpers/populateStaticDb.js';
 const {Variation} = db;
 
 const controller = {
@@ -105,8 +104,8 @@ const controller = {
         return variations.map(variation => {
             const { size_id, taco_id, quantity, product_id } = variation;
     
-            const sizePopulated = sizes.find(size => size.id === size_id);
-            const tacoPopulated = tacos.find(taco => taco.id === taco_id);
+            const tacoPopulated = populateTaco(taco_id);
+            const sizePopulated = populateSize(size_id);
 
             return {
                 quantity,

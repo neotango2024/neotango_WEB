@@ -1,5 +1,5 @@
 // import nodemailer from 'nodemailer';
-import emailConfig from './staticDB/mailConfig.js';
+import emailConfig from '../staticDB/mailConfig.js';
 
 async function sendVerificationCodeMail(code,userEmail) {
     code = code.split('');//Lo armo array

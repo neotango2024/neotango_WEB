@@ -14,16 +14,16 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 // UTILS
 import systemMessages from "../../utils/staticDB/systemMessages.js";
-import generateRandomCodeWithExpiration from "../../utils/generateRandomCodeWithExpiration.js";
-import capitalizeFirstLetterOfEachWord from "../../utils/capitalizeFirstLetterOfString.js";
-import getDeepCopy from "../../utils/getDeepCopy.js";
+import generateRandomCodeWithExpiration from "../../utils/helpers/generateRandomCodeWithExpiration.js";
+import capitalizeFirstLetterOfEachWord from "../../utils/helpers/capitalizeFirstLetterOfString.js";
+import getDeepCopy from "../../utils/helpers/getDeepCopy.js";
 
 import countries from "../../utils/staticDB/countries.js";
-import sendVerificationCodeMail from "../../utils/sendverificationCodeMail.js";
+import sendVerificationCodeMail from "../../utils/helpers/sendverificationCodeMail.js";
 import ordersStatuses from "../../utils/staticDB/ordersStatuses.js";
 import { getUserAddressesFromDB } from "./apiAddressController.js";
-import getFileType from "../../utils/getFileType.js";
-import { destroyFilesFromAWS, getFilesFromAWS, uploadFilesToAWS } from "../../utils/awsHandler.js";
+import getFileType from "../../utils/helpers/getFileType.js";
+import { destroyFilesFromAWS, getFilesFromAWS, uploadFilesToAWS } from "../../utils/helpers/awsHandler.js";
 
 // ENV
 const webTokenSecret = process.env.JSONWEBTOKEN_SECRET;

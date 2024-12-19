@@ -12,8 +12,8 @@ export default (sequelize, dataTypes) => {
         quantity: { type: dataTypes.INTEGER },
         taco_id: { type: dataTypes.INTEGER },
         size_id: { type: dataTypes.INTEGER },
-        category_id: { type: dataTypes.INTEGER },
-        created_at: { type: dataTypes.DATE }
+        created_at: { type: dataTypes.DATE },
+        user_id: { type: dataTypes.INTEGER },
     }
 
     let config = {
@@ -24,10 +24,14 @@ export default (sequelize, dataTypes) => {
     const TempCartItem = sequelize.define(alias, cols, config);
 
     TempCartItem.associate = (models) => {
-        const {Product} = models;
+        const {Product, User} = models;
         TempCartItem.belongsTo(Product, {
             as: 'product',
             foreignKey: 'product_id'
+        })
+        TempCartItem.belongsTo(User, {
+            as: 'user',
+            foreignKey: 'user_id'
         })
     };
 

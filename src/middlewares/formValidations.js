@@ -1,6 +1,6 @@
 import { body } from "express-validator";
-import validatePasswordString from "../utils/validatePasswordString.js";
-import isJson from "../utils/isJson.js";
+import validatePasswordString from "../utils/helpers/validatePasswordString.js";
+import isJson from "../utils/helpers/isJson.js";
 import db from "../database/models/index.js";
 import countries from "../utils/staticDB/countries.js";
 export default {

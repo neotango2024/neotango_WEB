@@ -2,7 +2,7 @@
 
 const controller = {
     index: (req,res)=>{
-        return res.render('index', {navbarLinks: NAVBAR_PAGES_LINK, shopCategories: SHOP_CATEGORIES_DROPDOWN, languages: LANGUAGES})
+        return res.render('index')
     }
 };
 

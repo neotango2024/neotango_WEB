@@ -28,11 +28,7 @@ export default (sequelize, dataTypes) => {
     const Order = sequelize.define(alias, cols, config);
 
     Order.associate = (models) => {
-        const { Cart, User, Address, PhoneNumber } = models;
-        Order.belongsTo(Cart, {
-            as: 'cart',
-            foreignKey: 'cart_id'
-        })
+        const {  User, Address, PhoneNumber } = models;
         Order.belongsTo(PhoneNumber, {
             as: 'phone',
             foreignKey: 'phone_id'

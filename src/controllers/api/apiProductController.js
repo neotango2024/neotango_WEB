@@ -5,9 +5,9 @@ import systemMessages from '../../utils/staticDB/systemMessages.js';
 import { v4 as UUIDV4 } from 'uuid';
 import fileController, { insertFilesInDb, findFilesInDb, deleteFileInDb} from '../fileController.js';
 import variationsController from '../variationsController.js';
-import { getMappedErrors } from '../../utils/getMappedErrors.js';
-import getFileType from '../../utils/getFileType.js';
-import { destroyFilesFromAWS, uploadFilesToAWS } from '../../utils/awsHandler.js';
+import { getMappedErrors } from '../../utils/helpers/getMappedErrors.js';
+import getFileType from '../../utils/helpers/getFileType.js';
+import { destroyFilesFromAWS, uploadFilesToAWS } from '../../utils/helpers/awsHandler.js';
 
 const {productMsg} = systemMessages;
 const { fetchFailed, notFound, fetchSuccessfull, createFailed, updateFailed, deleteSuccess, createSuccessfull, deleteFailed } = productMsg;
@@ -140,7 +140,7 @@ const controller = {
                 errors: errors.mapped()
             })
         }
-        const productId = req.query.productId;
+        const productId = req.params.productId;
         const body = req.body;
         const isUpdateSuccessful = await updateProductInDb(body, productId);
         if(!isUpdateSuccessful){
@@ -259,7 +259,13 @@ const controller = {
     },
     handleDeleteProduct: async (req, res) => {
         try {
-            const { productId } = productId;
+            const productId = req.params.productId;
+            if(!productId){
+                return res.status(500).json({
+                    ok: false,
+                    msg: deleteFailed.es
+                })
+            }
             const isDeletedSuccessfully = await deleteProductInDb(productId);
             if(!isDeletedSuccessfully){
                 return res.status(500).json({
@@ -312,7 +318,7 @@ async function findProductsInDb(categoryId) {
     }
 }
 
-async function findProductInDb (productId) {
+export async function findProductInDb (productId) {
     try {
         const product = await Product.findByPk(productId, {
             include: [
@@ -329,12 +335,12 @@ async function findProductInDb (productId) {
 
 async function deleteProductInDb (productId) {
     try {
-        await Product.destroy({
+        const rowsAffected = await Product.destroy({
             where: {
                 product_id: productId
             }
         })
-        return productId;
+        return rowsAffected > 0;
     } catch (error) {
         console.log(`error deleting product in db: ${error}`);
         return null;

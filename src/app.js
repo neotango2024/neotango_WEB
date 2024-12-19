@@ -11,6 +11,7 @@ import mainRouter from './routes/mainRouter.js';
 import apiUserRouter from './routes/api/apiUserRouter.js';
 import apiProductRouter from './routes/api/apiProductRouter.js';
 import apiAddressRouter from './routes/api/apiAddressRouter.js';
+import apiCartRouter from './routes/api/apiCartRouter.js'
 
 
 // way to replace __dirname in es modules 
@@ -42,6 +43,7 @@ app.use(methodOverride('_method'));
 app.use('/api/user',apiUserRouter);
 app.use('/api/product',apiProductRouter);
 app.use('/api/address',apiAddressRouter);
+app.use('/api/cart', apiCartRouter)
 app.use('/',mainRouter);
 
 const PORT = process.env.PORT || 3500;
