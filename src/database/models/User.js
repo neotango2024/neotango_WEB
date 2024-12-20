@@ -29,13 +29,17 @@ export default (sequelize, dataTypes) => {
     const User = sequelize.define(alias, cols, config);
 
     User.associate = (models) => {
-        const {TempCartItem, Order} = models;
+        const {TempCartItem, Order, PhoneNumber} = models;
         User.hasMany(TempCartItem, {
             as: 'tempCartItems',
             foreignKey: 'user_id'
         });
         User.hasMany(Order, {
             as: 'orders',
+            foreignKey: 'user_id'
+        });
+        User.hasMany(PhoneNumber, {
+            as: 'phones',
             foreignKey: 'user_id'
         });
     };

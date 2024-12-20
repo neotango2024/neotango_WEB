@@ -98,6 +98,12 @@ export default {
             es: 'Hubo un problema al eliminar el producto, intente nuevamente',
             en: 'There was a problem deleting the product, try again later'
         }
+    },
+    orderMsg: {
+        create: {
+            es: "¡Orden creada exitosamente!",
+            en: "Order succesfully created!"
+        }
     }
     
 }

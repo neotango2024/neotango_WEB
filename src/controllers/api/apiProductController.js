@@ -8,6 +8,9 @@ import variationsController from '../variationsController.js';
 import { getMappedErrors } from '../../utils/helpers/getMappedErrors.js';
 import getFileType from '../../utils/helpers/getFileType.js';
 import { destroyFilesFromAWS, uploadFilesToAWS } from '../../utils/helpers/awsHandler.js';
+import getDeepCopy from '../../utils/helpers/getDeepCopy.js';
+import tacos from '../../utils/staticDB/tacos.js';
+import sizes from '../../utils/staticDB/sizes.js';
 
 const {productMsg} = systemMessages;
 const { fetchFailed, notFound, fetchSuccessfull, createFailed, updateFailed, deleteSuccess, createSuccessfull, deleteFailed } = productMsg;
@@ -290,7 +293,7 @@ const controller = {
 
 export default controller;
 
-async function findProductsInDb(categoryId) {
+export async function findProductsInDb(categoryId) {
     try {
         let products;
         if(categoryId){
@@ -378,4 +381,56 @@ async function updateProductInDb(body, productId){
         console.log(`error updating product in db: ${error}`);
         return false;
     }
+}
+
+export async function getVariationsFromDB(id) {
+    try {
+        let includeObj = {
+          include: [
+          "product"
+        ],
+      }
+        // Condición si id es un string
+        if (typeof id === "string") {
+          let variationToReturn = await db.Variation.findByPk(id,includeObj);
+          if(!variationToReturn)return null
+          variationToReturn = variationToReturn && getDeepCopy(variationToReturn);
+          //Aca le agrego los tacos y eso
+          setVariationObjToReturn(variationToReturn)
+          return variationToReturn;
+        }
+        // Condición si id es un array
+        if (Array.isArray(id)) {
+          let variationsToReturn = await db.Variation.findAll({
+            where: {
+              id: id, // id es un array, se hace un WHERE id IN (id)
+            },
+            includeObj,
+          });
+          if(!variationsToReturn.length)return null
+          variationsToReturn = getDeepCopy(variationsToReturn);
+          //Aca le agrego los tacos y eso
+          variationsToReturn.forEach(variation => setVariationObjToReturn(variation));
+          return variationsToReturn;
+        }
+    
+        // Condición si id es undefined
+        if (id === undefined) {
+          let variationsToReturn = await db.Variation.findAll(includeObj);
+          if(!variationsToReturn.length)return null
+          variationsToReturn = getDeepCopy(variationsToReturn);
+          //Aca le agrego los tacos y eso
+          variationsToReturn.forEach(variation => setVariationObjToReturn(variation));
+          return variationsToReturn;
+        }
+      } catch (error) {
+        console.log("Falle en getVariationsFromDB");
+        console.error(error);
+        return null;
+      }
+}
+
+function setVariationObjToReturn(variation){
+    variation.taco = tacos.find(taco=>taco.id == variation.taco_id)
+    variation.size = sizes.find(size=>size.id == variation.size_id)
 }

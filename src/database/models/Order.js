@@ -8,14 +8,35 @@ export default (sequelize, dataTypes) => {
             primaryKey: true,
             allowNull: false,
         },
-        cart_id: { type: dataTypes.STRING(36) },
-        user_id: { type: dataTypes.STRING(36) },
-        phone_id: { type: dataTypes.STRING(36) },
         tra_id: { type: dataTypes.STRING(15) },
+        user_id: { type: dataTypes.STRING(36) },
+        first_name: { type: dataTypes.STRING(150) },
+        last_name: { type: dataTypes.STRING(150) },
+        email: { type: dataTypes.STRING(150) },
+        dni: { type: dataTypes.STRING(40) },
+        total: { type: dataTypes.DECIMAL(10,2) },
         order_status_id: { type: dataTypes.INTEGER },
-        total: { type: dataTypes.DECIMAL },
-        billing_address_id: { type: dataTypes.STRING(36) },
-        shipping_address_id: { type: dataTypes.STRING(36) }
+        shipping_types_id: { type: dataTypes.INTEGER },
+        payment_types_id: { type: dataTypes.INTEGER },
+        //Billing Address Snapshot
+        billing_address_street: { type: dataTypes.STRING(200) },
+        billing_address_detail: { type: dataTypes.STRING(200) },
+        billing_address_city: { type: dataTypes.STRING(200) },
+        billing_address_province: { type: dataTypes.STRING(200) },
+        billing_address_zip_code: { type: dataTypes.STRING(200) },
+        billing_address_label: { type: dataTypes.STRING(200) },
+        billing_address_country_name: { type: dataTypes.STRING(200) },
+        //Shipping Address Snapshot
+        shipping_address_street: { type: dataTypes.STRING(200) },
+        shipping_address_detail: { type: dataTypes.STRING(200) },
+        shipping_address_city: { type: dataTypes.STRING(200) },
+        shipping_address_province: { type: dataTypes.STRING(200) },
+        shipping_address_zip_code: { type: dataTypes.STRING(200) },
+        shipping_address_label: { type: dataTypes.STRING(200) },
+        shipping_address_country_name: { type: dataTypes.STRING(200) },
+        //Phone Snapshot
+        phone_code: { type: dataTypes.STRING(50) },
+        phone_number: { type: dataTypes.STRING(100) },
     }
 
     let config = {
@@ -28,23 +49,15 @@ export default (sequelize, dataTypes) => {
     const Order = sequelize.define(alias, cols, config);
 
     Order.associate = (models) => {
-        const {  User, Address, PhoneNumber } = models;
-        Order.belongsTo(PhoneNumber, {
-            as: 'phone',
-            foreignKey: 'phone_id'
-        })
+        const {  User, Address, PhoneNumber, OrderItem } = models;
         Order.belongsTo(User, {
             as: 'user',
             foreignKey: 'user_id'
-        })
-        Order.belongsTo(Address, {
-            as: 'billingAddress',
-            foreignKey: 'billing_address_id'
-        })
-        Order.belongsTo(Address, {
-            as: 'shippingAddress',
-            foreignKey: 'shipping_address_id'
-        })
+        });
+        Order.hasMany(OrderItem,{
+            as:'orderItems',
+            foreignKey:'orders_id'
+        });
     };
 
     return Order;

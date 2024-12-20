@@ -43,31 +43,10 @@ const controller = {
             msg: systemMessages.formMsg.validationError.es
         });
       }
-
-      // Datos del body
-      let { user_id, street, label, detail, zip_code, city, province, country_id, first_name, last_name } = req.body;
+      let addressObjToDB = generateAddressObject(req.body);
       
-      // return console.log(bcrypt.hashSync('admin123', 10));
+      let createdAddress = await insertAddressToDB(addressObjToDB);
       
-      //Nombres y apellidos van capitalziados
-      first_name = capitalizeFirstLetterOfEachWord(first_name, true);
-      last_name = capitalizeFirstLetterOfEachWord(last_name, true);
-
-      let dataToDB = {
-        id: uuidv4(),
-        user_id,
-        street,
-        label,
-        detail: detail || null,
-        zip_code,
-        city,
-        province,
-        country_id,
-        first_name,
-        last_name,
-      };
-      
-      let createdAddress = await insertAddressToDB(dataToDB);
       if(!createdAddress)
       return res.status(502).json();
       
@@ -229,4 +208,30 @@ export async function getUserAddressesFromDB(id) {
     console.log(error);
     return undefined
   }
+}
+
+export function generateAddressObject(address) {
+  // objeto para armar la address
+  let { user_id, street, label, detail, zip_code, city, province, country_id, first_name, last_name } = address;
+        
+  // return console.log(bcrypt.hashSync('admin123', 10));
+
+  //Nombres y apellidos van capitalziados
+  first_name = capitalizeFirstLetterOfEachWord(first_name, true);
+  last_name = capitalizeFirstLetterOfEachWord(last_name, true);
+
+  let dataToDB = {
+    id: uuidv4(),
+    user_id,
+    street,
+    label,
+    detail: detail || null,
+    zip_code,
+    city,
+    province,
+    country_id,
+    first_name,
+    last_name,
+  };
+  return dataToDB
 }

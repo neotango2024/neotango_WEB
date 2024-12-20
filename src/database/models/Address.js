@@ -30,15 +30,7 @@ export default (sequelize, dataTypes) => {
     const Address = sequelize.define(alias, cols, config);
 
     Address.associate = (models) => {
-        const {Order, User} = models;
-        Address.hasMany(Order, {
-            as: 'billingOrders',
-            foreignKey: 'billing_address_id'
-        })
-        Address.hasMany(Order, {
-            as: 'shippingOrders',
-            foreignKey: 'shipping_address_id'
-        })
+        const {User} = models;
         Address.belongsTo(User, {
             as: 'user',
             foreignKey: 'user_id'
