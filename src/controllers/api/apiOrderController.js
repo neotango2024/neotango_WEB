@@ -14,8 +14,6 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 // UTILS
 import systemMessages from "../../utils/staticDB/systemMessages.js";
-import generateRandomCodeWithExpiration from "../../utils/helpers/generateRandomCodeWithExpiration.js";
-import capitalizeFirstLetterOfEachWord from "../../utils/helpers/capitalizeFirstLetterOfString.js";
 import getDeepCopy from "../../utils/helpers/getDeepCopy.js";
 
 import countries from "../../utils/staticDB/countries.js";
@@ -26,11 +24,39 @@ import getFileType from "../../utils/helpers/getFileType.js";
 import { destroyFilesFromAWS, getFilesFromAWS, uploadFilesToAWS } from "../../utils/helpers/awsHandler.js";
 import { findProductsInDb, getVariationsFromDB } from "./apiProductController.js";
 import generateRandomNumber from "../../utils/helpers/generateRandomNumber.js";
+import { generatePhoneObject, insertPhoneToDB } from "./apiPhoneController.js";
 
 // ENV
 const webTokenSecret = process.env.JSONWEBTOKEN_SECRET;
 
 const controller = {
+  getOrders: async (req, res) => {
+    try {
+      let {limit, offset} = req.query
+      limit = limit && parseInt(limit) || undefined;
+      offset = limit && parseInt(req.query.offset) || 0;
+      let ordersFromDB = await getOrdersFromDB({
+        orderIncludeArray,
+        limit, 
+        offset
+      });
+
+      // Mando la respuesta
+      return res.status(201).json({
+        meta: {
+          status: 201,
+          path: "/api/order/",
+          method: "GET"
+        },
+        ok: true,
+        orders: ordersFromDB,
+      });
+    } catch (error) {
+      console.log(`Falle en apiOrderController.getOrders`);
+      console.log(error);
+      return res.status(500).json({ error });
+    }
+  },
   createOrder: async (req, res) => {
     try {
       // Traigo errores
@@ -64,29 +90,28 @@ const controller = {
         shippingAddress,
         payment_types_id,
         shipping_types_id,
+        user_logged_id, //TODO: Ver como hacer esto
+        variationsFromDB, //Del middleware
         } = req.body
-      // veo las direcciones primero que todo
-      if(!billingAddress.id){
-          let billingAddressObjToDB = generateAddressObject(billingAddress);
-          if(user_id) billingAddressObjToDB.user_id = user_id; //Si hay usuario lo agrego a esta
-        let createdAddress = await insertAddressToDB(billingAddressObjToDB);
-        if(!createdAddress) return res.status(502).json();
-        billingAddress.id = billingAddressObjToDB.id; //lo dejo seteado asi despues puedo acceder
+      // Si esta logueado y no tenia los nros y direcciones armadas...
+      if(!billingAddress.id && user_id){ 
+          let billingAddressObjToDB = generateAddressObject(billingAddress);    
+          billingAddressObjToDB.user_id = user_id; //Si hay usuario loggeado lo agrego a esta
+          let createdAddress = await insertAddressToDB(billingAddressObjToDB);
+          if(!createdAddress) return res.status(502).json();
+          billingAddress.id = billingAddressObjToDB.id; //lo dejo seteado asi despues puedo acceder
       }
-      if(!shippingAddress.id){
+      if(!shippingAddress.id && user_id){ 
           let shippingAddressObjToDB = generateAddressObject(shippingAddress);
-          if(user_id) shippingAddressObjToDB.user_id = user_id; //Si hay usuario lo agrego a esta
-        let createdAddress = await insertAddressToDB(shippingAddressObjToDB);
-        if(!createdAddress) return res.status(502).json();
-        shippingAddress.id = shippingAddressObjToDB.id; //lo dejo seteado asi despues puedo acceder
+          shippingAddressObjToDB.user_id = user_id; //Si hay usuario lo agrego a esta
+          let createdAddress = await insertAddressToDB(shippingAddressObjToDB);
+          if(!createdAddress) return res.status(502).json();
+          shippingAddress.id = shippingAddressObjToDB.id; //lo dejo seteado asi despues puedo acceder     
       }
-      if(!phoneObj.id){
-        //TODO: Hacer entidad phone y armar como hice con address
-        let phoneObjToDB = {
-            id: uuidv4(),
-            phone_number: phoneObj.phone_number,
-            country_id: phoneObj.country_id
-        };
+      if(!phoneObj.id && user_id){
+        let phoneObjToDB = generatePhoneObject({...phoneObjToDB, user_id});
+        let createdPhone = await insertPhoneToDB(phoneObjToDB);
+        if(!createdPhone) return res.status(502).json(); 
         if(user_id) phoneObjToDB.user_id = user_id; //Si hay usuario lo agrego a esta
 
       }
@@ -100,7 +125,7 @@ const controller = {
         last_name,
         email,
         dni,
-        phoneObj,
+        phoneObj, //{}
         billingAddress,
         shippingAddress,
         order_status_id: shipping_types_id == 1 ? 2 : 3,//Si es con shipping una vez la compran queda "pendiente de envio", sino queda pendiente de recoleccion
@@ -110,22 +135,15 @@ const controller = {
       createOrderEntitiesSnapshot(orderDataToDB); //Funcion que saca "foto" de las entidades
       // armo los orderItems
       let orderItemsToDB = [];
-      let stockItems = [];
-      let variationIdsToGet = variations.map(variation=>variation.variation_id); //Array de ids
-      let variationsFromDB = await getVariationsFromDB(variationIdsToGet);//Obtengo de db las variaciones
-      let insufficientStock = false;
       variations.forEach((variation) => {
         // Agarro el producto de DB
         let variationFromDBIndex = variationsFromDB.findIndex(variationFromDB=> variationFromDB.id == variation);
-        if(variationFromDBIndex < 0)return; //Si no viene no sigo (al pedo)
         let variationFromDB = variationFromDB[variationFromDBIndex];
         let { quantityRequested } = variation; //Tengo que chequear con esa variacion
         quantityRequested = parseInt(quantityRequested); //Lo parseo
-        if(quantityRequested > variationFromDB.quantity) insufficientStock = true; //Dejo la flag seteada
         //Aca paso el chequeo de stock ==> lo resto al stock que tenia
         variationFromDB.quantity -= quantityRequested; //Le resto el stock
         //Hago el snapshot del  precio y nombre
-        
         let orderItemName = variationFromDB.product?.name;
         let orderItemPrice = variationFromDB.product?.price && parseFloat(variationFromDB.product.price);
         let orderItemQuantity = parseInt(quantityRequested);
@@ -136,7 +154,8 @@ const controller = {
             product_id: variationFromDB.product_id,
             name: orderItemName,
             price: orderItemPrice,
-            quantity: orderItemQuantity
+            quantity: orderItemQuantity,
+            discount: 0, //Si hace el upgrade va a poder setear esto
         }
         orderItemsToDB.push(orderItemData);
       });
@@ -162,7 +181,7 @@ const controller = {
           orderItems: orderItemsToDB,
         },
         {
-          include: ["orderItems"], //TODO: crear tabla orderITEMS
+          include: ["orderItems"],
         }
       );
       //Si la orden se creo ok, hago el bulkupdate de las variations
@@ -170,9 +189,15 @@ const controller = {
         updateOnDuplicate: ['quantity']
       });
       orderCreated = await getOrderByPK(orderCreated.id);
-      //Borro el carro de db TODO:
-      // Si paga con tarjetas
-    //   await sendOrderMails(orderCreated); //TODO:
+      // Borro los temp items si es que viene usuario loggeado 
+      if(user_id){
+        await db.TempCartItem.destroy({
+          where: {
+            user_id
+          }
+        })
+      }
+      // await sendOrderMails(orderCreated); //TODO:
       // Mando la respuesta
       return res.status(200).json({
         meta: {
@@ -193,46 +218,42 @@ const controller = {
   updateOrder: async (req, res) => {
     try {
       // Traigo errores
-      // let errors = validationResult(req);
+      let errors = validationResult(req);
 
-      // if (!errors.isEmpty()) {
-      //   //Si hay errores en el back...
-      //   errors = errors.mapped();
+      if (!errors.isEmpty()) {
+        //Si hay errores en el back...
+        errors = errors.mapped();
 
-      //   // Ver como definir los errors
-      //   // return res.send(errors)
-      //   return res.status(422).json({
-      //       meta: {
-      //           status: 422,
-      //           url: '/api/user',
-      //           method: "POST"
-      //       },
-      //       ok: false,
-      //       errors,
-      //       msg: systemMessages.formMsg.validationError.es
-      //   });
-      // }
+        // Ver como definir los errors
+        // return res.send(errors)
+        return res.status(422).json({
+            meta: {
+                status: 422,
+                url: '/api/user',
+                method: "POST"
+            },
+            ok: false,
+            errors,
+            msg: systemMessages.formMsg.validationError.es
+        });
+      }
 
       // Datos del body
-      let { user_id, first_name, last_name, gender_id } = req.body;
+      let { order_id, order_status_id } = req.body;
 
-      let userFromDB = await getUserByPK(user_id);
-      if (!userFromDB)
+      let orderFromDB = await getOrderByPK(order_id);
+      if (!orderFromDB)
         return res
           .status(404)
-          .json({ ok: false, msg: systemMessages.userMsg.updateFailed.es });
-      //Nombres y apellidos van capitalziados
-      first_name = capitalizeFirstLetterOfEachWord(first_name, true);
-      last_name = capitalizeFirstLetterOfEachWord(last_name, true);
-
+          .json({ ok: false, msg: systemMessages.orderMsg.updateFailed.es });
+          
       let keysToUpdate = {
-        first_name,
-        last_name,
-        gender_id: gender_id || null,
+        order_status_id
       };
-      await db.User.update(keysToUpdate, {
+
+      await db.Order.update(keysToUpdate, {
         where: {
-          id: user_id,
+          id: order_id,
         },
       });
 
@@ -240,77 +261,50 @@ const controller = {
       return res.status(200).json({
         meta: {
           status: 200,
-          url: "/api/user",
+          url: "/api/order",
           method: "PUT",
         },
         ok: true,
-        msg: systemMessages.userMsg.updateSuccesfull.es, //TODO: ver tema idioma
+        msg: systemMessages.orderMsg.updateSuccesfull.es, //TODO: ver tema idioma
       });
     } catch (error) {
-      console.log(`Falle en apiUserController.updateUser`);
+      console.log(`Falle en apiOrderController.updateOrder`);
       console.log(error);
       return res.status(500).json({ error });
     }
   },
-  destroyUser: async (req, res) => {
-    try {
-      let { user_id } = req.body;
-      // Lo borro de db
-      await db.User.destroy({
-        where: {
-          id: user_id,
-        },
-      });
-      // Borro cookie y session
-      res.clearCookie("userAccessToken");
-      delete req.session.userLoggedId;
-      return res.status(200).json({
-        meta: {
-          status: 201,
-          url: "/api/user",
-          method: "DELETE",
-        },
-        ok: true,
-        msg: systemMessages.userMsg.updateSuccesfull.es, //TODO: ver tema idioma
-        redirect: "/",
-      });
-    } catch (error) {
-      console.log(`Falle en apiUserController.destroyUser`);
-      console.log(error);
-      return res.status(500).json({ error });
-    }
-  },
-
 };
 
 export default controller;
 
 
 let orderIncludeArray = [
-    'phone',
     'user',
-    "billingAddress",
-    'shippingAddress',
     'orderItems',
-]
+];
+
 export async function getOrderByPK(id) {
   try {
-  //busco el usuario
+  //busco la orden
   let order = await db.Order.findByPk(id,{
     include: orderIncludeArray
   });
+  if(!order)return null
+  order = getDeepCopy(order)
   return order
   } catch (error) {
     console.log(`Falle en getOrderByPK`);
     return console.log(error);
   }
 }
-export async function getOrders() {
+export async function getOrdersFromDB() {
   try {
   //busco las ordenes
   let orders = await db.Order.findAll({
     include: orderIncludeArray
   });
+  if(!orders.length) return []
+  orders = getDeepCopy(orders)
   return orders
   } catch (error) {
     console.log(`Falle en getOrders`);

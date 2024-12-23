@@ -56,7 +56,7 @@ export default (sequelize, dataTypes) => {
         });
         Order.hasMany(OrderItem,{
             as:'orderItems',
-            foreignKey:'orders_id'
+            foreignKey:'order_id'
         });
     };
 

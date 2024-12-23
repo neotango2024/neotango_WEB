@@ -24,7 +24,7 @@ import { getMappedErrors } from "../../utils/helpers/getMappedErrors.js";
 // ENV
 
 const controller = {
-  createAddress: async (req, res) => {
+  createPhone: async (req, res) => {
     try {
       // Traigo errores
       let errors = validationResult(req);
@@ -34,7 +34,7 @@ const controller = {
         return res.status(422).json({
             meta: {
                 status: 422,
-                url: '/api/address',
+                url: '/api/phone',
                 method: "POST"
             },
             ok: false,
@@ -43,106 +43,94 @@ const controller = {
             msg: systemMessages.formMsg.validationError.es
         });
       }
-      let addressObjToDB = generateAddressObject(req.body);
+      let phoneObjToDB = generatePhoneObject(req.body);
       
-      let createdAddress = await insertAddressToDB(addressObjToDB);
+      let createdPhone = await insertPhoneToDB(phoneObjToDB);
       
-      if(!createdAddress)
+      if(!createdPhone)
       return res.status(502).json();
       
       // Le  mando ok con el redirect al email verification view
       return res.status(201).json({
         meta: {
           status: 201,
-          url: "/api/address",
+          url: "/api/phone",
           method: "POST",
         },
         ok: true,
-        msg: systemMessages.addressMsg.createSuccesfull.es, //TODO: ver tema idioma
-        redirect: "/user/address",
+        msg: systemMessages.phoneMsg.createSuccesfull.es, //TODO: ver tema idioma
+        redirect: "/user/phone",
       });
     } catch (error) {
-      console.log(`Falle en apiAddressController.createUser`);
+      console.log(`Falle en apiPhoneController.createPhone`);
       console.log(error);
       return res.status(500).json({ error });
     }
   },
-  updateAddress: async (req, res) => {
+  updatePhone: async (req, res) => {
     try {
       // Traigo errores
-      // Traigo errores
       let errors = validationResult(req);
-
       if (!errors.isEmpty()) {
+        // Traigo errores
         let {errorsParams,errorsMapped} = getMappedErrors(errors);
-        return res.status(422).json({
-            meta: {
-                status: 422,
-                url: '/api/address',
-                method: "PUT"
-            },
-            ok: false,
-            errors: errorsMapped,
-            params: errorsParams,
-            msg: systemMessages.formMsg.validationError.es
-        });
+          return res.status(422).json({
+              meta: {
+                  status: 422,
+                  url: '/api/user',
+                  method: "PUT"
+              },
+              ok: false,
+              errors: errorsMapped,
+              params: errorsParams,
+              msg: systemMessages.formMsg.validationError.es
+          });
       }
       // Datos del body
-      let { address_id, street, label, detail, zip_code, city, province, country_id, first_name, last_name } = req.body;
+      let { country_id, phone_number, phone_id } = req.body;
 
-      //Nombres y apellidos van capitalziados
-      first_name = capitalizeFirstLetterOfEachWord(first_name, true);
-      last_name = capitalizeFirstLetterOfEachWord(last_name, true);
-      
       let keysToUpdate = {
-        first_name,
-        last_name,
-        street,
-        label,
-        detail,
-        zip_code,
-        city,
-        province,
+        phone_number,
         country_id,
       };
       
-      await updateAddressFromDB(keysToUpdate,address_id)
+      await updatePhoneFromDB(keysToUpdate,phone_id)
 
       // Le  mando ok con el redirect al email verification view
       return res.status(200).json({
         meta: {
           status: 200,
-          url: "/api/address",
+          url: "/api/phone",
           method: "PUT",
-          redirect: "/user/address"
+          redirect: "/user/phone"
         },
         ok: true,
-        msg: systemMessages.addressMsg.updateSuccesfull.es, //TODO: ver tema idioma
+        msg: systemMessages.phoneMsg.updateSuccesfull.es, //TODO: ver tema idioma
       });
     } catch (error) {
-      console.log(`Falle en apiUserController.updateAddress`);
+      console.log(`Falle en apiPhoneController.updatePhone`);
       console.log(error);
       return res.status(500).json({ error });
     }
   },
-  destroyAddress: async (req, res) => {
+  destroyPhone: async (req, res) => {
     try {
-      let { address_id } = req.body;
+      let { phone_id } = req.body;
       // Lo borro de db
-      let response = destroyAddressFromDB(address_id);
+      let response = destroyPhoneFromDB(phone_id);
       if(!response)return res.status(502).json();
       return res.status(200).json({
         meta: {
           status: 201,
-          url: "/api/address",
+          url: "/api/phone",
           method: "DELETE",
         },
         ok: true,
-        msg: systemMessages.addressMsg.destroySuccesfull.es, //TODO: ver tema idioma
+        msg: systemMessages.phoneMsg.destroySuccesfull.es, //TODO: ver tema idioma
         redirect: "/",
       });
     } catch (error) {
-      console.log(`Falle en apiAddressController.destroyAddress`);
+      console.log(`Falle en apiPhoneController.destroyPhone`);
       console.log(error);
       return res.status(500).json({ error });
     }
@@ -151,91 +139,78 @@ const controller = {
 
 export default controller;
 
-export async function insertAddressToDB(obj) {
+export async function insertPhoneToDB(obj) {
   try {
     //Lo creo en db
-    let createdAddress = await db.Address.create(obj);
-    return createdAddress || undefined
+    let createdPhone = await db.Phone.create(obj);
+    return createdPhone || undefined
   } catch (error) {
-    console.log(`Falle en insertAddressToDB`);
+    console.log(`Falle en insertPhoneToDB`);
     console.log(error);
     return undefined
   }
 }
-export async function updateAddressFromDB(obj,id) {
+export async function updatePhoneFromDB(obj,id) {
   try {
     if(!obj || !id)return undefined
 
     //Lo updateo en db
-    await db.Address.update(obj,{
+    await db.Phone.update(obj,{
       where: {
         id
       }
     });
     return true
   } catch (error) {
-    console.log(`Falle en updateAddressToDB`);
+    console.log(`Falle en updatePhoneToDB`);
     console.log(error);
     return undefined
   }
 }
-export async function destroyAddressFromDB(id) {
+export async function destroyPhoneFromDB(id) {
   try {
     if(!id)return undefined
 
     //Lo borro de db
-    await db.Address.destroy({
+    await db.Phone.destroy({
       where: {
         id
       }
     });
     return true
   } catch (error) {
-    console.log(`Falle en updateAddressToDB`);
+    console.log(`Falle en updatePhoneToDB`);
     console.log(error);
     return undefined
   }
 }
-export async function getUserAddressesFromDB(id) {
+export async function getUserPhonesFromDB(id) {
   try {
-    let addresses = await db.Address.findAll({
+    let phones = await db.Phone.findAll({
       where: {
         user_id: id
       },
-      include: ['billingOrders','shippingOrders','user']
+      include: ['user']
     });
-    addresses = getDeepCopy(addresses);
+    phones = getDeepCopy(phones);
 
-    return addresses
+    return phones
   } catch (error) {
-    console.log(`Falle en getUserAddresesFromDB`);
+    console.log(`Falle en getUserPhonesFromDB`);
     console.log(error);
     return undefined
   }
 }
 
-export function generateAddressObject(address) {
-  // objeto para armar la address
-  let { user_id, street, label, detail, zip_code, city, province, country_id, first_name, last_name } = address;
+export function generatePhoneObject(phone) {
+  // objeto para armar la phone
+  let { user_id, country_id, phone_number } = phone;
         
-  // return console.log(bcrypt.hashSync('admin123', 10));
-
-  //Nombres y apellidos van capitalziados
-  first_name = capitalizeFirstLetterOfEachWord(first_name, true);
-  last_name = capitalizeFirstLetterOfEachWord(last_name, true);
-
   let dataToDB = {
     id: uuidv4(),
     user_id,
-    street, //libertado 2222
-    label, //Casa
-    detail: detail || null, //2b
-    zip_code,
-    city,
-    province,
     country_id,
-    first_name,
-    last_name,
+    phone_number,
   };
   return dataToDB
 }

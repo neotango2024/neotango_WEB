@@ -12,8 +12,8 @@ export default (sequelize, dataTypes) => {
         es_name: { type: dataTypes.STRING(255) },
         english_description: { type: dataTypes.TEXT },
         spanish_description: { type: dataTypes.TEXT },
-        ars_price: { type: dataTypes.INTEGER },
-        usd_price: { type: dataTypes.INTEGER },
+        ars_price: { type: dataTypes.DECIMAL(10,2) },
+        usd_price: { type: dataTypes.DECIMAL(10,2) },
         sku: { type: dataTypes.STRING(200) },
         category_id: { type: dataTypes.INTEGER },
     }

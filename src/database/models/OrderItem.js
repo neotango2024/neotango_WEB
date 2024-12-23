@@ -9,14 +9,16 @@ export default (sequelize, dataTypes) => {
         order_id: { type: dataTypes.STRING(36) },
         product_id: { type: dataTypes.STRING(36) },
         name: {type: dataTypes.STRING(255)},
-        price: { type: dataTypes.INTEGER },
+        price: { type: dataTypes.DECIMAL(10,2) },
         quantity: {type: dataTypes.INTEGER},
         discount: { type: dataTypes.TINYINT },
     }
 
     let config = {
         tableName: 'order_items',
-        paranoid: true
+        paranoid: true,
+        timestamps: true,
+        underscored: true
     }
 
     const OrderItem = sequelize.define(alias, cols, config);
@@ -24,11 +26,11 @@ export default (sequelize, dataTypes) => {
     OrderItem.associate = (models) => {
         OrderItem.belongsTo(models.Order, {
             as: 'order',
-            foreignKey: 'orders_id'
+            foreignKey: 'order_id'
         });
         OrderItem.belongsTo(models.Product, {
             as: 'product',
-            foreignKey: 'products_id'
+            foreignKey: 'product_id'
         });
     };
 

@@ -103,7 +103,42 @@ export default {
         create: {
             es: "¡Orden creada exitosamente!",
             en: "Order succesfully created!"
-        }
-    }
+        },
+        updateSuccesfull: {
+            en: 'Order succesfully updated!',
+            es: 'Orden actualizada correctamente!'
+        },
+        updateFailed: {
+            en: 'There was an error while updating the order, please try again later',
+            es: 'Hubo un problema al actualizar la orden, por favor intente nuevamente'
+        },
+    },
+    phoneMsg: {
+        createSuccesfull: {
+            en: 'Phone succesfully created!',
+            es: 'Telefono creado correctamente!'
+        },
+        createFailed: {
+            en: 'There was an error while creating the phone, please try again later',
+            es: 'Hubo un problema al crear el telefono, por favor intente nuevamente'
+        },
+        updateSuccesfull: {
+            en: 'Phone succesfully updated!',
+            es: 'Telefono actualizado correctamente!'
+        },
+        updateFailed: {
+            en: 'There was an error while updating the phone, please try again later',
+            es: 'Hubo un problema al actualizar el telefono, por favor intente nuevamente'
+        },
+        destroySuccesfull: {
+            en: 'Phone succesfully destroyed!',
+            es: 'Telefono borrado correctamente!'
+        },
+        destroyFailed: {
+            en: 'There was an error while destroying the ahone, please try again later',
+            es: 'Hubo un problema al borrar el telefono, por favor intente nuevamente'
+        },
+       
+    },
     
 }

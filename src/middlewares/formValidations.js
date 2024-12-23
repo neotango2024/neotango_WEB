@@ -3,6 +3,8 @@ import validatePasswordString from "../utils/helpers/validatePasswordString.js";
 import isJson from "../utils/helpers/isJson.js";
 import db from "../database/models/index.js";
 import countries from "../utils/staticDB/countries.js";
+import { getVariationsFromDB } from "../controllers/api/apiProductController.js";
+import getOnlyNumbers from "../utils/helpers/getOnlyNumbers.js";
 export default {
   productFields: [
     body([
@@ -13,12 +15,10 @@ export default {
       "english_description",
       "spanish_description",
       "sku",
-      "email",
     ])
       .notEmpty()
       .withMessage("Complete todos los campos necesarios")
       .bail(),
-    body(["email"]).isEmail().withMessage("Tipo de email invalido").bail(),
     body(["variations"])
       .isArray()
       .bail()
@@ -165,5 +165,56 @@ export default {
         }
         return true;
       }),
+  ],
+  orderFields: [
+    body(["user_id", "first_name", "last_name", "email", "dni","payment_types_id","shipping_types_id"])
+    .notEmpty()
+    .withMessage("Complete todos los campos necesarios")
+    .bail()
+    .custom((value, { req }) => {
+      // que sea de tipo string
+      // Si viene formato json entonces lo parseo, sino me fijo directamente
+      if (isJson(value)) value = JSON.parse(value);
+      if (typeof value !== "string") {
+        throw new Error();
+      }
+      return true;
+    }),
+    body(["variations", "phoneObj", "billingAddress", "shippingAddress"])
+      .notEmpty()
+      .withMessage("Complete todos los campos necesarios")
+      .bail(),
+    body(["variations"]) //Me fijo que los productos esten en stock
+      .custom(async (value, { req }) => {
+        let variationIdsToGet = value.map(variation=>variation.variation_id); //Array de ids
+        let variationsFromDB = await getVariationsFromDB(variationIdsToGet);//Obtengo de db las variaciones
+        variations.forEach((variation) => {
+          // Agarro el producto de DB
+          let variationFromDBIndex = variationsFromDB.findIndex(variationFromDB=> variationFromDB.id == variation);
+          if(variationFromDBIndex < 0){
+            //Si no viene no sigo (al pedo)
+            throw new Error("Variacion no encontrada");
+          }; 
+          let variationFromDB = variationFromDB[variationFromDBIndex];
+          let { quantityRequested } = variation; //Tengo que chequear con esa variacion
+          quantityRequested = parseInt(quantityRequested); //Lo parseo
+          if(quantityRequested > variationFromDB.quantity) {
+            throw new Error("Hay items con stock insuficiente");
+          }; 
+        });
+        req.body.variationsFromDB = variationsFromDB; //Ya que busque a db le paso para no hacer 2 consultas
+        return true;
+        }),
+    body(["phoneObj","billingAddress","shippingAddress"]) //Me fijo que los paises esten en db
+    .custom(async (value, { req }) => {
+          let countryFromDB = countries.find(country=>country.id == value.country_id);
+          if(!countryFromDB) throw new Error("Pais no encontrado");
+          return true;
+    }),
+    body(["phoneObj"]) //Saco los nros con el regex
+    .custom(async (value, { req }) => { //Le saco cualquier cosa que no sea un numero al phone number
+          value.phone_number = getOnlyNumbers(value.phone_number);
+          return true;
+    }),
   ],
 };
