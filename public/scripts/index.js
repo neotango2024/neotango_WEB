@@ -152,7 +152,7 @@ window.addEventListener('load',()=>{
     // });
     // activateAccordions();
    
-    renderProducts();
+    //renderProducts();
     //renderCheckoutCard()
 });
 

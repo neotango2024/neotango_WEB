@@ -24,6 +24,9 @@ import ordersStatuses from "../../utils/staticDB/ordersStatuses.js";
 import { getUserAddressesFromDB } from "./apiAddressController.js";
 import getFileType from "../../utils/helpers/getFileType.js";
 import { destroyFilesFromAWS, getFilesFromAWS, uploadFilesToAWS } from "../../utils/helpers/awsHandler.js";
+import { ENGLISH, SPANISH } from "../../utils/staticDB/languages.js";
+
+const { verify } = jwt;
 
 // ENV
 const webTokenSecret = process.env.JSONWEBTOKEN_SECRET;
@@ -70,7 +73,7 @@ const controller = {
       };
       
       await generateAndInstertEmailCode(userDataToDB);
-      return res.status(201).json({ userDataToDB });
+      //return res.status(201).json({ userDataToDB });
       const userCreated = await db.User.create(userDataToDB); //Creo el usuario
       // Lo tengo que loggear directamente
       const cookieTime = 1000 * 60 * 60 * 24 * 7; //1 Semana
@@ -332,6 +335,72 @@ const controller = {
       return res.json({ error });
     }
   },
+  handleChangeLanguage: async (req, res) => {
+    try {
+      const {body, params} = req;
+      const { userId } = params;
+      const {language} = body;
+      const normalizedLanguage = language.toLowerCase().trim();
+      if(normalizedLanguage !== ENGLISH || normalizedLanguage !== SPANISH){
+        return res.status(500).json({
+          ok: false,
+          msg: 'Internal server error'
+        })
+      }
+      const user = await getUserByPK(userId);
+      const isSuccessUpdatingLanguage = await updateUserLanguageInDb(language, user);
+      if(!isSuccessUpdatingLanguage){
+        return res.status(500).json({
+          ok: false,
+          msg: 'Internal server error'
+        })
+      }
+      return res.status(200).json({
+        true: ok,
+        msg: 'Languaged updated successfully'
+      })
+    } catch (error) {
+      console.log(`Error changing language`);
+      return res.status(500).json({
+        ok: false,
+        msg: 'Internal server error'
+      })
+    }
+  },
+  handleCheckForUserLogged: async (req, res) => {
+    try {
+      const token = req.cookies.userAccessToken;
+      if(!token){
+        return res.status(200).json({
+          ok: true,
+          data: null
+        })
+      }
+      const decoded = verify(token);
+      const user = await getUserByPK(decoded.id);
+      if(!user) {
+        return res.status(500).json({
+          ok: false,
+          data: null,
+          msg: 'User not found'
+        })
+      }
+      deleteSensitiveUserData(user);
+      return res.status(200).json({
+        ok: true,
+        data: user
+      })
+    } catch (error) {
+      console.log(`error fetching user logged: ${error}`);
+      return res.status(500).json({
+        ok: false,
+        data: {
+          isLogged: false
+        },
+        msg: 'Internal server error'
+      })
+    }
+  },
   testAWS: async(req,res)=>{
     try {
       let filesToGet = [
@@ -364,6 +433,18 @@ const controller = {
 
 export default controller;
 
+async function updateUserLanguageInDb(language, userId){
+  try {
+    const rowsAffected = await User.update({preffered_language: language}, {
+      where: { id: userId }
+    })
+    return rowsAffected > 0;
+  } catch (error) {
+    console.log(`Error updating user in db: ${error}`);
+    return false;
+  }
+}
+
 export async function generateAndInstertEmailCode(user) {
   try {
     // Genero el codigo de verificacion
@@ -390,14 +471,15 @@ export async function getUserByPK(id) {
   try {
   //busco el usuario
   let user = await db.User.findByPk(id,{
-    include: ['cart','orders']
+    include: ['tempCartItems','orders']
   });
   return user
   } catch (error) {
     console.log(`Falle en getUserByPK`);
-    return console.log(error);
+    return null
   }
 }
+
 export async function getUsers() {
   try {
   //busco los usuarios
@@ -411,3 +493,9 @@ export async function getUsers() {
   }
 }
 
+export function deleteSensitiveUserData(user){
+  delete user.password;
+  delete user.password_token;
+  delete user.verification_code;
+  delete user.expiration_time;
+}

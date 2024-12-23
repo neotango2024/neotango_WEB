@@ -1,5 +1,9 @@
 import {form, button} from './componentRenderer.js';
 import {setItem, getItem} from './localStorage.js';
+import { userLogged } from './checkForUserLogged.js';
+import { headerLinksTranslation } from '../constants/constants.js';
+import { languages } from '../constants/constants.js';
+const {english} = languages;
 
 const SCREEN_WIDTH = window.innerWidth;
 const LANGUAGE = getItem('language');
@@ -39,30 +43,56 @@ const toggleNavbarMenu = () => {
 };
 
 const decideLanguageInsertion = () => {
-    const selectedLanguage = getItem('language');
-    if(!selectedLanguage){
+    const localStorageItem = getItem('language');
+    if(userLogged && userLogged.language){
+        translateNavbar(userLogged.language)
+        handleChangeLanguage(userLogged.language)
+    } else if(localStorageItem){
+        translateNavbar(localStorageItem)
+        handleChangeLanguage(localStorageItem)
+    }
+    else {
         toggleLanguagesModal();
         toggleOverlay();
         toggleBodyScrollableBehavior();
     }
-    changeLanguageFlag(selectedLanguage ?? 'Español');
 };
+
+const translateNavbar = (language) => {
+    const linksContent = document.querySelectorAll('.page-link-item a');
+    const shopItems = document.querySelectorAll('.shop-category-item a');
+
+    linksContent.forEach((link, index) => {
+        const translation = headerLinksTranslation[index]?.[language];
+        const isShopItem = headerLinksTranslation[index]?.isShopItem;
+        
+        if (translation) {
+            link.textContent = translation;
+        }
+
+        if (isShopItem && shopItems.length >= 2) {
+            shopItems[0].textContent = "Men's shoes";
+            shopItems[1].textContent = "Women's shoes";
+        }
+    });
+}
 
 const checkForLanguageSelection = () => {
     const modalImgs = document.querySelectorAll('.language-container');
     modalImgs.forEach(imgContainer => imgContainer.addEventListener('click', () => {
         const imgElement = imgContainer.querySelector('img');
         const idSelector = imgElement.getAttribute('id');
-        changeLanguageFlag(idSelector)
+        handleChangeLanguage(idSelector)
         setItem('language', idSelector)
         toggleLanguagesModal();
         toggleOverlay();
         toggleBodyScrollableBehavior();
+        translateNavbar(idSelector);
     }));
     
 }
 
-const changeLanguageFlag = (selectedLanguage) => {
+const handleChangeLanguage = (selectedLanguage) => {
     const modalImgs = document.querySelectorAll('.modal-flag-container img');
     modalImgs.forEach(img => {
         const idSelector = img.getAttribute('id');
@@ -72,19 +102,14 @@ const changeLanguageFlag = (selectedLanguage) => {
             activeImg.src = imgSrc
         }
     })
+    setItem('language', selectedLanguage);
 }
 
+
 const checkForShopDropdownClicks = () => {
-    const mobileAnchors = document.querySelectorAll('.mobile-anchor');
-    mobileAnchors.forEach(anchor => {
-        anchor.addEventListener('click', (e) => {
-            const span = anchor.querySelector('span');
-            const isShopAnchor = span.textContent === 'Tienda' || span.textContent === 'Shop';
-            if(isShopAnchor){
-                e.preventDefault();
-                toggleShopDropdown();
-            }
-        })
+    const mobileShopDropdownTrigger = document.querySelector('.shop-dropdown-trigger');
+    mobileShopDropdownTrigger.addEventListener('click', (e) => {
+        toggleShopDropdown();
     })
 }
 
@@ -131,11 +156,6 @@ const checkForUserIconClicks = () => {
         }
     })
     let userLogged = false;
-}
-
-const checkUserLogged = () => {
-    // TODO - CHECK FOR USER LOGIN
-    return false;
 }
 
 const checkForLoginModalCloseClicks = () => {
@@ -193,6 +213,7 @@ const renderFormAndButton = () => {
         text: isEnglishLanguage ? 'Sign in' : 'Iniciar sesión',
         width: 75,
         fontSize: 100,
+        container: 'custom-form'
     }
     button(buttonProps);
 }

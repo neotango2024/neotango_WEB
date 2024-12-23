@@ -240,7 +240,6 @@ export function form (props) {
 }
 
 export function button(props) {
-
     const button = document.createElement("button");
     button.className = 'custom-btn'
     button.textContent = props.text || 'Submit';
