@@ -12,6 +12,7 @@ import apiUserRouter from './routes/api/apiUserRouter.js';
 import apiProductRouter from './routes/api/apiProductRouter.js';
 import apiAddressRouter from './routes/api/apiAddressRouter.js';
 import apiCartRouter from './routes/api/apiCartRouter.js'
+import { languageMiddleware } from './middlewares/language.js';
 
 
 // way to replace __dirname in es modules 
