@@ -1,21 +1,21 @@
 import {form, button} from './componentRenderer.js';
-import {setItem, getItem} from './localStorage.js';
 import { userLogged } from './checkForUserLogged.js';
-import { headerLinksTranslation } from '../constants/constants.js';
+import { translations } from '../constants/constants.js';
+import { getItem } from './localStorage.js';
 import { languages } from '../constants/constants.js';
-const {english} = languages;
+import { toggleBodyScrollableBehavior, toggleOverlay } from './utils.js';
+const {english, spanish} = languages;
+const headerTranslations  = translations['header'];
+const categoriesTranslations = translations['categories'];
+const formTranslations = translations['userForm'];
 
 const SCREEN_WIDTH = window.innerWidth;
-const LANGUAGE = getItem('language');
 
 window.addEventListener('DOMContentLoaded', () => {
     if(SCREEN_WIDTH < 720){
         checkForNavbarClicks();
         checkForShopDropdownClicks();
     }
-    decideLanguageInsertion();
-    checkForLanguageClick();
-    checkForLanguageSelection();
     checkForUserIconClicks();
     renderFormAndButton();
 })
@@ -42,69 +42,6 @@ const toggleNavbarMenu = () => {
     navbar.classList.toggle('mobile-navbar-active');
 };
 
-const decideLanguageInsertion = () => {
-    const localStorageItem = getItem('language');
-    if(userLogged && userLogged.language){
-        translateNavbar(userLogged.language)
-        handleChangeLanguage(userLogged.language)
-    } else if(localStorageItem){
-        translateNavbar(localStorageItem)
-        handleChangeLanguage(localStorageItem)
-    }
-    else {
-        toggleLanguagesModal();
-        toggleOverlay();
-        toggleBodyScrollableBehavior();
-    }
-};
-
-const translateNavbar = (language) => {
-    const linksContent = document.querySelectorAll('.page-link-item a');
-    const shopItems = document.querySelectorAll('.shop-category-item a');
-
-    linksContent.forEach((link, index) => {
-        const translation = headerLinksTranslation[index]?.[language];
-        const isShopItem = headerLinksTranslation[index]?.isShopItem;
-        
-        if (translation) {
-            link.textContent = translation;
-        }
-
-        if (isShopItem && shopItems.length >= 2) {
-            shopItems[0].textContent = "Men's shoes";
-            shopItems[1].textContent = "Women's shoes";
-        }
-    });
-}
-
-const checkForLanguageSelection = () => {
-    const modalImgs = document.querySelectorAll('.language-container');
-    modalImgs.forEach(imgContainer => imgContainer.addEventListener('click', () => {
-        const imgElement = imgContainer.querySelector('img');
-        const idSelector = imgElement.getAttribute('id');
-        handleChangeLanguage(idSelector)
-        setItem('language', idSelector)
-        toggleLanguagesModal();
-        toggleOverlay();
-        toggleBodyScrollableBehavior();
-        translateNavbar(idSelector);
-    }));
-    
-}
-
-const handleChangeLanguage = (selectedLanguage) => {
-    const modalImgs = document.querySelectorAll('.modal-flag-container img');
-    modalImgs.forEach(img => {
-        const idSelector = img.getAttribute('id');
-        if(idSelector === selectedLanguage){
-            const imgSrc = img.getAttribute('src');
-            const activeImg = document.querySelector('.active-flag');
-            activeImg.src = imgSrc
-        }
-    })
-    setItem('language', selectedLanguage);
-}
-
 
 const checkForShopDropdownClicks = () => {
     const mobileShopDropdownTrigger = document.querySelector('.shop-dropdown-trigger');
@@ -120,42 +57,17 @@ const toggleShopDropdown = () => {
     arrow.classList.toggle('arrow-active');
 }
 
-const toggleLanguagesModal = () => {
-    const modal = document.querySelector('.languages-modal');
-    modal.classList.toggle('languages-modal-active');
-}
 
-const checkForLanguageClick = () => {
-    const activeFlag = document.querySelector('.active-flag-container');
-    activeFlag.addEventListener('click', () => {
-        toggleLanguagesModal();
-        toggleOverlay();
-        toggleBodyScrollableBehavior();
-    })
-    const closeButton = document.querySelector('.close-language-modal');
-    closeButton.addEventListener('click', () => {
-        toggleLanguagesModal();
-        toggleOverlay();
-        toggleBodyScrollableBehavior();
-    })
-}
-
-const toggleOverlay = () => {
-    const overlay = document.querySelector('.overlay');
-    overlay.classList.toggle('overlay-active')
-}
 
 const checkForUserIconClicks = () => {
     const userIcon = document.querySelector('.user-icon');
     userIcon.addEventListener('click', () => {
-        const isUserLogged = checkUserLogged();
-        if(!isUserLogged){
+        if(!userLogged){
             toggleLoginModal();
         } else {
             // TODO - REDIRECT TO USER PROFILE
         }
     })
-    let userLogged = false;
 }
 
 const checkForLoginModalCloseClicks = () => {
@@ -177,43 +89,78 @@ const toggleLoginModal = () => {
     }
 }
 
-const toggleBodyScrollableBehavior = () => {
-    const body = document.querySelector('body');
-    body.classList.toggle('non-scrollable');
-}
-
 const renderFormAndButton = () => {
-    const isEnglishLanguage = LANGUAGE === 'English';
+    const localStorageItem = getItem('language');
+    const settedLanguage = userLogged && userLogged.language ? userLogged.language : localStorageItem ? localStorageItem : null;
+
     const inputProps = [
         {
             placeholder: 'Email',
             name: 'email',
             required: true,
-            width: 75
+            width: 75,
         },
         {
-            placeholder: isEnglishLanguage ? 'Password' : 'Contraseña',
+            placeholder: settedLanguage === english  ? 'Password' : 'Contraseña',
             name: 'password',
             type: 'password',
             className: 'pasword-input',
             required: true,
-            width: 75
+            width: 75,
+            datasetObject: {
+                dataKey: 'translation',
+                dataValue: 'password'
+            }
         }
     ];
-    const formTitle = isEnglishLanguage ? 'Sign in' : 'Iniciar sesión';
+    const formTitleObject = {
+        title: settedLanguage === english  ? 'Sign in' : 'Iniciar sesión',
+        datasetObject: {
+            dataKey: 'translation',
+            dataValue: 'title'
+        }
+    }
     const formAction = '/user/login';
     const formProps = {
         inputProps,
-        formTitle,
-        formAction
+        formTitleObject,
+        formAction,
     }
     form(formProps);
 
     const buttonProps = {
-        text: isEnglishLanguage ? 'Sign in' : 'Iniciar sesión',
+        text: settedLanguage === english ? 'Sign in' : 'Iniciar sesión',
         width: 75,
         fontSize: 100,
-        container: 'custom-form'
+        container: 'custom-form',
+        datasetObject: {
+            dataKey: 'translation',
+            dataValue: 'signIn'
+        }
     }
     button(buttonProps);
+}
+
+export const translateNavbar = (language) => {
+    const linksContent = document.querySelectorAll('.page-link-item');
+    linksContent.forEach((link) => {
+        const isMobileShopItem = link.querySelector('.shop-mobile-span');
+        if(isMobileShopItem){
+            const mobileShopSpan = isMobileShopItem;
+            const linkDataset = mobileShopSpan.dataset.translation;
+            const translation = headerTranslations[linkDataset]?.[language];
+            mobileShopSpan.textContent = translation;
+            const shopItems = document.querySelectorAll('.shop-category-item a');
+            const menDataset = shopItems[0].dataset.translation;
+            const womenDataset = shopItems[1].dataset.translation;
+            shopItems[0].textContent = translations.categories[menDataset]?.[language];
+            shopItems[1].textContent = translations.categories[womenDataset]?.[language];
+        } else {
+            const itemAnchor = link.querySelector('a');
+            const linkDataset = itemAnchor.dataset.translation;
+            const translation = headerTranslations[linkDataset]?.[language];
+            itemAnchor.textContent = translation;
+        }
+
+    });
 }

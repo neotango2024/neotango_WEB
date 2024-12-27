@@ -197,12 +197,16 @@ export function homeLabel(props)  {
 }
 
 export function form (props) {
-    const { inputProps, formTitle, formAction, method } = props;
+    const { inputProps, formTitleObject, formAction, method } = props;
     const container = document.querySelector('.form-container');
 
     const h3Element = document.createElement("h3");
     h3Element.className = "title";
-    h3Element.textContent = formTitle;
+    h3Element.textContent = formTitleObject.title;
+    if(formTitleObject.datasetObject){
+      const {dataKey, dataValue} = formTitleObject.datasetObject;
+      h3Element.dataset[dataKey] = dataValue;
+    }
     container.appendChild(h3Element);
 
     const form = document.createElement("form");
@@ -231,6 +235,10 @@ export function form (props) {
         inputElement.name = input.name || "";
         inputElement.required = input.required || false;
         inputElement.className = `form-input ${input.className}`
+        if(input.datasetObject){
+          const {dataKey, dataValue} = input.datasetObject;
+          inputElement.dataset[dataKey] = dataValue;
+        }
   
         inputContainer.appendChild(inputElement);
         form.appendChild(inputContainer);
@@ -253,6 +261,11 @@ export function button(props) {
 
     if (typeof props.onClick === 'function') {
       button.onclick = props.onClick;
+    }
+
+    if(props.datasetObject){
+      const {dataKey, dataValue} = props.datasetObject;
+      button.dataset[dataKey] = dataValue;
     }
 
     const formContainer = document.querySelector(props.container);

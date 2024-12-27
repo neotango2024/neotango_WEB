@@ -2,23 +2,67 @@
 <html lang="en">
 <head>
     <%- include('./partials/head.ejs') %>
-    <link rel="stylesheet" href="/css/homeLabel.css">
-    <link rel="stylesheet" href="/css/addressCard.css">
     <link rel="stylesheet" href="/css/productCard.css">
     <link rel="stylesheet" href="/css/form.css">
-    <link rel="stylesheet" href="/css/checkoutCard.css">
+    <link rel="stylesheet" href="/css/index.css">
     <script type="module" src="/scripts/index.js"></script>
     <script type="module" src="/scripts/header.js"></script>
-    <script>
-      
-      // use myVariable in JS code
-    </script>
     <title>Index</title>
 </head>
 <body>
   <%- include('./partials/header.ejs') %>
   <main class="main">
+
+    <div class="slider-container">
+      <div class="second-slider-container">
+
+         <div class="slider">
+
+            <div class="slider-img-container">
+               <img src="/img/home/banner1.jpeg" alt="">
+            </div>
+
+            <div class="slider-img-container">
+               <img src="/img/home/banner2.jpeg" alt="">
+            </div>
+
+            <div class="slider-img-container">
+              <img src="/img/home/banner3.jpeg" alt="">
+           </div>
+
+         </div>
+
+
+      </div>
+
+
+   </div>
+
+   <div class="dots-container">
+   </div>
+
     <div class="products-container"></div>
+
+
+    <div class="company-info-container">
+      <div class="info-item-container" data-translation="trajectory">
+        <i class="item-icon bx bx-star"></i>
+        <p class="info-title">Trayectoria </p>
+        <p class="info-description">Fundado por expertos en la disciplina</p>
+      </div>
+      <div class="info-item-container" data-translation="recognition">
+        <i class="item-icon bx bx-trophy"></i>
+        <p class="info-title">Reconocimiento </p>
+        <p class="info-description">Premios nacionales e internacionales</p>
+      </div>
+      <div class="info-item-container" data-translation="shipping">
+        <i class="item-icon bx bxs-truck"></i>
+        <p class="info-title">Envíos </p>
+        <p class="info-description">Envíos nacionales e internacionales</p>
+      </div>
+    </div>
+
+
   </main>
   <%- include('./partials/footer.ejs') %>
 </body>

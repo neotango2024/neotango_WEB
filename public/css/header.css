@@ -79,11 +79,11 @@ nav {
 }
 
 .overlay {
-    z-index: 3;
+    z-index: 11;
 }
 
 .mobile-navbar, .languages-modal, .no-logged-user-modal {
-    z-index: 4;
+    z-index: 12;
 }
 
 .mobile-navbar-active, .languages-modal-active, .overlay-active, .no-logged-user-modal-active {
@@ -101,7 +101,12 @@ nav {
 
 .page-link-item {
     transition: color 0.3s;
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    margin-bottom: 8%;
 }
+
 
 .page-link-item a {
     color: black;
@@ -128,7 +133,9 @@ nav {
     max-height: 0px;
     transition: max-height 0.3s, margin-top 0.3s;
     overflow: hidden;
+    width: 100%;
 }
+
 
 .shop-dropdown-active {
     margin-top: 2%;
@@ -350,7 +357,7 @@ nav {
         transform: translate(-90%, 20%);
         pointer-events: none;
         box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-        z-index: 3;
+        z-index: 12;
         padding: 15px;
         opacity: 0;
         transition: opacity 0.3s;
@@ -384,7 +391,7 @@ nav {
         border-left: 25px solid transparent; 
         border-right: 25px solid transparent; 
         border-bottom: 40px solid var(--grey-color);
-        z-index: 4;
+        z-index: 12;
         top: -40px;
         right: 10px;
     }
@@ -416,6 +423,9 @@ nav {
         font-size: 16px;
     }
 
+    .page-link-item {
+        margin-bottom: 0;
+    }
 
 }
 

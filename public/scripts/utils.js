@@ -35,3 +35,13 @@ export function checkCheckoutButtons(){
 export function activateAccordions() {
     $('.ui.accordion').accordion(); // Activa los acordeones
 }
+
+export const toggleOverlay = () => {
+    const overlay = document.querySelector('.overlay');
+    overlay.classList.toggle('overlay-active')
+}
+
+export const toggleBodyScrollableBehavior = () => {
+    const body = document.querySelector('body');
+    body.classList.toggle('non-scrollable');
+}
