@@ -18,7 +18,7 @@ import capitalizeFirstLetterOfEachWord from "../../utils/helpers/capitalizeFirst
 import getDeepCopy from "../../utils/helpers/getDeepCopy.js";
 
 import countries from "../../utils/staticDB/countries.js";
-import { getUserByPK } from "./apiUserController.js";
+
 import { getMappedErrors } from "../../utils/helpers/getMappedErrors.js";
 
 // ENV

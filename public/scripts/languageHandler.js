@@ -3,6 +3,7 @@ import { translateCompanyInfo } from "./index.js";
 import {setItem, getItem} from './localStorage.js';
 import { userLogged } from "./checkForUserLogged.js";
 import { toggleBodyScrollableBehavior, toggleOverlay } from './utils.js';
+import { exportObj } from "./cart.js";
 
 export let settedLanguage = null;
 window.addEventListener('DOMContentLoaded', () => {
@@ -56,7 +57,7 @@ const decideLanguageInsertion = () => {
 };
 
 //Agarra los src de las imagenes del modal
-const handleChangeLanguage = (param) => { //param es esp/eng
+const handleChangeLanguage = async(param) => { //param es esp/eng
     updateLanguage(param); //Updateo tanto en localStorage como en la variable que se comparte 
     //Agarro las banderas del modal
     const modalImgs = document.querySelectorAll('.modal-flag-container img');
@@ -77,6 +78,7 @@ const handleChangeLanguage = (param) => { //param es esp/eng
             break;
         case 'cart': //Van todos los cambios de cart
             //Aca tengo que pintar denuevo cards y detalle y form
+            exportObj.generateCheckoutForm && await exportObj.generateCheckoutForm();
             break;
     
         default:

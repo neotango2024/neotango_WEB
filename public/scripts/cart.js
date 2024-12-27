@@ -8,6 +8,7 @@ import {
   setShippingTypes,
   shippingTypesFromDB,
 } from "./getStaticTypesFromDB.js";
+import { settedLanguage } from "./languageHandler.js";
 import {
   activateContainerLoader,
   activateDropdown,
@@ -16,16 +17,16 @@ import {
   productsFromDB,
   setProductsFromDB,
 } from "./utils.js";
-
+let exportObj = {
+  generateCheckoutForm: null
+}
 window.addEventListener("load", async () => {
   try {
     const main = document.querySelector(".main");
     //Activo el loader
     activateContainerLoader(main, true);
     //seteo los productos TODO: Esto es con los productos del carro
-    await setProductsFromDB();
-    console.log(productsFromDB);
-    
+    await setProductsFromDB();    
     activateContainerLoader(main, false);
     const cartProductsWrapper = document.querySelector(
       ".cart-products-cards-wrapper"
@@ -51,7 +52,7 @@ window.addEventListener("load", async () => {
         btn.addEventListener("click", async () => {
           try {
             if (btn.classList.contains("finalize-order-button")) {
-              await generateCheckoutForm();
+              await exportObj.generateCheckoutForm();
               //TODO: Aca hago fetch para cambiar el estado del carro
               return main.classList.add("active");
             }
@@ -140,8 +141,9 @@ window.addEventListener("load", async () => {
       totalCostElement.innerHTML = `$${totalCost}`;
     }
 
-    async function generateCheckoutForm() {
+    exportObj.generateCheckoutForm = async () => {
       try {
+        let isInSpanish = settedLanguage == 'esp';
         const formWrapper = document.querySelector(".form-wrapper");
         formWrapper.innerHTML = "";
         // Primero pido los types que necesito si es que no estan
@@ -153,123 +155,110 @@ window.addEventListener("load", async () => {
         }
         let shippingTypesForSelect = shippingTypesFromDB?.map((type) => ({
           value: type.id,
-          label: type.type.en, //TODO: IDIOMA
-        }));
-        let paymentTypesForSelect = paymentTypesFromDB?.map((type) => ({
-          value: type.id,
-          label: type.type, //TODO: IDIOMA
+          label: isInSpanish ? type.type.es : type.type.es, 
         }));
         let userAddressesForDB = userLogged?.addresses?.map((address) => ({
           value: address.id,
           label: `${address.street} (${address.label})`,
         }));
         const props = {
-          formTitle: "Checkout Form",
-          formAction: "/api/order", // Cambiar a la ruta deseada
-          method: "POST",
-          inputProps: [
-            {
-              label: "First Name",
-              name: "first_name",
-              placeholder: "Enter your first name",
-              required: true,
-              width: 40,
-              value: userLogged?.first_name || null,
-              contClassNames: "",
-              inpClassNames: "",
-            },
-            {
-              label: "Last Name",
-              name: "last_name",
-              placeholder: "Enter your last name",
-              required: true,
-              width: 40,
-              value: userLogged?.last_name || null,
-              contClassNames: "",
-              inpClassNames: "",
-            },
-            {
-              label: "Email",
-              name: "email",
-              type: "email",
-              placeholder: "Enter your email",
-              required: true,
-              width: 100,
-              value: userLogged?.email || null,
-              contClassNames: "",
-              inpClassNames: "",
-            },
-            {
-              label: "DNI",
-              name: "dni",
-              placeholder: "Enter your DNI",
-              required: true,
-              width: 100,
-              contClassNames: "",
-              inpClassNames: "",
-            },
-            {
-              label: "Phone",
-              name: "phoneObj.phone_number",
-              type: "select", // Indica que será un select
-              options: userLogged?.phones || [],
-              required: true,
-              width: 100,
-              contClassNames: "phone-container",
-              inpClassNames: "",
-            },
-            {
-              label: "Shipping Type",
-              name: "shipping_types_id",
-              type: "select",
-              options: shippingTypesForSelect,
-              required: true,
-              width: 100,
-              contClassNames: "",
-              inpClassNames: "",
-            },
-            {
-              label: "Billing Address",
-              name: "billingAddress.id",
-              type: "select",
-              options: userAddressesForDB || [],
-              required: true,
-              width: 100,
-              contClassNames: "billing-address-container",
-              inpClassNames: "",
-            },
-            {
-              label: "Use same addresses",
-              name: "use-same-addresses",
-              type: "checkbox",
-              value: 1,
-              required: true,
-              width: 100,
-              contClassNames: "",
-              inpClassNames: "",
-            },
-            {
-              label: "Shipping Address",
-              name: "shippingAddress.id",
-              type: "select",
-              options: userAddressesForDB || [],
-              required: true,
-              width: 100,
-              contClassNames: "shipping-address-container",
-              inpClassNames: "",
-            },
-            {
-              label: "Payment Type",
-              name: "payment_types_id",
-              type: "select",
-              options: paymentTypesForSelect,
-              required: true,
-              width: 100,
-              contClassNames: "",
-              inpClassNames: "",
-            },
-          ],
-        };
+        formTitle: isInSpanish ? "Formulario de Pago" : "Checkout Form",
+        formAction: "/api/order", // Cambiar a la ruta deseada
+        method: "POST",
+        inputProps: [
+          {
+            label: isInSpanish ? "Nombre" : "First Name",
+            name: "first_name",
+            placeholder: isInSpanish ? "Ingresa tu nombre" : "Enter your first name",
+            required: true,
+            width: 40,
+            value: userLogged?.first_name || null,
+            contClassNames: "",
+            inpClassNames: "",
+          },
+          {
+            label: isInSpanish ? "Apellido" : "Last Name",
+            name: "last_name",
+            placeholder: isInSpanish ? "Ingresa tu apellido" : "Enter your last name",
+            required: true,
+            width: 40,
+            value: userLogged?.last_name || null,
+            contClassNames: "",
+            inpClassNames: "",
+          },
+          {
+            label: isInSpanish ? "Correo Electrónico" : "Email",
+            name: "email",
+            type: "email",
+            placeholder: isInSpanish ? "Ingresa tu correo electrónico" : "Enter your email",
+            required: true,
+            width: 100,
+            value: userLogged?.email || null,
+            contClassNames: "",
+            inpClassNames: "",
+          },
+          {
+            label: isInSpanish ? "DNI" : "DNI",
+            name: "dni",
+            placeholder: isInSpanish ? "Ingresa tu DNI" : "Enter your DNI",
+            required: true,
+            width: 100,
+            contClassNames: "",
+            inpClassNames: "",
+          },
+          {
+            label: isInSpanish ? "Teléfono" : "Phone",
+            name: "phoneObj.phone_number",
+            type: "select",
+            options: userLogged?.phones || [],
+            required: true,
+            width: 100,
+            contClassNames: "phone-container",
+            inpClassNames: "",
+          },
+          {
+            label: isInSpanish ? "Tipo de Envío" : "Shipping Type",
+            name: "shipping_types_id",
+            type: "select",
+            options: shippingTypesForSelect,
+            required: true,
+            width: 100,
+            contClassNames: "",
+            inpClassNames: "",
+          },
+          {
+            label: isInSpanish ? "Dirección de Facturación" : "Billing Address",
+            name: "billingAddress.id",
+            type: "select",
+            options: userAddressesForDB || [],
+            required: true,
+            width: 100,
+            contClassNames: "billing-address-container",
+            inpClassNames: "",
+          },
+          {
+            label: isInSpanish ? "Usar mismas direcciones" : "Use same addresses",
+            name: "use-same-addresses",
+            type: "checkbox",
+            value: 1,
+            required: true,
+            width: 100,
+            contClassNames: "",
+            inpClassNames: "",
+          },
+          {
+            label: isInSpanish ? "Dirección de Envío" : "Shipping Address",
+            name: "shippingAddress.id",
+            type: "select",
+            options: userAddressesForDB || [],
+            required: true,
+            width: 100,
+            contClassNames: "shipping-address-container",
+            inpClassNames: "",
+          },
+        ],
+      };
+    
         const formToInsert = form(props);
         formWrapper.appendChild(formToInsert);
         await addCheckoutFormDynamicButtons();
@@ -332,10 +321,13 @@ window.addEventListener("load", async () => {
         handlePageModal(true);
       }
       async function listenToPhoneCreateBtn(){
-        
+
       }
   } catch (error) {
     console.log("falle");
     return console.log(error);
   }
 });
+
+
+export {exportObj}

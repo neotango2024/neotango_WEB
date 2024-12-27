@@ -74,7 +74,7 @@ const controller = {
       
       await generateAndInstertEmailCode(userDataToDB);
       //return res.status(201).json({ userDataToDB });
-      const userCreated = await db.User.create(userDataToDB); //Creo el usuario
+      const userCreated = await insertUserToDB(userDataToDB); //Creo el usuario
       // Lo tengo que loggear directamente
       const cookieTime = 1000 * 60 * 60 * 24 * 7; //1 Semana
 
@@ -132,7 +132,7 @@ const controller = {
       // Datos del body
       let { user_id, first_name, last_name, gender_id } = req.body;
 
-      let userFromDB = await getUserByPK(user_id);
+      let userFromDB = await getUsersFromDB(user_id);
       if (!userFromDB)
         return res
           .status(404)
@@ -146,11 +146,7 @@ const controller = {
         last_name,
         gender_id: gender_id || null,
       };
-      await db.User.update(keysToUpdate, {
-        where: {
-          id: user_id,
-        },
-      });
+      await updateUserFromDB(keysToUpdate,user_id);
 
       // Le  mando ok con el redirect al email verification view
       return res.status(200).json({
@@ -320,7 +316,7 @@ const controller = {
     try {
       let { user_id } = req.body;
       // busco el usuario
-      const userFromDB = await getUserByPK(user_id)
+      const userFromDB = await getUsersFromDB(user_id)
       if(!userFromDB) return res
       .status(400)
       .json({ ok: false, msg: systemMessages.generalMsg.failed.es });
@@ -347,7 +343,7 @@ const controller = {
           msg: 'Internal server error'
         })
       }
-      const user = await getUserByPK(userId);
+      const user = await getUsersFromDB(userId);
       const isSuccessUpdatingLanguage = await updateUserLanguageInDb(language, user);
       if(!isSuccessUpdatingLanguage){
         return res.status(500).json({
@@ -377,7 +373,7 @@ const controller = {
         })
       }
       const decoded = verify(token);
-      const user = await getUserByPK(decoded.id);
+      const user = await getUsersFromDB(decoded.id);
       if(!user) {
         return res.status(500).json({
           ok: false,
@@ -401,32 +397,122 @@ const controller = {
       })
     }
   },
-  testAWS: async(req,res)=>{
+  checkForEmailCode: async(req,res)=>{
     try {
-      let filesToGet = [
-        {
-          filename: "index-jyz6jr6yu1",
-          file_types_id: 1
-        },
-        {
-          filename: "index-rrkw09emzp",
-          file_types_id: 1
-        },
-        {
-          filename: "index-gzkz01oqlv.mp4",
-          file_types_id: 2
-        }
-      ];
-      let objectToGet = {
-        folderName: "index",
-        files: filesToGet
+      let { code, user_id } = req.body;
+      code = JSON.parse(code);
+      let user = await getUsersFromDB(user_id)
+      if (!user) return res.status(404).json();
+      // Primero me fijo que el expiration time este bien
+      const codeExpirationTime = new Date(user.expiration_time);
+      const currentTime = new Date();
+      // Este if quiere decir que se vencio
+      if (currentTime > codeExpirationTime) {
+        return res.status(200).json({
+          ok: false,
+          msg: "El codigo ha vencido, solicita otro e intente nuevamente",
+        });
       }
-      let files = await getFilesFromAWS(objectToGet)
-      return res.status(200).json({files})
+      // Aca el tiempo es correcto ==> Chequeo codigo
+      if (code != user.verification_code) {
+        return res.status(200).json({
+          ok: false,
+          msg: "El codigo introducido es incorrecto. Intente nuevamente", //TODO: IDIOMA
+        });
+      }
+      // Aca esta todo ok ==> Hago el update al usuario y mando el status ok
+      let updateObj = {
+        verified_email: 1,
+        verification_code: null,
+        expiration_time: null,
+      }
+      let response = await updateUserFromDB(updateObj, user_id);
+      if(!response) return res.status(500).json({
+        ok: false,
+        msg: 'Internal server error' //TODO: IDIOMA
+      })
+      return res.status(200).json({
+        ok: true,
+        msg: "Codigo verificado correctamente. Redirigiendo...", //TODO: IDIOMA
+      });
     } catch (error) {
       console.log(error);
-      return
+      return res.status(500).json({
+        ok: false,
+        msg: 'Internal server error'
+      })
       
+    }
+  },
+  processLogin: async(req,res)=>{
+    try {
+      
+      let {email, password} = req.body;
+
+      let userToLog = await db.User.findOne({
+        where: { email },
+      });
+      // Si hay usuario
+      if (userToLog) {
+        // Comparo contrasenas
+        if (bcrypt.compareSync(password, userToLog.password)) {
+          let cookieTime = 1000 * 60 * 60 * 24 * 7; //7 Dias
+          // Generar el token de autenticación
+          req.session.userLoggedId = userToLog.id;
+          const token = jwt.sign({ id: userToLog.id }, webTokenSecret, {
+            expiresIn: "7d",
+          }); // genera el token
+          res.cookie("userAccessToken", token, {
+            maxAge: cookieTime,
+            httpOnly: true,
+            secure: true,
+            sameSite: "strict",
+          });
+          // Si es admin armo una cookie con el token de admin
+          if (
+            userToLog.user_role_id == 1 
+          ) {
+            const adminToken = jwt.sign({ id: userToLog.id }, webTokenSecret, {
+              expiresIn: "4h",
+            });
+            cookieTime = 1000 * 60 * 60 * 4; //4 horas
+            res.cookie("adminToken", adminToken, {
+              maxAge: cookieTime,
+              httpOnly: true,
+              secure: true,
+              sameSite: "strict",
+            });
+          }
+          return res.status(200).json({
+            meta:{
+              status: 200, 
+              method: "POST", 
+              url: 'api/user/login'
+            },
+            ok: true,
+            msg: "Succesfully logged",
+            redirect: '/'
+          });
+        }
+        // Si llego aca es porque esta mal la contrasena
+        
+      }
+      // Si llego aca es porque esta mal el email o password
+      return res.status(200).json({
+        meta:{
+          status: 200, 
+          method: "POST", 
+          url: 'api/user/login'
+        },
+        ok: false,
+        msg: "Wrong credentials"
+      });
+    } catch (error) {
+      console.log(`Error in processLogin`);
+      return res.status(500).json({
+        ok: false,
+        msg: 'Internal server error'
+      })
     }
   }
 };
@@ -467,28 +553,43 @@ export async function generateAndInstertEmailCode(user) {
   }
 }
 
-export async function getUserByPK(id) {
+let userIncludeObj = ['cart','orders']
+export async function getUsersFromDB(id) {
   try {
-  //busco el usuario
-  let user = await db.User.findByPk(id,{
-    include: ['tempCartItems','orders']
-  });
-  return user
-  } catch (error) {
-    console.log(`Falle en getUserByPK`);
-    return null
-  }
-}
+    let usersToReturn, userToReturn
+    // Condición si id es un string
+    if (typeof id === "string") {
+      userToReturn = await db.User.findByPk(id,{
+        include: userIncludeObj
+      });
+      if(!userToReturn)return null
+      userToReturn = userToReturn && getDeepCopy(userToReturn);
+      return userToReturn;
+    }
 
-export async function getUsers() {
-  try {
-  //busco los usuarios
-  let users = await db.User.findAll({
-    include: ['cart','orders']
-  });
-  return users
+    // Condición si id es un array
+    if (Array.isArray(id)) {
+      usersToReturn = await db.User.findAll({
+        where: {
+          id: id, // id es un array, se hace un WHERE id IN (id)
+        },
+        include: userIncludeObj
+      });
+      if(!usersToReturn || !usersToReturn.length)return null
+      usersToReturn = getDeepCopy(usersToReturn);
+      return usersToReturn;
+    }
+    // Condición si id es undefined
+    if (id === undefined) {
+      usersToReturn = await db.User.findAll({
+        include: userIncludeObj
+      });
+      if(!usersToReturn || !usersToReturn.length)return null
+      usersToReturn = getDeepCopy(usersToReturn);
+      return usersToReturn;
+    }
   } catch (error) {
-    console.log(`Falle en getUserByPK`);
+    console.log(`Falle en getUsers`);
     return console.log(error);
   }
 }
@@ -499,3 +600,35 @@ export function deleteSensitiveUserData(user){
   delete user.verification_code;
   delete user.expiration_time;
 }
+
+export async function updateUserFromDB(obj,id) {
+  try {
+    if(!obj || !id)return undefined
+
+    //Lo updateo en db
+    await db.User.update(obj,{
+      where: {
+        id
+      }
+    });
+    return true
+  } catch (error) {
+    console.log(`Falle en updateUserFromDB`);
+    console.log(error);
+    return undefined
+  }
+}
+
+export async function insertUserToDB(obj) {
+  try {
+    if(!obj || !id)return undefined
+    //Lo inserto en db
+    let createdUser = await db.User.create(obj);
+    return createdUser
+  } catch (error) {
+    console.log(`Falle en insertUserToDB`);
+    console.log(error);
+    return undefined
+  }
+}
+

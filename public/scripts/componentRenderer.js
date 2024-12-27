@@ -3,11 +3,13 @@ import { settedLanguage } from "./languageHandler.js";
 import { activateDropdown, createModal, generateRandomString } from "./utils.js";
 
 export function checkoutCard (props) {
+    let isInSpanish =  settedLanguage == 'esp'
     const productMainFile = props.files?.find(file=>file.main_file)
     props.quantity = props.quantity || 1; //TODO: cambiar por lo que trae el carro
     const container = document.createElement("div");
     container.className = "card checkout-card";
-    container.dataset.price = props.ars_price; //TODO: IDIOMA
+    const productPrice = isInSpanish ? props.ars_price : props.usd_price;
+    container.dataset.price =  productPrice
     // Image section
     const imageDiv = document.createElement("div");
     imageDiv.className = "card_image";
@@ -38,20 +40,20 @@ export function checkoutCard (props) {
     const header = document.createElement("a");
     header.className = "card-header";
     header.href = `/product/${props.id}`; // Puedes parametrizar este enlace si es necesario
-    header.textContent = props.es_name; //TODO: IDIOMA
+    header.textContent = isInSpanish ? props.es_name : props.eng_name;
   
     // Meta
     const metaDiv = document.createElement("div");
     metaDiv.className = "meta";
     const categorySpan = document.createElement("span");
     categorySpan.className = "card_desc";
-    categorySpan.textContent = props.category?.name;
+    categorySpan.textContent = isInSpanish ? props.category?.name.es : props.category?.name.en;
     metaDiv.appendChild(categorySpan);
   
     // Price
     const priceSpan = document.createElement("span");
     priceSpan.className = "card_price";
-    priceSpan.textContent = `$${parseInt(props.quantity)*parseFloat(props.ars_price)}`;
+    priceSpan.textContent = `$${parseInt(props.quantity)*parseFloat(productPrice)}`;
   
     // Amount container
     const amountContainer = document.createElement("div");
@@ -216,7 +218,7 @@ export function homeLabel(props)  {
 }
 
 export function form (props) {
-
+    
     const { inputProps, formTitleObject, formAction, method } = props;
     const container = document.createElement('div')
     container.className = 'form-container'; //TODO: ver en caso que hayan 2 forms en la misma pagina
@@ -358,13 +360,13 @@ export async function createPhoneModal() {
    let isInSpanish =  settedLanguage == 'esp'
   try {
     createModal({
-      headerTitle: "Create Phone",
+      headerTitle: isInSpanish ? "Agregar Telefono" : "Add Phone",
       formFields: [
         {
             type: "two-fields",
             fields: [
                 {
-                    label: "Phone Area",
+                    label: isInSpanish ? "Codigo de area":"Phone Area",
                     type: "select",
                     name: "phone_country_id",
                     className:
@@ -372,7 +374,7 @@ export async function createPhoneModal() {
                     required: true,
                   },
                   {
-                    label: "Phone Number",
+                    label: isInSpanish ? "Numero de telefono": "Phone Number",
                     type: "text",
                     className: "numeric-only-input",
                     required: true,
@@ -394,7 +396,7 @@ export async function createPhoneModal() {
     }))
     
     // Ahora activo el select
-    activateDropdown(classNameToActivate, arrayToActivateInDropdown, "Select Country Code");
+    activateDropdown(classNameToActivate, arrayToActivateInDropdown, isInSpanish ? "Codigo de area": "Country Code");
     
   } catch (error) {
     console.log("falle");
@@ -403,66 +405,67 @@ export async function createPhoneModal() {
 };
 
 export async function createAddressModal() {
+  let isInSpanish =  settedLanguage == 'esp'
   try {
     createModal({
-      headerTitle: "Create Address",
+      headerTitle: isInSpanish ? "Agregar Direccion" : "Add Address",
       formFields: [
         {
-            label: "Label",
+            label: isInSpanish ? "Etiqueta" : "Label",
             type: "text",
             name: "address-label",
             className:"",
             required: true,
-            placeHolder: "Enter a label (e.g., Home)"
+            placeHolder: isInSpanish ? "Etiqueta (ej: Casa)" : "Enter a label (e.g., Home)"
         },
         {
-            label: "Street",
+            label: isInSpanish ? "Direccion" :"Street",
             type: "text",
             name: "address-street",
             className:"",
             required: true,
-            placeHolder: "Enter the street name"
+            placeHolder: isInSpanish ? "Direccion completa" : "Enter full street name"
         },
         {
-            label: "Detail",
+            label: isInSpanish ? "Detalle" : "Detail",
             type: "text",
             name: "address-detail",
             className:"",
             required: false,
-            placeHolder: "Additional details (e.g., Apt, Floor)"
+            placeHolder: isInSpanish ? "Detalle (ej: 2b, apt 300)" : "Additional details (e.g., Apt, Floor)"
         },
         {
-            label: "ZIP",
+            label: isInSpanish ? "Codigo Postal" : "ZIP",
             type: "text",
             name: "address_zip",
             className:"short-input",
             required: true,
-            placeHolder: "Enter the ZIP code"
+            placeHolder: isInSpanish ? "Codigo postal" :"ZIP code"
         },
         {
-            label: "City",
+            label: isInSpanish ? "Ciudad" :"City",
             type: "text",
             name: "address-city",
             className:"",
             required: true,
-            placeHolder: "Enter the city"
+            placeHolder: isInSpanish ? "Ciudad" :"Enter the city"
         },
         {
-            label: "Province",
+            label: isInSpanish ? "Provincia" :"Province",
             type: "text",
             name: "address-province",
             className:"",
             required: true,
-            placeHolder: "Enter the province"
+            placeHolder: isInSpanish ? "Provincia" :"Enter the province"
         },
         {
-            label: "Country",
+            label: isInSpanish ? "Pais" :"Country",
             type: "select",
             name: "phone_country_id",
             className:
               "ui search dropdown country_search_input form_search_dropdown",
             required: true,
-            placeHolder: "Select a country"
+            placeHolder: isInSpanish ? "Elegi un pais" : "Select a country"
           },
       ],
       submitButtonText: "Create",
@@ -478,7 +481,7 @@ export async function createAddressModal() {
     }))
     let classToActivate = '.ui.search.dropdown.country_search_input.form_search_dropdown'
     // Ahora activo el select
-    activateDropdown(classToActivate,arrayToActivateInDropdown, "Select Country");
+    activateDropdown(classToActivate,arrayToActivateInDropdown, isInSpanish ? "Elegi un pais" : "Select Country");
     
   } catch (error) {
     console.log("falle");

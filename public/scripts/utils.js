@@ -47,7 +47,9 @@ export function handlePageModal(boolean){
   //Abro el popup
   $(".ui.modal").modal({ 
     keyboardShortcuts: false,
-    observeChanges: true });
+    observeChanges: true,
+    centered: false
+  });
   $(".ui.modal").modal("show");
   document.body.classList.add("scrolling");
   return
@@ -174,10 +176,12 @@ export function createModal({ headerTitle, formFields, submitButtonText }) {
   // Agregar botón de envío
   const submitButton = document.createElement("button");
   submitButton.type = "submit";
-  submitButton.className = "ui button submit primary";
+  submitButton.className = "ui right floated button submit basic negative";
   submitButton.textContent = submitButtonText || "Submit";
   form.appendChild(submitButton);
-
+  const divFieldToAppend = document.createElement("div");
+  divFieldToAppend.className = "field";
+  form.appendChild(divFieldToAppend);
   // Agregar mensaje de error
   const errorMessage = document.createElement("div");
   errorMessage.className = "ui error message";

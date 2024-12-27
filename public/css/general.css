@@ -97,6 +97,9 @@ body{
     opacity: .4;
     pointer-events: none;
 }
+.margin-field{
+    margin: 10px;
+}
 a{
     color: unset;
 }
