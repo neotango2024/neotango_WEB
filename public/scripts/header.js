@@ -73,16 +73,13 @@ const checkForUserIconClicks = () => {
 const checkForLoginModalCloseClicks = () => {
     const closeBtn = document.querySelector('.close-sign-in-modal');
     closeBtn.addEventListener('click', () => {
-        console.log('click')
         toggleLoginModal();
     })
 }
 
 const toggleLoginModal = () => {
     const modal = document.querySelector('.no-logged-user-modal');
-    console.log(modal)
     modal.classList.toggle('no-logged-user-modal-active');
-    console.log(modal)
     if(SCREEN_WIDTH < 1024){
         toggleBodyScrollableBehavior();
         toggleOverlay();
@@ -126,7 +123,9 @@ const renderFormAndButton = () => {
         formTitleObject,
         formAction,
     }
-    form(formProps);
+    const formContainerCreated = form(formProps);
+    const modal = document.querySelector('.no-logged-user-modal');
+    modal.appendChild(formContainerCreated);
 
     const buttonProps = {
         text: settedLanguage === english ? 'Sign in' : 'Iniciar sesión',
@@ -138,7 +137,8 @@ const renderFormAndButton = () => {
             dataValue: 'signIn'
         }
     }
-    button(buttonProps);
+    const buttonCreated = button(buttonProps);
+    formContainerCreated.append(buttonCreated);
 }
 
 export const translateNavbar = (language) => {

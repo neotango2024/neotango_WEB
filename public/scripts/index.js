@@ -1,6 +1,5 @@
-import {  productCard, checkoutCard } from "./componentRenderer.js";
-import { checkCheckoutButtons } from "./utils.js";
-import { languages, translations } from "../constants/constants.js";
+
+import { translations } from "../constants/constants.js";
 const SCREEN_WIDTH = window.innerWidth;
 const companyInfoTranslations = translations.companyInfo;
 
@@ -241,19 +240,6 @@ window.addEventListener('load',()=>{
     })
   }
 });
-
-const renderCheckoutCard = () => {
-    products.forEach(prod => checkoutCard(prod));
-}
-
-const renderProducts = () => {
-    const main = document.querySelector('.main');
-    products.forEach(prod => {
-        const card = checkoutCard(prod);
-        main.appendChild(card);
-    })
-    checkCheckoutButtons();
-}
 
 export const translateCompanyInfo = (selectedLanguage) => {
   const infoItemContainers = document.querySelectorAll('.info-item-container');

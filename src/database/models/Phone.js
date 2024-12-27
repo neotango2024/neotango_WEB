@@ -1,6 +1,6 @@
 export default (sequelize, dataTypes) => {
 
-    let alias = "PhoneNumber";
+    let alias = "Phone";
 
     let cols = {
         id: {
@@ -9,7 +9,8 @@ export default (sequelize, dataTypes) => {
             allowNull: false,
         },
         phone_number: { type: dataTypes.STRING(70) },
-        country_id: { type: dataTypes.INTEGER },
+        country_id: { type: dataTypes.STRING(36) },
+        user_id: { type: dataTypes.STRING(36) },
     }
 
     let config = {
@@ -19,15 +20,15 @@ export default (sequelize, dataTypes) => {
         underscored: true
     }
 
-    const PhoneNumber = sequelize.define(alias, cols, config);
+    const Phone = sequelize.define(alias, cols, config);
 
-    PhoneNumber.associate = (models) => {
-        const {Order} = models;
-        PhoneNumber.hasMany(Order, {
-            as: 'orders',
-            foreignKey: 'phone_id'
+    Phone.associate = (models) => {
+        const {User} = models;
+        Phone.belongsTo(User, {
+            as: 'user',
+            foreignKey: 'user_id'
         })
     };
 
-    return PhoneNumber;
+    return Phone;
 }

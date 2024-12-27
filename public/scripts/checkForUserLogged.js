@@ -5,9 +5,9 @@ export const checkForUserLogged = async () => {
     try {
         await fetch('/api/user/check-for-user-logged')
                     .then(response => response.json())
-                    .then(data => {
-                        if(data){
-                            userLogged = data;
+                    .then(apiData => {
+                        if(apiData.ok){
+                            userLogged = apiData.data;
                         }
                     })
     } catch (error) {

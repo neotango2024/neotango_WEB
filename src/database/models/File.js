@@ -9,9 +9,9 @@ export default (sequelize, dataTypes) => {
             allowNull: false,
         },
         filename: { type: dataTypes.STRING(255) },
+        product_id: { type: dataTypes.STRING(36) },
         file_types_id: { type: dataTypes.INTEGER },
         sections_id: { type: dataTypes.INTEGER },
-        product_id: { type: dataTypes.STRING(36) },
         main_file: { type: dataTypes.TINYINT },
     }
 

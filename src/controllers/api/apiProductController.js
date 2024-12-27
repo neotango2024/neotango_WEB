@@ -7,7 +7,11 @@ import fileController, { insertFilesInDb, findFilesInDb, deleteFileInDb} from '.
 import variationsController from '../variationsController.js';
 import { getMappedErrors } from '../../utils/helpers/getMappedErrors.js';
 import getFileType from '../../utils/helpers/getFileType.js';
-import { destroyFilesFromAWS, uploadFilesToAWS } from '../../utils/helpers/awsHandler.js';
+import { destroyFilesFromAWS, getFilesFromAWS, uploadFilesToAWS } from '../../utils/helpers/awsHandler.js';
+import getDeepCopy from '../../utils/helpers/getDeepCopy.js';
+import tacos from '../../utils/staticDB/tacos.js';
+import sizes from '../../utils/staticDB/sizes.js';
+import {categories} from '../../utils/staticDB/categories.js';
 
 const {productMsg} = systemMessages;
 const { fetchFailed, notFound, fetchSuccessfull, createFailed, updateFailed, deleteSuccess, createSuccessfull, deleteFailed } = productMsg;
@@ -17,11 +21,11 @@ const PRODUCTS_FOLDER_NAME = 'products';
 const controller = {
     handleGetAllProducts: async (req, res) => {
         try {
-            const categoryId = req.query.categoryId;
+            const categoryId = req.query.categoryId || null;
             const productId = req.query.productId;
             let products;
             if(productId){
-                const [success, foundProduct] = await findProductInDb(productId);
+                const [success, foundProduct] = await findProductsInDb(productId,null,true);
                 if(success && !foundProduct){
                     return res.status(404).json({
                         ok: false,
@@ -35,14 +39,10 @@ const controller = {
                         data: []
                     })
                 }
-                foundProduct.variations = populateVariations(foundProduct.variations);
                 products = [foundProduct];
             } else {
-                const [success, productsFetched] = await findProductsInDb(categoryId);
-                productsFetched.forEach(prod => {
-                    prod.variations = populateVariations(prod.variations);
-                })
-                if (!success){
+                const productsFetched = await findProductsInDb(null,categoryId,true);                
+                if (!productsFetched.length){
                     return res.status(500).json({
                         ok: false,
                         msg: fetchFailed.es,
@@ -56,7 +56,8 @@ const controller = {
                 data: products
             })
         } catch (error) {
-            console.log(`error in handleGetAllProducts: ${e}`);
+            console.log(`error in handleGetAllProducts:`);
+            console.log(error);
             return res.status(500).json({
                 ok: false,
                 msg: fetchFailed.en
@@ -94,30 +95,34 @@ const controller = {
                 });
             };
             const files = req.files;
-            files.forEach(multerFile => {
-                const fileFromFilesArrayFiltered = filesFromArray.find(arrFile => arrFile.filename === multerFile.originalname)
-                multerFile.file_types_id = getFileType(multerFile);
-                multerFile.main_file = fileFromFilesArrayFiltered.main_file;
-            });
-            const objectToUpload = {
-                files,
-                folderName: PRODUCTS_FOLDER_NAME,
-                sections_id: 2
-            }
-            const filesToInsertInDb = await uploadFilesToAWS(objectToUpload);
-            if(!filesToInsertInDb){
-                return res.status(500).json({
-                    ok: false,
-                    msg: createFailed.es
+            if(files && files.length){
+                files?.forEach(multerFile => {
+                    const fileFromFilesArrayFiltered = filesFromArray.find(arrFile => arrFile.filename === multerFile.originalname)
+                    multerFile.file_types_id = getFileType(multerFile);
+                    multerFile.main_file = fileFromFilesArrayFiltered.main_file;
                 });
+                const objectToUpload = {
+                    files,
+                    folderName: PRODUCTS_FOLDER_NAME,
+                    sections_id: 2
+                }
+                const filesToInsertInDb = await uploadFilesToAWS(objectToUpload);
+                if(!filesToInsertInDb){
+                    return res.status(500).json({
+                        ok: false,
+                        msg: createFailed.es
+                    });
+                }
+                const isInsertingFilesSuccessful = await insertFilesInDb(filesToInsertInDb, newProductId);
+                if(!isInsertingFilesSuccessful){
+                    return res.status(500).json({
+                        ok: false,
+                        msg: createFailed.es
+                    });
+                }
             }
-            const isInsertingFilesSuccessful = await insertFilesInDb(filesToInsertInDb, newProductId);
-            if(!isInsertingFilesSuccessful){
-                return res.status(500).json({
-                    ok: false,
-                    msg: createFailed.es
-                });
-            }
+            
+            
             return res.status(200).json({
                 ok: true,
                 msg: createSuccessfull.en,
@@ -290,46 +295,53 @@ const controller = {
 
 export default controller;
 
-async function findProductsInDb(categoryId) {
+let productIncludeArray =  [
+    'files',
+    'variations'
+]
+export async function findProductsInDb(id = null, categoryId = null, withImages = false) {
     try {
-        let products;
-        if(categoryId){
-            products = await Product.findAll({
+    let productsToReturn, productToReturn;
+    // Condición si id es un string
+    if (typeof id === "string") {
+        productToReturn = await db.Product.findByPk(id,{
+          include: productIncludeArray
+        });
+        if(!productToReturn) return null
+        productToReturn = getDeepCopy(productToReturn);
+        await setProductKeysToReturn(productToReturn, withImages); //Setea las keys para devolver front
+        return productToReturn;
+    } else if (Array.isArray(id)) {
+        // Condición si id es un array
+        productsToReturn = await db.Product.findAll({
+          where: {
+            id: id, // id es un array, se hace un WHERE id IN (id)
+          },
+          include: productIncludeArray
+        });
+        
+      } else if(categoryId){
+        productsToReturn = await Product.findAll({
                 where: {
                     category_id: categoryId
                 },
-                include: [
-                    'files',
-                    'variations'
-                ]
+                include: productIncludeArray
             });
-        } else {
-            products = await Product.findAll({
-                include: [
-                    'files',
-                    'variations'
-                ]
-            })
+        } else{
+            productsToReturn = await Product.findAll({
+                include: productIncludeArray
+            });
         }
-        return [true, products];
+        if(!productsToReturn || !productsToReturn.length) return null
+        productsToReturn = getDeepCopy(productsToReturn);
+        for (let i = 0; i < productsToReturn.length; i++) {
+            const prod = productsToReturn[i];
+            await setProductKeysToReturn(prod, true);
+        }    
+        return productsToReturn;
     } catch (error) {
         console.log(`error finding products in db: ${error}`);
-        return [false, null]
-    }
-}
-
-export async function findProductInDb (productId) {
-    try {
-        const product = await Product.findByPk(productId, {
-            include: [
-                'files',
-                'variations'
-            ]
-        });
-        return [true, product];
-    } catch (error) {
-        console.log(`Error finding product in db: ${error}`);
-        return [false, null];
+        return null
     }
 }
 
@@ -378,4 +390,75 @@ async function updateProductInDb(body, productId){
         console.log(`error updating product in db: ${error}`);
         return false;
     }
+}
+
+export async function getVariationsFromDB(id) {
+    try {
+        let includeObj = {
+          include: [
+          "product"
+        ],
+      }
+        // Condición si id es un string
+        if (typeof id === "string") {
+          let variationToReturn = await db.Variation.findByPk(id,includeObj);
+          if(!variationToReturn)return null
+          variationToReturn = variationToReturn && getDeepCopy(variationToReturn);
+          //Aca le agrego los tacos y eso
+          setVariationObjToReturn(variationToReturn)
+          return variationToReturn;
+        }
+        // Condición si id es un array
+        if (Array.isArray(id)) {
+          let variationsToReturn = await db.Variation.findAll({
+            where: {
+              id: id, // id es un array, se hace un WHERE id IN (id)
+            },
+            includeObj,
+          });
+          if(!variationsToReturn.length)return null
+          variationsToReturn = getDeepCopy(variationsToReturn);
+          //Aca le agrego los tacos y eso
+          variationsToReturn.forEach(variation => setVariationObjToReturn(variation));
+          return variationsToReturn;
+        }
+    
+        // Condición si id es undefined
+        if (id === undefined) {
+          let variationsToReturn = await db.Variation.findAll(includeObj);
+          if(!variationsToReturn.length)return null
+          variationsToReturn = getDeepCopy(variationsToReturn);
+          //Aca le agrego los tacos y eso
+          variationsToReturn.forEach(variation => setVariationObjToReturn(variation));
+          return variationsToReturn;
+        }
+      } catch (error) {
+        console.log("Falle en getVariationsFromDB");
+        console.error(error);
+        return null;
+      }
+}
+//compra 3 productos ==> 
+function setVariationObjToReturn(variation){
+    variation.taco = tacos.find(taco=>taco.id == variation.taco_id)
+    variation.size = sizes.find(size=>size.id == variation.size_id)
+};
+
+async function setProductKeysToReturn(prod, withImages = false){
+try {     
+    //Le seteo la categoria
+    prod.category = categories.find(cat=>cat.id == prod.category_id);
+    prod.variations = populateVariations(prod.variations);
+
+    if(withImages && prod.files?.length){
+        await getFilesFromAWS({
+            folderName: 'products',
+            files: prod.files
+        });               
+    }  
+} catch (error) {
+    console.log('falle');
+    return console.log(error);
+    
+}
 }

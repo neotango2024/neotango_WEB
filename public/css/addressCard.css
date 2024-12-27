@@ -11,7 +11,7 @@
 .address_card .card_top_content{
     justify-content: space-between;
 }
-.address_card .card_header{
+.address_card .card-header{
     font-size: clamp(1rem, 2vw + .2rem, 1.25rem);
 }
 .address_card .card_content{

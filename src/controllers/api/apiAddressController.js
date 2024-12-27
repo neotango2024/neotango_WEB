@@ -34,7 +34,7 @@ const controller = {
         return res.status(422).json({
             meta: {
                 status: 422,
-                url: '/api/user',
+                url: '/api/address',
                 method: "POST"
             },
             ok: false,
@@ -43,31 +43,10 @@ const controller = {
             msg: systemMessages.formMsg.validationError.es
         });
       }
-
-      // Datos del body
-      let { user_id, street, label, detail, zip_code, city, province, country_id, first_name, last_name } = req.body;
+      let addressObjToDB = generateAddressObject(req.body);
       
-      // return console.log(bcrypt.hashSync('admin123', 10));
+      let createdAddress = await insertAddressToDB(addressObjToDB);
       
-      //Nombres y apellidos van capitalziados
-      first_name = capitalizeFirstLetterOfEachWord(first_name, true);
-      last_name = capitalizeFirstLetterOfEachWord(last_name, true);
-
-      let dataToDB = {
-        id: uuidv4(),
-        user_id,
-        street,
-        label,
-        detail: detail || null,
-        zip_code,
-        city,
-        province,
-        country_id,
-        first_name,
-        last_name,
-      };
-      
-      let createdAddress = await insertAddressToDB(dataToDB);
       if(!createdAddress)
       return res.status(502).json();
       
@@ -91,11 +70,15 @@ const controller = {
   updateAddress: async (req, res) => {
     try {
       // Traigo errores
-      let {errorsParams,errorsMapped} = getMappedErrors(errors);
+      // Traigo errores
+      let errors = validationResult(req);
+
+      if (!errors.isEmpty()) {
+        let {errorsParams,errorsMapped} = getMappedErrors(errors);
         return res.status(422).json({
             meta: {
                 status: 422,
-                url: '/api/user',
+                url: '/api/address',
                 method: "PUT"
             },
             ok: false,
@@ -103,7 +86,7 @@ const controller = {
             params: errorsParams,
             msg: systemMessages.formMsg.validationError.es
         });
-
+      }
       // Datos del body
       let { address_id, street, label, detail, zip_code, city, province, country_id, first_name, last_name } = req.body;
 
@@ -168,6 +151,7 @@ const controller = {
 
 export default controller;
 
+let addressIncludeArray = ['user']
 export async function insertAddressToDB(obj) {
   try {
     //Lo creo en db
@@ -219,7 +203,7 @@ export async function getUserAddressesFromDB(id) {
       where: {
         user_id: id
       },
-      include: ['billingOrders','shippingOrders','user']
+      include: addressIncludeArray
     });
     addresses = getDeepCopy(addresses);
 
@@ -228,5 +212,73 @@ export async function getUserAddressesFromDB(id) {
     console.log(`Falle en getUserAddresesFromDB`);
     console.log(error);
     return undefined
+  }
+}
+
+export function generateAddressObject(address) {
+  // objeto para armar la address
+  let { user_id, street, label, detail, zip_code, city, province, country_id, first_name, last_name } = address;
+        
+  // return console.log(bcrypt.hashSync('admin123', 10));
+
+  // //Nombres y apellidos van capitalziados
+  // first_name = capitalizeFirstLetterOfEachWord(first_name, true);
+  // last_name = capitalizeFirstLetterOfEachWord(last_name, true);
+
+  let dataToDB = {
+    id: uuidv4(),
+    user_id,
+    street, //libertado 2222
+    label, //Casa
+    detail: detail || null, //2b
+    zip_code,
+    city,
+    province,
+    country_id,
+    // first_name,
+    // last_name,
+  };
+  return dataToDB
+}
+
+export async function getAddresesFromDB(id){
+  try {
+  
+    // Condición si id es un string
+    if (typeof id === "string") {
+      let addressToReturn = await db.Address.findByPk(id,{
+        include: addressIncludeArray
+      });
+      if(!addressToReturn)return null
+      addressToReturn = addressToReturn && getDeepCopy(addressToReturn);
+      return addressToReturn;
+    }
+
+    // Condición si id es un array
+    if (Array.isArray(id)) {
+      let addressesToReturn = await db.Address.findAll({
+        where: {
+          id: id, // id es un array, se hace un WHERE id IN (id)
+        },
+        include: addressIncludeArray
+      });
+      if(!addressesToReturn || !addressesToReturn.length)return null
+      addressesToReturn = getDeepCopy(addressesToReturn);
+      return addressesToReturn;
+    }
+
+    // Condición si id es undefined
+    if (id === undefined) {
+      let addressesToReturn = await db.Address.findAll({
+        include: addressIncludeArray
+      });
+      if(!addressesToReturn || !addressesToReturn.length)return null
+      addressesToReturn = getDeepCopy(addressesToReturn);
+      return addressesToReturn;
+    }
+  } catch (error) {
+    console.log("Falle en getUserAddresesFromDB");
+    console.error(error);
+    return null;
   }
 }

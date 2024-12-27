@@ -22,6 +22,11 @@ export const translations = {
             esp: 'Envíos nacionales e internacionales',
             eng: 'National and international shipping'
         } }
+    },
+    userForm: {
+        signIn: { eng: 'Sign in', esp: 'Iniciar sesión' },
+        register: { eng: 'Register', esp: 'Registrarse' },
+        password: { eng: 'Password', esp: 'Contraseña' }
     }
 };
 
