@@ -1,15 +1,17 @@
-.checkout_card{
+.checkout-card{
     width: 90vw;
     height: 30vh;
-    max-width: 600px;
+    max-width: 450px;
     max-height: 130px;
 }
-.checkout_card .card_image{
+.checkout-card .card_image{
     width: 30%;
     max-width: 110px;
     padding: 5px;
 }
-
+.checkout-card .card-header{
+    font-size: clamp(1.15rem, 2vw + .2rem, 1.35rem);
+}
 .card_amount_container{
     width: 100%;
     max-width: 90px;

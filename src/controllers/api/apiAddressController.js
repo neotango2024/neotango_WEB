@@ -151,6 +151,7 @@ const controller = {
 
 export default controller;
 
+let addressIncludeArray = ['user']
 export async function insertAddressToDB(obj) {
   try {
     //Lo creo en db
@@ -202,7 +203,7 @@ export async function getUserAddressesFromDB(id) {
       where: {
         user_id: id
       },
-      include: ['billingOrders','shippingOrders','user']
+      include: addressIncludeArray
     });
     addresses = getDeepCopy(addresses);
 
@@ -220,9 +221,9 @@ export function generateAddressObject(address) {
         
   // return console.log(bcrypt.hashSync('admin123', 10));
 
-  //Nombres y apellidos van capitalziados
-  first_name = capitalizeFirstLetterOfEachWord(first_name, true);
-  last_name = capitalizeFirstLetterOfEachWord(last_name, true);
+  // //Nombres y apellidos van capitalziados
+  // first_name = capitalizeFirstLetterOfEachWord(first_name, true);
+  // last_name = capitalizeFirstLetterOfEachWord(last_name, true);
 
   let dataToDB = {
     id: uuidv4(),
@@ -234,8 +235,50 @@ export function generateAddressObject(address) {
     city,
     province,
     country_id,
-    first_name,
-    last_name,
+    // first_name,
+    // last_name,
   };
   return dataToDB
+}
+
+export async function getAddresesFromDB(id){
+  try {
+  
+    // Condición si id es un string
+    if (typeof id === "string") {
+      let addressToReturn = await db.Address.findByPk(id,{
+        include: addressIncludeArray
+      });
+      if(!addressToReturn)return null
+      addressToReturn = addressToReturn && getDeepCopy(addressToReturn);
+      return addressToReturn;
+    }
+
+    // Condición si id es un array
+    if (Array.isArray(id)) {
+      let addressesToReturn = await db.Address.findAll({
+        where: {
+          id: id, // id es un array, se hace un WHERE id IN (id)
+        },
+        include: addressIncludeArray
+      });
+      if(!addressesToReturn || !addressesToReturn.length)return null
+      addressesToReturn = getDeepCopy(addressesToReturn);
+      return addressesToReturn;
+    }
+
+    // Condición si id es undefined
+    if (id === undefined) {
+      let addressesToReturn = await db.Address.findAll({
+        include: addressIncludeArray
+      });
+      if(!addressesToReturn || !addressesToReturn.length)return null
+      addressesToReturn = getDeepCopy(addressesToReturn);
+      return addressesToReturn;
+    }
+  } catch (error) {
+    console.log("Falle en getUserAddresesFromDB");
+    console.error(error);
+    return null;
+  }
 }

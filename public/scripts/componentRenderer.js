@@ -1,14 +1,32 @@
+import { countriesFromDB, setCountries } from "./getStaticTypesFromDB.js";
+import { activateDropdown, createModal, generateRandomString } from "./utils.js";
 
 export function checkoutCard (props) {
+    const productMainFile = props.files?.find(file=>file.main_file)
+    props.quantity = props.quantity || 1; //TODO: cambiar por lo que trae el carro
     const container = document.createElement("div");
-    container.className = "card checkout_card";
-    container.dataset.price = props.price
+    container.className = "card checkout-card";
+    container.dataset.price = props.ars_price; //TODO: IDIOMA
     // Image section
     const imageDiv = document.createElement("div");
     imageDiv.className = "card_image";
+
     const img = document.createElement("img");
-    img.src = `/img/product/${props.filename}`; // Usa la propiedad filename para la imagen
-    img.alt = `Image_${Math.random().toString(36).substring(7)}`; // Genera un alt aleatorio
+
+    // Configurar el srcset y src del elemento img usando productMainFile
+    if (productMainFile?.file_urls?.length) {
+        const fileUrls = productMainFile.file_urls.map(url => `${url.url} ${url.size}`).join(", ");
+        img.srcset = fileUrls;
+        img.src = productMainFile.file_urls[productMainFile.file_urls.length - 1].url;
+        img.alt = productMainFile.filename; // Usar el nombre del archivo para alt
+        // img.dataset.file_id = productMainFile.id; // Agregar un data attribute
+        img.loading = "lazy"; // Cargar la imagen de manera perezosa
+    } else {
+        img.src = '/img/product/default.png';
+        let randomNumber = generateRandomString(10)
+        img.alt = `default-image-${randomNumber}`; // Usar el nombre del archivo para alt
+    }
+
     imageDiv.appendChild(img);
   
     // Content section
@@ -17,22 +35,22 @@ export function checkoutCard (props) {
   
     // Header
     const header = document.createElement("a");
-    header.className = "card_header";
-    header.href = `/product/1`; // Puedes parametrizar este enlace si es necesario
-    header.textContent = props.name;
+    header.className = "card-header";
+    header.href = `/product/${props.id}`; // Puedes parametrizar este enlace si es necesario
+    header.textContent = props.es_name; //TODO: IDIOMA
   
     // Meta
     const metaDiv = document.createElement("div");
     metaDiv.className = "meta";
     const categorySpan = document.createElement("span");
     categorySpan.className = "card_desc";
-    categorySpan.textContent = props.category;
+    categorySpan.textContent = props.category?.name;
     metaDiv.appendChild(categorySpan);
   
     // Price
     const priceSpan = document.createElement("span");
     priceSpan.className = "card_price";
-    priceSpan.textContent = `$${parseInt(props.quantity)*parseFloat(props.price)}`;
+    priceSpan.textContent = `$${parseInt(props.quantity)*parseFloat(props.ars_price)}`;
   
     // Amount container
     const amountContainer = document.createElement("div");
@@ -86,7 +104,7 @@ export function addressCard(props) {
     cardTopContent.className = 'card_top_content';
 
     const cardHeader = document.createElement('p');
-    cardHeader.className = 'card_header address_name';
+    cardHeader.className = 'card-header address_name';
     cardHeader.textContent = props.name || 'Casa';
 
     const defaultAddressMarker = document.createElement('div');
@@ -198,8 +216,10 @@ export function homeLabel(props)  {
 
 export function form (props) {
     const { inputProps, formTitle, formAction, method } = props;
-    const container = document.querySelector('.form-container');
-
+    const container = document.createElement('div')
+    container.className = 'form-container'; //TODO: ver en caso que hayan 2 forms en la misma pagina
+  
+  
     const h3Element = document.createElement("h3");
     h3Element.className = "title";
     h3Element.textContent = formTitle;
@@ -212,31 +232,59 @@ export function form (props) {
     container.appendChild(form);
 
     inputProps.forEach((input) => {
-        const inputContainer = document.createElement("div");
-        inputContainer.className = 'input-container';
-        inputContainer.style.width = `${input.width}%`
+      const inputContainer = document.createElement("div");
+      inputContainer.className = `input-container ${input.contClassNames}`;
+      inputContainer.style.width = `${input.width}%`;
   
-        if (input.label) {
-          const label = document.createElement("label");
-          label.textContent = input.label;
-          label.htmlFor = input.id || "";
-          inputContainer.appendChild(label);
-        }
-
-        const inputElement = document.createElement("input");
-        inputElement.type = input.type || "text"; 
-        inputElement.placeholder = input.placeholder || "";
-        inputElement.value = input.value || "";
-        if(inputElement.id) inputElement.id = input.id;
-        inputElement.name = input.name || "";
-        inputElement.required = input.required || false;
-        inputElement.className = `form-input ${input.className}`
+      
   
+      let inputElement;
+  
+      if (input.type === 'select') {
+          // Crear un elemento select
+          inputElement = document.createElement("select");
+          inputElement.name = input.name || "";
+          inputElement.required = input.required || false;
+          inputElement.className = `form-select ${input.inpClassNames || ""}`;
+          if (input.id) inputElement.id = input.id;
+  
+          // Agregar opciones al select
+          (input.options || []).forEach(option => {
+              const optionElement = document.createElement("option");
+              optionElement.value = option.value || "";
+              optionElement.textContent = option.label || "";
+              inputElement.appendChild(optionElement);
+          });
+      } else {
+          let randomString = generateRandomString(5); //Esto es para que targetee bien
+          // Crear un elemento input (por defecto)
+          inputElement = document.createElement("input");
+          inputElement.type = input.type || "text";
+          inputElement.placeholder = input.placeholder || "";
+          inputElement.value = input.value || "";
+          inputElement.id = input.id || randomString;
+          inputElement.name = input.name || "";
+          inputElement.required = input.required || false;
+          inputElement.className = `form-input ${input.className || ""}`;
+      }
+      let label;
+      if (input.label) {
+        label = document.createElement("label");
+        label.textContent = input.label;
+        label.htmlFor = inputElement.id || "";
+      }
+      if(inputElement.type == 'checkbox'){
+        //Los agrego al reves y agrego la clase checkbox-container
+        inputContainer.classList.add('checkbox-container')
         inputContainer.appendChild(inputElement);
-        form.appendChild(inputContainer);
+        inputContainer.appendChild(label);
+      } else{
+        inputContainer.appendChild(label);
+        inputContainer.appendChild(inputElement);
+      }
+      form.appendChild(inputContainer);
       });
-
-
+      return container
 }
 
 export function button(props) {
@@ -296,3 +344,134 @@ export function productCard (prod, infoFontSize) {
   productInfoContainer.appendChild(productName);
   productInfoContainer.appendChild(productPrice);
 }
+
+export async function createPhoneModal() {
+  try {
+    createModal({
+      headerTitle: "Create Phone",
+      formFields: [
+        {
+            type: "two-fields",
+            fields: [
+                {
+                    label: "Phone Area",
+                    type: "select",
+                    name: "phone_country_id",
+                    className:
+                      "ui search dropdown country_code_search_input form_search_dropdown",
+                    required: true,
+                  },
+                  {
+                    label: "Phone Number",
+                    type: "text",
+                    className: "numeric-only-input",
+                    required: true,
+                  },
+            ]
+        }
+        
+      ],
+      submitButtonText: "Create",
+    });
+    //Una vez creado el modal, activo con los paises
+    if (!countriesFromDB.length) {
+      await setCountries();
+    }
+    let classNameToActivate = '.ui.search.dropdown.country_code_search_input.form_search_dropdown'
+    let arrayToActivateInDropdown = countriesFromDB?.filter(count=>count.code)?.map(country=>({
+        id: country.id,
+        name: `+${country.code} (${country.name})`,
+    }))
+    
+    // Ahora activo el select
+    activateDropdown(classNameToActivate, arrayToActivateInDropdown, "Select Country Code");
+    
+  } catch (error) {
+    console.log("falle");
+    return console.log(error);
+  }
+};
+
+export async function createAddressModal() {
+  try {
+    createModal({
+      headerTitle: "Create Address",
+      formFields: [
+        {
+            label: "Label",
+            type: "text",
+            name: "address-label",
+            className:"",
+            required: true,
+            placeHolder: "Enter a label (e.g., Home)"
+        },
+        {
+            label: "Street",
+            type: "text",
+            name: "address-street",
+            className:"",
+            required: true,
+            placeHolder: "Enter the street name"
+        },
+        {
+            label: "Detail",
+            type: "text",
+            name: "address-detail",
+            className:"",
+            required: false,
+            placeHolder: "Additional details (e.g., Apt, Floor)"
+        },
+        {
+            label: "ZIP",
+            type: "text",
+            name: "address_zip",
+            className:"short-input",
+            required: true,
+            placeHolder: "Enter the ZIP code"
+        },
+        {
+            label: "City",
+            type: "text",
+            name: "address-city",
+            className:"",
+            required: true,
+            placeHolder: "Enter the city"
+        },
+        {
+            label: "Province",
+            type: "text",
+            name: "address-province",
+            className:"",
+            required: true,
+            placeHolder: "Enter the province"
+        },
+        {
+            label: "Country",
+            type: "select",
+            name: "phone_country_id",
+            className:
+              "ui search dropdown country_search_input form_search_dropdown",
+            required: true,
+            placeHolder: "Select a country"
+          },
+      ],
+      submitButtonText: "Create",
+    });
+    //Una vez creado el modal, activo con los paises
+    if (!countriesFromDB.length) {
+      await setCountries();
+    }
+    //Aca los paises van solo nombre
+    let arrayToActivateInDropdown = countriesFromDB.map(country=>({
+        id: country.id,
+        name: country.name,
+    }))
+    let classToActivate = '.ui.search.dropdown.country_search_input.form_search_dropdown'
+    // Ahora activo el select
+    activateDropdown(classToActivate,arrayToActivateInDropdown, "Select Country");
+    
+  } catch (error) {
+    console.log("falle");
+    return console.log(error);
+  }
+};

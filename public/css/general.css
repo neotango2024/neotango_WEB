@@ -36,13 +36,14 @@ body{
     gap: 1vh;
     overflow-x: hidden;
     padding-bottom: 5vh;
+    position: relative;
 }
 /* CARDS */
 .card{
     position: relative;
     display: flex;
     box-shadow: 2px 5px 3px var(--box-shadow-color); /* Ajusta los valores según tus preferencias */
-    border-radius: 2rem;
+    border-radius: 1rem;
     height: auto;
     background-color: #fff;
     overflow: hidden;
@@ -76,7 +77,7 @@ body{
     margin-bottom: 2.5px;
     height: fit-content;
 }
-.card_header,.card_price{
+.card-header,.card_price{
     color: #000;
     font-size: clamp(1.15rem, 2vw + .2rem, 1.5rem);
     font-weight: 600;
@@ -113,6 +114,16 @@ ul{
     border-radius: 5px;
 }
 
+.page-title{
+    font-size: clamp(1.75rem, 3vw + .3rem, 2.2rem);
+    font-weight: 600;
+    width: 100%;
+}
+@media(min-width:768px){
+    .mobile-only{
+        display: none !important;
+    }
+}
 @media(min-width:1024px){
     .card_content{
         padding: 10px;
@@ -120,7 +131,7 @@ ul{
     .card_price{
         position: absolute;
         top: 50%;
-        right: 5px;
+        right: 5%;
         transform: translateY(-50%);
     }
     .number_button{

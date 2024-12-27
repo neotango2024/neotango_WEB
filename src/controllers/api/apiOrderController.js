@@ -19,12 +19,13 @@ import getDeepCopy from "../../utils/helpers/getDeepCopy.js";
 import countries from "../../utils/staticDB/countries.js";
 import sendVerificationCodeMail from "../../utils/helpers/sendverificationCodeMail.js";
 import ordersStatuses from "../../utils/staticDB/ordersStatuses.js";
-import { generateAddressObject, getUserAddressesFromDB } from "./apiAddressController.js";
+import { generateAddressObject, getAddresesFromDB, getUserAddressesFromDB, insertAddressToDB } from "./apiAddressController.js";
 import getFileType from "../../utils/helpers/getFileType.js";
 import { destroyFilesFromAWS, getFilesFromAWS, uploadFilesToAWS } from "../../utils/helpers/awsHandler.js";
 import { findProductsInDb, getVariationsFromDB } from "./apiProductController.js";
 import generateRandomNumber from "../../utils/helpers/generateRandomNumber.js";
-import { generatePhoneObject, insertPhoneToDB } from "./apiPhoneController.js";
+import { generatePhoneObject, getPhonesFromDB, getUserPhonesFromDB, insertPhoneToDB } from "./apiPhoneController.js";
+import { getMappedErrors } from "../../utils/helpers/getMappedErrors.js";
 
 // ENV
 const webTokenSecret = process.env.JSONWEBTOKEN_SECRET;
@@ -78,7 +79,6 @@ const controller = {
         });
       };
       let {
-        date,
         variations,
         user_id,
         first_name,
@@ -90,7 +90,6 @@ const controller = {
         shippingAddress,
         payment_types_id,
         shipping_types_id,
-        user_logged_id, //TODO: Ver como hacer esto
         variationsFromDB, //Del middleware
         } = req.body
       // Si esta logueado y no tenia los nros y direcciones armadas...
@@ -100,6 +99,9 @@ const controller = {
           let createdAddress = await insertAddressToDB(billingAddressObjToDB);
           if(!createdAddress) return res.status(502).json();
           billingAddress.id = billingAddressObjToDB.id; //lo dejo seteado asi despues puedo acceder
+      } else if(billingAddress?.id){
+        //Si vino el id, busco la address y la dejo desde db porlas
+        billingAddress = await getAddresesFromDB(billingAddress.id)
       }
       if(!shippingAddress.id && user_id){ 
           let shippingAddressObjToDB = generateAddressObject(shippingAddress);
@@ -107,13 +109,18 @@ const controller = {
           let createdAddress = await insertAddressToDB(shippingAddressObjToDB);
           if(!createdAddress) return res.status(502).json();
           shippingAddress.id = shippingAddressObjToDB.id; //lo dejo seteado asi despues puedo acceder     
+      } else if(shippingAddress?.id){
+        //Si vino el id, busco la address y la dejo desde db porlas
+        shippingAddress = await getAddresesFromDB(shippingAddress.id)
       }
-      if(!phoneObj.id && user_id){
-        let phoneObjToDB = generatePhoneObject({...phoneObjToDB, user_id});
+      if(!phoneObj?.id && user_id){
+        let phoneObjToDB = generatePhoneObject({...phoneObj, user_id});
         let createdPhone = await insertPhoneToDB(phoneObjToDB);
         if(!createdPhone) return res.status(502).json(); 
         if(user_id) phoneObjToDB.user_id = user_id; //Si hay usuario lo agrego a esta
 
+      } else if(phoneObj?.id){
+        phoneObj = getPhonesFromDB(phoneObj.id)
       }
       // Armo el objeto del pedido
       const randomString = generateRandomNumber(10);
@@ -137,8 +144,8 @@ const controller = {
       let orderItemsToDB = [];
       variations.forEach((variation) => {
         // Agarro el producto de DB
-        let variationFromDBIndex = variationsFromDB.findIndex(variationFromDB=> variationFromDB.id == variation);
-        let variationFromDB = variationFromDB[variationFromDBIndex];
+        let variationFromDBIndex = variationsFromDB.findIndex(variationFromDB=> variationFromDB.id == variation.id);
+        let variationFromDB = variationsFromDB[variationFromDBIndex];
         let { quantityRequested } = variation; //Tengo que chequear con esa variacion
         quantityRequested = parseInt(quantityRequested); //Lo parseo
         //Aca paso el chequeo de stock ==> lo resto al stock que tenia
@@ -188,7 +195,7 @@ const controller = {
       variationsFromDB.length && await db.Variation.bulkCreate(variationsFromDB,{
         updateOnDuplicate: ['quantity']
       });
-      orderCreated = await getOrderByPK(orderCreated.id);
+      orderCreated = await getOrderByPK(orderDataToDB.id);
       // Borro los temp items si es que viene usuario loggeado 
       if(user_id){
         await db.TempCartItem.destroy({
@@ -289,6 +296,8 @@ export async function getOrderByPK(id) {
   let order = await db.Order.findByPk(id,{
     include: orderIncludeArray
   });
+  console.log(order);
+  
   if(!order)return null
   order = getDeepCopy(order)
   return order

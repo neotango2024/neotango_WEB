@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <%- include('./partials/head.ejs') %>
+    <link rel="stylesheet" href="/css/form.css">
+    <link rel="stylesheet" href="/css/checkoutCard.css">
+    <link rel="stylesheet" href="/css/cart.css">
+    <script type="module" src="/scripts/cart.js"></script>
+    <title>Cart</title>
+</head>
+<body>
+    <%- include('./partials/header.ejs') %>
+    <main class="main main-sections-wrapper">
+        <div class="ui active inverted dimmer">
+            <div class="ui text loader">Cargando productos</div> <!-- TODO: IDIOMA-->
+          </div>
+        <section class="cart-section">
+            <div class="cart-products-container">
+                <h1 class="cart-products-title page-title">Carro de Compras</h1> <!-- TODO: IDIOMA-->
+                <div class="cart-products-cards-wrapper">
+                    
+                </div>
+            </div>
+            <div class="cart-detail-container">
+                <p class="cart-detail-title page-title">Detalle</p> <!-- TODO: IDIOMA-->
+                <div class="detail-list-container">
+                    <div class="detail-list-row">
+                        <p class="detail-row-p detail-row-product-length"></p> <!-- TODO: IDIOMA-->
+                        <p class="detail-row-p detail-row-product-cost"></p>
+                    </div>
+                    <div class="detail-list-row">
+                        <p class="detail-row-p detail-row-shipping">Envio</p> <!-- TODO: IDIOMA-->
+                        <p class="detail-row-p ">$<span class="detail-row-shipping-cost">20</span></p> <!-- TODO: PRECIO DE ENVIO-->
+                    </div>
+                    <div class="detail-list-row last-row">
+                        <p class="detail-row-p detail-row-total">Total</p> <!-- TODO: IDIOMA-->
+                        <p class="detail-row-p detail-row-total-cost"></p>
+                    </div>
+                </div>
+                <button class="ui button negative finalize-order-button section-handler-button" type="button">Finalizar compra</button><!-- TODO: IDIOMA-->
+            </div>
+        </section>
+       <section class="checkout-section">
+        <div class="back-to-cart-button-container">
+            <button class="ui button basic negative back-to-cart-button section-handler-button" type="button"><i class='bx bx-arrow-back'></i> Volver al carro</button>
+        </div>
+            <div class="form-wrapper"></div>
+            <div class="cart-detail-container">
+                <p class="cart-detail-title page-title">Detalle</p> <!-- TODO: IDIOMA-->
+                <div class="detail-list-container">
+                    <div class="detail-list-row">
+                        <p class="detail-row-p detail-row-product-length"></p> <!-- TODO: IDIOMA-->
+                        <p class="detail-row-p detail-row-product-cost"></p>
+                    </div>
+                    <div class="detail-list-row">
+                        <p class="detail-row-p detail-row-shipping">Envio</p> <!-- TODO: IDIOMA-->
+                        <p class="detail-row-p ">$<span class="detail-row-shipping-cost">20</span></p> <!-- TODO: PRECIO DE ENVIO-->
+                    </div>
+                    <div class="detail-list-row last-row">
+                        <p class="detail-row-p detail-row-total">Total</p> <!-- TODO: IDIOMA-->
+                        <p class="detail-row-p detail-row-total-cost"></p>
+                    </div>
+                </div>
+            </div>
+       </section>
+    </main>
+  <%- include('./partials/footer.ejs') %>
+</body>
+</html>

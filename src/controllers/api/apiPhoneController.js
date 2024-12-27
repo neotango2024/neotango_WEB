@@ -139,6 +139,7 @@ const controller = {
 
 export default controller;
 
+let phoneIncludeArray = ["user"]
 export async function insertPhoneToDB(obj) {
   try {
     //Lo creo en db
@@ -190,7 +191,7 @@ export async function getUserPhonesFromDB(id) {
       where: {
         user_id: id
       },
-      include: ['user']
+      include: phoneIncludeArray
     });
     phones = getDeepCopy(phones);
 
@@ -213,4 +214,46 @@ export function generatePhoneObject(phone) {
     phone_number,
   };
   return dataToDB
+}
+
+export async function getPhonesFromDB(id){
+  try {
+  
+    // Condición si id es un string
+    if (typeof id === "string") {
+      let phoneToReturn = await db.Phone.findByPk(id,{
+        include: phoneIncludeArray
+      });
+      if(!phoneToReturn)return null
+      phoneToReturn = phoneToReturn && getDeepCopy(phoneToReturn);
+      return phoneToReturn;
+    }
+
+    // Condición si id es un array
+    if (Array.isArray(id)) {
+      let phonesToReturn = await db.Phone.findAll({
+        where: {
+          id: id, // id es un array, se hace un WHERE id IN (id)
+        },
+        include: phoneIncludeArray
+      });
+      if(!phonesToReturn || !phonesToReturn.length)return null
+      phonesToReturn = getDeepCopy(phonesToReturn);
+      return phonesToReturn;
+    }
+
+    // Condición si id es undefined
+    if (id === undefined) {
+      let phonesToReturn = await db.Phone.findAll({
+        include: phoneIncludeArray
+      });
+      if(!phonesToReturn || !phonesToReturn.length)return null
+      phonesToReturn = getDeepCopy(phonesToReturn);
+      return phonesToReturn;
+    }
+  } catch (error) {
+    console.log("Falle en getPhonesFromDB");
+    console.error(error);
+    return null;
+  }
 }

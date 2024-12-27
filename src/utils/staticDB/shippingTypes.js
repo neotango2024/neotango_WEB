@@ -1,4 +1,4 @@
-export default [
+export let shippingTypes =  [
     {
         id: 1,
         type: {
@@ -8,7 +8,7 @@ export default [
     },
     {
         id: 2,
-        status: {
+        type: {
             es: 'Retiro por local',
             en: 'Pick up'
         }

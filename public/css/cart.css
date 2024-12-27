@@ -1,0 +1,196 @@
+.main{
+    min-height: 70vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    height: fit-content;
+    margin: 5vh 0;
+}
+.cart-products-container,
+.cart-detail-container{
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+.page-title{
+    text-align: center;
+}
+
+.cart-products-cards-wrapper{
+    position: relative;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-bottom: 1.5vh;
+}
+.cart-products-cards-wrapper .checkout-card{
+    margin-top: .75rem;
+}
+.cart-detail-container{
+    margin: 5vh 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+.detail-list-container{
+    width: 90vw;
+    max-width: 450px;
+    box-shadow: 2px 5px 3px var(--box-shadow-color);
+    padding: 3vh 5vw;
+    background-color: #fff;
+    border-radius: 1rem;
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 2.5vh;
+}
+.detail-list-row{
+    display: flex;
+    width: 100%;
+    justify-content: space-between;
+}
+.detail-row-p{
+    font-size: clamp(1.15rem, 2vw + .25rem, 1.2rem);
+}
+.detail-list-row.last-row{
+    border-top: 1px solid var(--light-red-color);
+    padding-top: 10px;
+}
+.finalize-order-button{
+    width: 50vw;
+    max-width: 300px;
+}
+.main-sections-wrapper{
+    position: relative;
+  display: flex;
+  width: 100%;
+  height: auto;
+  overflow: hidden;
+}
+.main-sections-wrapper > section {
+    width: 100%;
+    flex: 0 0 auto;
+    transition: all 0.5s ease;
+}
+.main-sections-wrapper.active > section {
+    transform: translateX(-100%);
+}
+/* PAra el form */
+.main .form-container .custom-form{
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: space-between;
+}
+.form-container .custom-form input{
+    padding: 15px;
+    margin-top: 5px;
+}
+.form-container .custom-form select{
+    padding: 7.5px;
+    outline: none;
+    border: none;
+    border-radius: 5px;
+    margin-top: 5px;
+}
+.form-container .input-container{
+    margin: 10px 0;
+    display: flex;
+    flex-direction: column;
+}
+
+.form-container label{
+    font-weight: 600;
+}
+.form-container .checkbox-container{
+    flex-direction: row;
+}
+.form-container .checkbox-container > *{
+    width: fit-content;
+    cursor: pointer;
+}
+.form-container .checkbox-container > input{
+    margin-top: 0;
+    margin-right: 5px;
+}
+.checkout-section{
+    display: flex;
+    flex-direction: column;
+    height: fit-content;
+}
+.checkout-section .ui.button.basic.back-to-cart-button{
+    display: flex;
+    align-items: center;
+    justify-content: space-evenly;
+}
+.checkout-section .add-new-field-btn{
+    margin: 10px 0;
+    width: fit-content;
+    padding: 5px;
+    border: 1px solid var(--red-color);
+    border-radius: .5rem;
+    color: var(--red-color);
+    cursor: pointer;
+}
+@media(min-width: 1024px){
+    .main{
+        flex-direction: row;
+        align-items: unset;
+        justify-content: space-between;
+    }
+    .cart-section{
+        display: flex;
+        justify-content: space-between;
+    }
+    .checkout-section,
+    .cart-section{
+        padding: 0 7.5vw;
+    }
+    .checkout-section{
+        flex-direction: row; /* Cambia la dirección a fila */
+        flex-wrap: wrap; /* Permite que los elementos se envuelvan */
+        justify-content: space-between;
+    }
+    .back-to-cart-button-container {
+        flex: 1 1 100%; /* Ocupa toda la fila en la primera línea */
+        margin-bottom: 2.5vh;
+    }
+
+    .cart-products-container,
+    .cart-detail-container{
+        align-items: flex-start;
+    }
+    .page-title{
+        text-align: start;
+    }
+    .cart-products-container{
+        width: 60%;
+    }
+    .cart-detail-container{
+        width: 30%;
+        margin-top: 0;
+    }
+    .cart-products-cards-wrapper{
+        align-items: flex-start;
+    }
+    .cart-products-cards-wrapper .checkout-card{
+        width: 100%;
+        max-width: 650px;
+    }
+    .detail-list-container{
+        width: 100%;
+        padding: 2vh 2.5vw;
+        
+    }
+    .finalize-order-button{
+        width: 100%;
+        max-width: none;
+    }
+    .detail-list-container,
+    .finalize-order-button{
+        max-width: 320px;
+    }
+    .form-wrapper{
+        width: 50%;
+    }
+}

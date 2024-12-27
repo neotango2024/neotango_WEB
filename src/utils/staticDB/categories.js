@@ -1,4 +1,4 @@
-export default [
+export const categories = [
     {
         id: 1,
         name: 'Zapatos de dama'

@@ -164,33 +164,42 @@ export async function destroyFilesFromAWS(object){
 }
 
 //Retorna los files con sus urls
-export async function getFilesFromAWS(object){
-  for (let i = 0; i < object.files.length; i++) {
-    const file = object.files[i];
-    file.file_urls = [];
-    let url,params,command;
-    if(file.file_types_id == 1){
-      for (let j = 3; j >= 1; j--) {
-        const factor = j <= 2 ? `-${j}x.webp` : "-thumb.webp"; //Para ir por todas las resoluciones
-        const filename = `${file.filename}${factor}`;
+export async function getFilesFromAWS(object){  
+  try {
+    for (let i = 0; i < object.files?.length; i++) {
+      const file = object.files[i];      
+      file.file_urls = [];
+      let url,params,command;
+      if(file.file_types_id == 1){ //FOTO
+        for (let j = 3; j >= 1; j--) {          
+          const factor = j <= 2 ? `${j}x` : "thumb"; //Para ir por todas las resoluciones
+          const filename = `${file.filename}-${factor}.webp`;
+          params = {
+            Bucket: bucketName,
+            Key: `${object.folderName}/${filename}`,
+          };
+          command = new GetObjectCommand(params);
+          url = await getSignedUrl(s3, command, { expiresIn: 1800 }); //30 min
+          j <= 2 ? file.file_urls.push({ url, size: factor }) : file.thumb_url = url; //en el href product.files[x].file_url
+          
+          
+        }
+      } else {
         params = {
           Bucket: bucketName,
-          Key: `${object.folderName}/${filename}`,
+          Key: `${object.folderName}/${file.filename}`,
         };
         command = new GetObjectCommand(params);
-        url = await getSignedUrl(s3, command, { expiresIn: 1800 }); //30 min
-        j <= 2 ? file.file_urls.push({ url, size: factor }) : file.thumb_url = url; //en el href product.files[x].file_url
+        url = await getSignedUrl(s3, command, { expiresIn: 1800 }); //30 min        
+        file.file_urls.push({ url })
       }
-    } else {
-      params = {
-        Bucket: bucketName,
-        Key: `${object.folderName}/${file.filename}`,
-      };
-      command = new GetObjectCommand(params);
-      url = await getSignedUrl(s3, command, { expiresIn: 1800 }); //30 min
-      file.file_urls.push({ url })
+       //en el href product.files[x].file_url
     }
-     //en el href product.files[x].file_url
+    
+    return 
+  } catch (error) {
+    console.log('falle');
+    return console.log(error);
+    
   }
-  return object.files
 }

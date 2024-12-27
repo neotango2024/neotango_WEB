@@ -1,4 +1,4 @@
-export default [
+export const paymentTypes =  [
     {
         id: 1,
         type: "Mercado Pago"

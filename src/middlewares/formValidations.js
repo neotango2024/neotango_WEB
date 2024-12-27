@@ -186,16 +186,16 @@ export default {
       .bail(),
     body(["variations"]) //Me fijo que los productos esten en stock
       .custom(async (value, { req }) => {
-        let variationIdsToGet = value.map(variation=>variation.variation_id); //Array de ids
+        let variationIdsToGet = value.map(variation=>variation.id); //Array de ids
         let variationsFromDB = await getVariationsFromDB(variationIdsToGet);//Obtengo de db las variaciones
-        variations.forEach((variation) => {
+        value.forEach((variation) => {
           // Agarro el producto de DB
-          let variationFromDBIndex = variationsFromDB.findIndex(variationFromDB=> variationFromDB.id == variation);
+          let variationFromDBIndex = variationsFromDB.findIndex(variationFromDB=> variationFromDB.id == variation.id);
           if(variationFromDBIndex < 0){
             //Si no viene no sigo (al pedo)
             throw new Error("Variacion no encontrada");
           }; 
-          let variationFromDB = variationFromDB[variationFromDBIndex];
+          let variationFromDB = variationsFromDB[variationFromDBIndex];
           let { quantityRequested } = variation; //Tengo que chequear con esa variacion
           quantityRequested = parseInt(quantityRequested); //Lo parseo
           if(quantityRequested > variationFromDB.quantity) {
