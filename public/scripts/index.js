@@ -1,5 +1,6 @@
 
 import { translations } from "../constants/constants.js";
+import { settedLanguage } from "./languageHandler.js";
 const SCREEN_WIDTH = window.innerWidth;
 const companyInfoTranslations = translations.companyInfo;
 
@@ -241,13 +242,13 @@ window.addEventListener('load',()=>{
   }
 });
 
-export const translateCompanyInfo = (selectedLanguage) => {
+export const translateCompanyInfo = () => {
   const infoItemContainers = document.querySelectorAll('.info-item-container');
-  infoItemContainers.forEach(item => {
+  infoItemContainers?.forEach(item => {
     const itemDataset = item.dataset.translation;
     const itemTitle = item.querySelector('.info-title');
     const itemDesc = item.querySelector('.info-description');
-    itemTitle.textContent = companyInfoTranslations?.[itemDataset]?.[selectedLanguage];
-    itemDesc.textContent = companyInfoTranslations?.[itemDataset]?.description?.[selectedLanguage];
+    itemTitle.textContent = companyInfoTranslations?.[itemDataset]?.[settedLanguage];
+    itemDesc.textContent = companyInfoTranslations?.[itemDataset]?.description?.[settedLanguage];
   })
 }

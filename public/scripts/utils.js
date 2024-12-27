@@ -4,6 +4,7 @@ export function activateAccordions() {
     $('.ui.accordion').accordion(); // Activa los acordeones
 }
 
+//Toglea las classes del overlay
 export const toggleOverlay = () => {
     const overlay = document.querySelector('.overlay');
     overlay.classList.toggle('overlay-active')

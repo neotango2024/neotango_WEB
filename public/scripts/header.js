@@ -1,9 +1,10 @@
-import {form, button} from './componentRenderer.js';
+import {form, button, createUserLoginModal} from './componentRenderer.js';
 import { userLogged } from './checkForUserLogged.js';
 import { translations } from '../constants/constants.js';
 import { getItem } from './localStorage.js';
 import { languages } from '../constants/constants.js';
-import { toggleBodyScrollableBehavior, toggleOverlay } from './utils.js';
+import { handlePageModal, toggleBodyScrollableBehavior, toggleOverlay } from './utils.js';
+import { settedLanguage } from './languageHandler.js';
 const {english, spanish} = languages;
 const headerTranslations  = translations['header'];
 const categoriesTranslations = translations['categories'];
@@ -63,7 +64,10 @@ const checkForUserIconClicks = () => {
     const userIcon = document.querySelector('.user-icon');
     userIcon.addEventListener('click', () => {
         if(!userLogged){
-            toggleLoginModal();
+            // toggleLoginModal();
+            createUserLoginModal();
+            // Abro el modal
+            handlePageModal(true);
         } else {
             // TODO - REDIRECT TO USER PROFILE
         }
@@ -141,24 +145,24 @@ const renderFormAndButton = () => {
     formContainerCreated.append(buttonCreated);
 }
 
-export const translateNavbar = (language) => {
+export const translateNavbar = () => {
     const linksContent = document.querySelectorAll('.page-link-item');
     linksContent.forEach((link) => {
         const isMobileShopItem = link.querySelector('.shop-mobile-span');
         if(isMobileShopItem){
             const mobileShopSpan = isMobileShopItem;
             const linkDataset = mobileShopSpan.dataset.translation;
-            const translation = headerTranslations[linkDataset]?.[language];
+            const translation = headerTranslations[linkDataset]?.[settedLanguage];
             mobileShopSpan.textContent = translation;
             const shopItems = document.querySelectorAll('.shop-category-item a');
             const menDataset = shopItems[0].dataset.translation;
             const womenDataset = shopItems[1].dataset.translation;
-            shopItems[0].textContent = translations.categories[menDataset]?.[language];
-            shopItems[1].textContent = translations.categories[womenDataset]?.[language];
+            shopItems[0].textContent = translations.categories[menDataset]?.[settedLanguage];
+            shopItems[1].textContent = translations.categories[womenDataset]?.[settedLanguage];
         } else {
             const itemAnchor = link.querySelector('a');
             const linkDataset = itemAnchor.dataset.translation;
-            const translation = headerTranslations[linkDataset]?.[language];
+            const translation = headerTranslations[linkDataset]?.[settedLanguage];
             itemAnchor.textContent = translation;
         }
 

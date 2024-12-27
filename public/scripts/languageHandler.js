@@ -4,22 +4,24 @@ import {setItem, getItem} from './localStorage.js';
 import { userLogged } from "./checkForUserLogged.js";
 import { toggleBodyScrollableBehavior, toggleOverlay } from './utils.js';
 
+export let settedLanguage = null;
 window.addEventListener('DOMContentLoaded', () => {
     checkForLanguageClick();
     checkForLanguageSelection();
-    decideLanguageInsertion()
+    decideLanguageInsertion();
 })
-
+//TOCA BANDERA: settedLang || llama a la funcion que cambia las cosas
+//Esta funcion captura cuando toca la bandera de arriba o el btn de cerra menu
 const checkForLanguageClick = () => {
     const activeFlag = document.querySelector('.active-flag-container');
     activeFlag.addEventListener('click', () => {
-        toggleLanguagesModal();
+        toggleLanguagesModalClasses();
         toggleOverlay();
         toggleBodyScrollableBehavior();
     })
     const closeButton = document.querySelector('.close-language-modal');
     closeButton.addEventListener('click', () => {
-        toggleLanguagesModal();
+        toggleLanguagesModalClasses();
         toggleOverlay();
         toggleBodyScrollableBehavior();
     })
@@ -30,47 +32,69 @@ const checkForLanguageSelection = () => {
     const modalImgs = document.querySelectorAll('.language-container');
     modalImgs.forEach(imgContainer => imgContainer.addEventListener('click', () => {
         const imgElement = imgContainer.querySelector('img');
-        const idSelector = imgElement.getAttribute('id');
-        handleChangeLanguage(idSelector)
-        setItem('language', idSelector)
-        toggleLanguagesModal();
+        const idSelector = imgElement.getAttribute('id');//eng o esp
+        handleChangeLanguage(idSelector); 
+        toggleLanguagesModalClasses();
         toggleOverlay();
         toggleBodyScrollableBehavior();
     }));
     
 }
 
+//Se ejecuta cuando carga la pagina para ver que idioma esta establecido
 const decideLanguageInsertion = () => {
     const localStorageItem = getItem('language');
-    const settedLanguage = userLogged && userLogged.language ? userLogged.language : localStorageItem ? localStorageItem : null;
-    console.log(settedLanguage)
-    if(settedLanguage) {
-        handleChangeLanguage(settedLanguage)
+    const languageToSet = userLogged && userLogged.language ? userLogged.language : localStorageItem ? localStorageItem : null;
+    if(languageToSet) {
+        handleChangeLanguage(languageToSet)
     } else {
-        toggleLanguagesModal();
+        //Te abre el modal para que se elija el pais
+        toggleLanguagesModalClasses();
         toggleOverlay();
         toggleBodyScrollableBehavior();
     }
 };
 
-const handleChangeLanguage = (selectedLanguage) => {
+//Agarra los src de las imagenes del modal
+const handleChangeLanguage = (param) => { //param es esp/eng
+    updateLanguage(param); //Updateo tanto en localStorage como en la variable que se comparte 
+    //Agarro las banderas del modal
     const modalImgs = document.querySelectorAll('.modal-flag-container img');
     modalImgs.forEach(img => {
         const idSelector = img.getAttribute('id');
-        if(idSelector === selectedLanguage){
+        if(idSelector === param){
             const imgSrc = img.getAttribute('src');
             const activeImg = document.querySelector('.active-flag');
             activeImg.src = imgSrc
         }
-    })
-    setItem('language', selectedLanguage);
-    translateNavbar(selectedLanguage);
-    translateCompanyInfo(selectedLanguage);
+    });                                  
+    
+    const bodyName = document.querySelector('body').dataset.page_name;    
+    translateNavbar();
+    switch (bodyName) {
+        case 'index': //Van todos los cambios de index
+            translateCompanyInfo();
+            break;
+        case 'cart': //Van todos los cambios de cart
+            //Aca tengo que pintar denuevo cards y detalle y form
+            break;
+    
+        default:
+            break;
+    }
+   
+    
 }
 
-const toggleLanguagesModal = () => {
+//Activa/descativa el modal
+const toggleLanguagesModalClasses = () => {
     const modal = document.querySelector('.languages-modal');
     modal.classList.toggle('languages-modal-active');
 }
 
+//Cambia las variables
+const updateLanguage = (lang)=>{
+    setItem('language', lang); //Seteo en base al parametro el lenguaje
+    settedLanguage = lang
+}
 

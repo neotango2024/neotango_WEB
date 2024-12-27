@@ -1,4 +1,5 @@
 import { countriesFromDB, setCountries } from "./getStaticTypesFromDB.js";
+import { settedLanguage } from "./languageHandler.js";
 import { activateDropdown, createModal, generateRandomString } from "./utils.js";
 
 export function checkoutCard (props) {
@@ -223,9 +224,9 @@ export function form (props) {
   
     const h3Element = document.createElement("h3");
     h3Element.className = "title";
-    h3Element.textContent = formTitleObject.title;
-    if(formTitleObject.datasetObject){
-      const {dataKey, dataValue} = formTitleObject.datasetObject;
+    h3Element.textContent = formTitleObject?.title;
+    if(formTitleObject?.datasetObject){
+      const {dataKey, dataValue} = formTitleObject?.datasetObject;
       h3Element.dataset[dataKey] = dataValue;
     }
     container.appendChild(h3Element);
@@ -270,7 +271,7 @@ export function form (props) {
           inputElement.required = input.required || false;
           inputElement.className = `form-input ${input.className || ""}`;
       }
-      let label;
+      let label = undefined;
       if (input.label) {
         label = document.createElement("label");
         label.textContent = input.label;
@@ -280,12 +281,12 @@ export function form (props) {
         //Los agrego al reves y agrego la clase checkbox-container
         inputContainer.classList.add('checkbox-container')
         inputContainer.appendChild(inputElement);
+        label && inputContainer.appendChild(label)
       } else{
+        label && inputContainer.appendChild(label)
         inputContainer.appendChild(inputElement);
       }
-      if(typeof label === 'Node'){
-        inputContainer.appendChild(label)
-      }
+      
       form.appendChild(inputContainer);
       });
       return container
@@ -293,7 +294,7 @@ export function form (props) {
 
 export function button(props) {
     const button = document.createElement("button");
-    button.className = 'custom-btn'
+    button.className = 'ui button custom-btn'
     button.textContent = props.text || 'Submit';
 
     button.style.width = `${props.width}%`;
@@ -354,6 +355,7 @@ export function productCard (prod, infoFontSize) {
 }
 
 export async function createPhoneModal() {
+   let isInSpanish =  settedLanguage == 'esp'
   try {
     createModal({
       headerTitle: "Create Phone",
@@ -483,3 +485,47 @@ export async function createAddressModal() {
     return console.log(error);
   }
 };
+
+export async function createUserLoginModal(){
+  let isInSpanish =  settedLanguage == 'esp'
+  try {
+    createModal({
+      headerTitle: isInSpanish ? "Iniciar Sesion" : 'Login',
+      formFields: [
+        {
+            label: "Email",
+            type: "text",
+            name: "user-email",
+            className:"",
+            required: true,
+            placeHolder: "Email",
+        },
+        {
+            label: isInSpanish ? "Contraseña" : "Password",
+            type: "password",
+            name: "user-password",
+            className:"",
+            required: true,
+            placeHolder: isInSpanish ? "Contraseña" : "Password",
+        },
+      ],
+      submitButtonText: "Create",
+    });
+    //Una vez creado el modal, activo con los paises
+    if (!countriesFromDB.length) {
+      await setCountries();
+    }
+    //Aca los paises van solo nombre
+    let arrayToActivateInDropdown = countriesFromDB.map(country=>({
+        id: country.id,
+        name: country.name,
+    }))
+    let classToActivate = '.ui.search.dropdown.country_search_input.form_search_dropdown'
+    // Ahora activo el select
+    activateDropdown(classToActivate,arrayToActivateInDropdown, "Select Country");
+    
+  } catch (error) {
+    console.log("falle");
+    return console.log(error);
+  }
+}

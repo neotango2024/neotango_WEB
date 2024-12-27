@@ -97,6 +97,9 @@ body{
     opacity: .4;
     pointer-events: none;
 }
+a{
+    color: unset;
+}
 ul{
     list-style-type: none;
 }

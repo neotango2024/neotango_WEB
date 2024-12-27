@@ -212,7 +212,7 @@ window.addEventListener("load", async () => {
               label: "Phone",
               name: "phoneObj.phone_number",
               type: "select", // Indica que será un select
-              options: userLogged.phones || [],
+              options: userLogged?.phones || [],
               required: true,
               width: 100,
               contClassNames: "phone-container",
@@ -324,11 +324,15 @@ window.addEventListener("load", async () => {
         await createPhoneModal();
         // Abro el modal
         handlePageModal(true);
+        await listenToPhoneCreateBtn()//hago el fetch para crear ese telefono
       }
     const handleAddressButtonClick = async ()=>{
         await createAddressModal();
         // Abro el modal
         handlePageModal(true);
+      }
+      async function listenToPhoneCreateBtn(){
+        
       }
   } catch (error) {
     console.log("falle");
