@@ -59,145 +59,7 @@ export function handlePageModal(boolean){
   return;
 }
 
-export function createModal({ headerTitle, formFields, submitButtonText }) {
-  // Eliminar cualquier modal existente antes de crear uno nuevo
-  const existingModal = document.querySelector(".ui.small.modal");
-  if (existingModal) {
-    existingModal.remove();
-  }
-  // Crear el contenedor del modal
-  const modal = document.createElement("div");
-  modal.className = "ui small modal";
 
-  // Crear el header del modal
-  const header = document.createElement("div");
-  header.className = "header";
-  header.innerHTML = `${headerTitle} <i class='bx bx-x close_modal_btn mobile-only'></i>`;
-  modal.appendChild(header);
-
-  // Crear el contenedor de contenido
-  const content = document.createElement("div");
-  content.className = "content";
-
-  // Crear el formulario
-  const form = document.createElement("form");
-  form.className = "ui form";
-
-  // Recorrer los campos y añadirlos al formulario
-  formFields.forEach((field) => {
-      let fieldContainer;
-
-      // Si es un contenedor "two fields"
-      if (field.type === "two-fields") {
-          fieldContainer = document.createElement("div");
-          fieldContainer.className = "two fields";
-
-          field.fields.forEach((subField) => {
-              const subFieldContainer = document.createElement("div");
-              subFieldContainer.className = `field ${subField.required ? "required" : ""}`;
-
-              if (subField.label) {
-                  const label = document.createElement("label");
-                  label.textContent = subField.label;
-                  subFieldContainer.appendChild(label);
-              }
-
-              if (subField.type === "select") {
-                  const select = document.createElement("select");
-                  select.name = subField.name || "";
-                  select.className = subField.className || "ui dropdown";
-                  select.required = subField.required || false;
-
-                  if (Array.isArray(subField.options)) {
-                      subField.options.forEach((option) => {
-                          const optionElement = document.createElement("option");
-                          optionElement.value = option.value || "";
-                          optionElement.textContent = option.label || "";
-                          if (option.selected) optionElement.selected = true;
-                          select.appendChild(optionElement);
-                      });
-                  }
-
-                  subFieldContainer.appendChild(select);
-              } else {
-                  const input = document.createElement("input");
-                  input.type = subField.type || "text";
-                  input.name = subField.name || "";
-                  input.placeholder = subField.placeHolder || "";
-                  input.required = subField.required || false;
-                  input.className = subField.className || "";
-                  subFieldContainer.appendChild(input);
-              }
-
-              fieldContainer.appendChild(subFieldContainer);
-          });
-      } else {
-          // Para campos individuales
-          fieldContainer = document.createElement("div");
-          fieldContainer.className = `field ${field.required ? "required" : ""}`;
-
-          if (field.label) {
-              const label = document.createElement("label");
-              label.textContent = field.label;
-              fieldContainer.appendChild(label);
-          }
-
-          if (field.type === "select") {
-              const select = document.createElement("select");
-              select.name = field.name || "";
-              select.className = field.className || "ui dropdown";
-              select.required = field.required || false;
-
-              if (Array.isArray(field.options)) {
-                  field.options.forEach((option) => {
-                      const optionElement = document.createElement("option");
-                      optionElement.value = option.value || "";
-                      optionElement.textContent = option.label || "";
-                      if (option.selected) optionElement.selected = true;
-                      select.appendChild(optionElement);
-                  });
-              }
-
-              fieldContainer.appendChild(select);
-          } else {
-              const input = document.createElement("input");
-              input.type = field.type || "text";
-              input.name = field.name || "";
-              input.placeholder = field.placeHolder || "";
-              input.required = field.required || false;
-              input.className = field.className || "";
-              fieldContainer.appendChild(input);
-          }
-      }
-
-      form.appendChild(fieldContainer);
-  });
-
-  // Agregar botón de envío
-  const submitButton = document.createElement("button");
-  submitButton.type = "submit";
-  submitButton.className = "ui right floated button submit basic negative";
-  submitButton.textContent = submitButtonText || "Submit";
-  form.appendChild(submitButton);
-  const divFieldToAppend = document.createElement("div");
-  divFieldToAppend.className = "field";
-  form.appendChild(divFieldToAppend);
-  // Agregar mensaje de error
-  const errorMessage = document.createElement("div");
-  errorMessage.className = "ui error message";
-  form.appendChild(errorMessage);
-
-  // Agregar el formulario al contenido
-  content.appendChild(form);
-
-  // Agregar el contenido al modal
-  modal.appendChild(content);
-
-  // Insertar el modal en el DOM
-  document.body.appendChild(modal);
-
-  return modal;
-}
 
 export function activateDropdown(className, array, placeHolder){
   $(className)?.each(function () {
@@ -235,3 +97,56 @@ export function activateDropdown(className, array, placeHolder){
     }
   });
 }
+
+
+// Se fija si esta en desktop
+export function isInDesktop() {
+  return window.innerWidth >= 1024; // Mobile & Tablet
+}
+
+// Se fija que el modal este completo
+export function handleModalCheckForComplete(){
+  const submitButton = document.querySelector('.ui.modal .send-modal-form-btn');
+  const errorsContainer = document.querySelector('.ui.error.message');
+  const modalForm = document.querySelector('.ui.form');
+  modalForm.classList.remove('error'); // le saco el error
+  submitButton.classList.add('basic'); //Lo dejo basic antes
+  let formIsComplete = checkForAllModalRequiredFields();
+  if(!formIsComplete){
+    submitButton.classList.remove('basic'); //Lo dejo full rojo
+    modalForm.classList.add('error'); //Le agrego el rojo
+    errorsContainer.innerHTML = '<p>Debes completar todos los campos requeridos</p>';
+    return false;
+  };
+  return true;
+}
+
+function checkForAllModalRequiredFields(){
+  const modalRequiredFields = document.querySelectorAll('.ui.modal input[required], .ui.modal select[required], .ui.modal textarea[required]');
+  let flag = true;
+  modalRequiredFields.forEach(element => {
+    if(!element.value)flag = false;
+  });
+  return flag;
+};
+
+export function saveToSessionStorage (dataToSave, keyName, isArray) {
+  if(!isArray){
+    //Si no es array simplemente lo guardo
+    return sessionStorage.setItem(keyName, JSON.stringify(dataToSave));
+  }; 
+
+  //Aca quiere agregarlo en forma de array
+  const existingData = sessionStorage.getItem(keyName)
+  ? JSON.parse(sessionStorage.getItem(keyName))
+  : [];
+  // Agregar el nuevo objeto al array
+  existingData.push(dataToSave);
+  // Guardar el array actualizado en sessionStorage
+  sessionStorage.setItem(keyName, JSON.stringify(existingData));
+  return
+};
+
+export function getFromSessionStorage (keyName) {
+  return JSON.parse(sessionStorage.getItem(keyName));
+};

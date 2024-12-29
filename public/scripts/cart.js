@@ -8,17 +8,22 @@ import {
   setShippingTypes,
   shippingTypesFromDB,
 } from "./getStaticTypesFromDB.js";
-import { settedLanguage } from "./languageHandler.js";
+import { isInSpanish, settedLanguage } from "./languageHandler.js";
 import {
   activateContainerLoader,
   activateDropdown,
-  createModal,
+  generateRandomString,
+  getFromSessionStorage,
+  handleModalCheckForComplete,
   handlePageModal,
+  isInDesktop,
   productsFromDB,
+  saveToSessionStorage,
   setProductsFromDB,
 } from "./utils.js";
 let exportObj = {
-  generateCheckoutForm: null
+  generateCheckoutForm: null,
+  setDetailContainer: null
 }
 window.addEventListener("load", async () => {
   try {
@@ -28,6 +33,22 @@ window.addEventListener("load", async () => {
     //seteo los productos TODO: Esto es con los productos del carro
     await setProductsFromDB();    
     activateContainerLoader(main, false);
+    //Pinta la seccion de detalle
+    exportObj.setDetailContainer = function(){
+      const containersToAppend = document.querySelectorAll('.cart-detail-rail-container');      
+      containersToAppend.forEach(cont => {
+        cont.innerHTML = ''
+        //Lo genero
+        let newDetailContainer = createCartDetailContainer();
+        // Reemplazar el contenedor antiguo con el nuevo
+        cont.appendChild(newDetailContainer);
+      });
+      checkForSectionButtons(); //Para los botones de "finalizar compra" o directo el de mp
+    }
+    
+    //Pinto el detalle
+    exportObj.setDetailContainer();
+
     const cartProductsWrapper = document.querySelector(
       ".cart-products-cards-wrapper"
     );
@@ -41,7 +62,6 @@ window.addEventListener("load", async () => {
       // Pinto el detail
       modifyDetailList();
     }
-    checkForSectionButtons();
     function checkForSectionButtons() {
       const sectionButtons = document.querySelectorAll(
         ".section-handler-button"
@@ -49,13 +69,18 @@ window.addEventListener("load", async () => {
       sectionButtons.forEach((btn) => {
         if (btn.dataset.listened) return;
         btn.dataset.listened = true;
-        btn.addEventListener("click", async () => {
+        btn.addEventListener("click", async () => {          
+          window.scrollTo(0,0)
           try {
             if (btn.classList.contains("finalize-order-button")) {
               await exportObj.generateCheckoutForm();
+              exportObj.setDetailContainer();
               //TODO: Aca hago fetch para cambiar el estado del carro
               return main.classList.add("active");
             }
+            //ACa limipio el checkout section
+            const checkoutSectionForm = document.querySelector('.checkout-section .form-wrapper');
+            checkoutSectionForm.innerHTML = '';
             return main.classList.remove("active");
           } catch (error) {
             console.log("Falle");
@@ -143,9 +168,9 @@ window.addEventListener("load", async () => {
 
     exportObj.generateCheckoutForm = async () => {
       try {
-        let isInSpanish = settedLanguage == 'esp';
         const formWrapper = document.querySelector(".form-wrapper");
         formWrapper.innerHTML = "";
+        let shortInputWidth =  isInDesktop() ? 40 : 100;
         // Primero pido los types que necesito si es que no estan
         if (!paymentTypesFromDB.length) {
           await setPaymentTypes();
@@ -162,7 +187,9 @@ window.addEventListener("load", async () => {
           label: `${address.street} (${address.label})`,
         }));
         const props = {
-        formTitle: isInSpanish ? "Formulario de Pago" : "Checkout Form",
+        formTitleObject: {
+          title: isInSpanish ? "Formulario de Pago" : "Checkout Form",
+        },
         formAction: "/api/order", // Cambiar a la ruta deseada
         method: "POST",
         inputProps: [
@@ -171,7 +198,7 @@ window.addEventListener("load", async () => {
             name: "first_name",
             placeholder: isInSpanish ? "Ingresa tu nombre" : "Enter your first name",
             required: true,
-            width: 40,
+            width: shortInputWidth,
             value: userLogged?.first_name || null,
             contClassNames: "",
             inpClassNames: "",
@@ -181,7 +208,7 @@ window.addEventListener("load", async () => {
             name: "last_name",
             placeholder: isInSpanish ? "Ingresa tu apellido" : "Enter your last name",
             required: true,
-            width: 40,
+            width: shortInputWidth,
             value: userLogged?.last_name || null,
             contClassNames: "",
             inpClassNames: "",
@@ -208,9 +235,9 @@ window.addEventListener("load", async () => {
           },
           {
             label: isInSpanish ? "Teléfono" : "Phone",
-            name: "phoneObj.phone_number",
+            name: "phone_id",
             type: "select",
-            options: userLogged?.phones || [],
+            options: [],
             required: true,
             width: 100,
             contClassNames: "phone-container",
@@ -218,12 +245,22 @@ window.addEventListener("load", async () => {
           },
           {
             label: isInSpanish ? "Tipo de Envío" : "Shipping Type",
-            name: "shipping_types_id",
+            name: "shipping_type_id",
             type: "select",
             options: shippingTypesForSelect,
             required: true,
             width: 100,
             contClassNames: "",
+            inpClassNames: "",
+          },
+          {
+            label: isInSpanish ? "Usar mismas direcciones" : "Use same addresses",
+            name: "use-same-addresses",
+            type: "switchCheckbox",
+            value: 1,
+            required: true,
+            width: 100,
+            contClassNames: "same-address-checkbox-container",
             inpClassNames: "",
           },
           {
@@ -234,16 +271,6 @@ window.addEventListener("load", async () => {
             required: true,
             width: 100,
             contClassNames: "billing-address-container",
-            inpClassNames: "",
-          },
-          {
-            label: isInSpanish ? "Usar mismas direcciones" : "Use same addresses",
-            name: "use-same-addresses",
-            type: "checkbox",
-            value: 1,
-            required: true,
-            width: 100,
-            contClassNames: "",
             inpClassNames: "",
           },
           {
@@ -258,15 +285,20 @@ window.addEventListener("load", async () => {
           },
         ],
       };
-    
+      
         const formToInsert = form(props);
         formWrapper.appendChild(formToInsert);
+        //Activo lo de SemanticUI
+        $('.ui.checkbox').checkbox();
         await addCheckoutFormDynamicButtons();
+        paintCheckoutPhoneSelect(); //Pinto los select del phone
+        listenToCheckoutFormTriggers(); //Esta funcion se fija las cosas que hace que shipping no aparezca
       } catch (error) {
         console.log(`Falle`);
         return console.log(error);
       }
-    }
+    };
+
     async function addCheckoutFormDynamicButtons() {
       const shippingAddressFieldContainer = document.querySelector(
         ".shipping-address-container"
@@ -275,22 +307,22 @@ window.addEventListener("load", async () => {
         ".billing-address-container"
       );
       const phoneFieldContainer = document.querySelector(".phone-container");
-
+      let buttonLabel = isInSpanish ? "Agregar":"Add"
       // agrego los botones
       await addButton(
         phoneFieldContainer,
-        "Add New",
-        handlePhoneButtonClick
+        buttonLabel,
+        handleNewPhoneButtonClick
       );
       await addButton(
         shippingAddressFieldContainer,
-        "Add New",
-        handleAddressButtonClick
+        buttonLabel,
+        handleNewAddressButtonClick
       );
       await addButton(
         billingAddressFieldContainer,
-        "Add New",
-        handleAddressButtonClick
+        buttonLabel,
+        handleNewAddressButtonClick
       );
     }
     async function addButton(container, buttonText,cb) {
@@ -309,20 +341,202 @@ window.addEventListener("load", async () => {
         }
     }
     
-    const handlePhoneButtonClick = async ()=>{
+    //Estas funciones pintan y activan el modal de telefonos/direcciones
+    const handleNewPhoneButtonClick = async ()=>{
         await createPhoneModal();
         // Abro el modal
         handlePageModal(true);
         await listenToPhoneCreateBtn()//hago el fetch para crear ese telefono
-      }
-    const handleAddressButtonClick = async ()=>{
+    }
+    const handleNewAddressButtonClick = async ()=>{
         await createAddressModal();
         // Abro el modal
         handlePageModal(true);
+    }
+    async function listenToPhoneCreateBtn(){
+      const submitButton = document.querySelector('.ui.modal .send-modal-form-btn');
+      const form = document.querySelector('.ui.form')
+      let bodyData = {};
+      submitButton.addEventListener('click',async ()=>{
+        let formIsOK = handleModalCheckForComplete();
+        if(!formIsOK)return;
+        //ACa sigo, pinto loading el boton
+        submitButton.classList.add('loading');
+        // Armo el bodyData con lo del telefono
+        bodyData.country_id = form.phone_country_id?.value;
+        bodyData.phone_number = form.phone_number?.value;
+        if(userLogged){//Aca esta loggeado, lo creo en db
+          bodyData.user_id = userLogged.id;
+          return
+        } else {
+          //Aca es un guest, lo creo en session
+          // Le agrego un randomID para despues poder pegarle
+          const randomPhoneID = generateRandomString(10);
+          bodyData.id = randomPhoneID
+          saveToSessionStorage(bodyData,"guestPhones",true);
+        };
+        // Cierro el modal
+        handlePageModal(false);
+        //Ahora deberia actualizar dependiendo donde este
+        await updatePhoneElements();
+        return;
+      });
+      
+    };
+    async function updatePhoneElements(){
+      // Obtener el path de la URL actual
+      const path = window.location.pathname;
+      //Me fijo url y en base a eso veo si estoy en cart o en el perfil del usuario
+      // Verificar el final de la URL
+      if (path.endsWith('/cart')) {
+          // Lógica específica para la página del carrito
+          await paintCheckoutPhoneSelect();
+      } else if (path.endsWith('/profile')) {
+          // Lógica específica para la página del perfil
+          // TODO: UpdatePhoneCards
       }
-      async function listenToPhoneCreateBtn(){
+    };
+    //Pinta el select de los telefonos
+    async function paintCheckoutPhoneSelect(){
+      if(!countriesFromDB?.length) await setCountries();
+      //Aca agarro el select del carro y lo repinto con todos los telefonos
+      const userPhoneSelect = document.querySelector('.checkout-section select[name="phone_id"]');
+      // Limpiar las opciones actuales
+      userPhoneSelect.innerHTML = "";
+      let options = userLogged ? userLogged.phones : getFromSessionStorage('guestPhones');
+      // Agregar las nuevas opciones
+      options?.forEach((option,i) => {
+        if(i == 0){
+          //Primera opcion
+          let firstOptionElement = document.createElement("option");
+          firstOptionElement.value = "";
+          firstOptionElement.textContent = isInSpanish ? "Elije un telefono" : "Choose a phone";
+          firstOptionElement.disabled = true;
+          firstOptionElement.selected = options.length > 1 ? true : false;
+          userPhoneSelect.appendChild(firstOptionElement);
+        }
+        //Le pongo el pais
+        let phoneCountry = option.country ? option.country : countriesFromDB?.find(count=>count.id == option.country_id);
+        const optionElement = document.createElement("option");
+        optionElement.value = option.id || "";
+        optionElement.textContent = `(+${phoneCountry?.code}) ${option?.phone_number} `;
+        optionElement.selected = options.length == 1 ? true : false;
+        userPhoneSelect.appendChild(optionElement);
+      });
+    }
+    //Esta funcion se fija los triggers para esconder shippingAddress
+    function listenToCheckoutFormTriggers(){
+      const shippingTypeSelect = document.querySelector('.checkout-section select[name="shipping_type_id"]');
+      const useSameAddressCheckbox = document.querySelector('.checkout-section input[name="use-same-addresses"]');
+      const useSameAddressCheckboxContainer = document.querySelector('.checkout-section .same-address-checkbox-container');
+      const shippingAddressField = document.querySelector('.shipping-address-container');
+      if(!useSameAddressCheckbox.dataset.listened){
+        useSameAddressCheckbox.dataset.listened = true;
+        useSameAddressCheckbox.addEventListener('change',(e)=>{
+          if(e.target.checked)return shippingAddressField.classList.add('hidden');
+          return shippingAddressField.classList.remove('hidden');
+        })
+      }
+      if(!shippingTypeSelect.dataset.listened){
+        shippingTypeSelect.dataset.listened = true;
+        shippingTypeSelect.addEventListener('change',(e)=>{
+          if(e.target.value == 1){
+            //Envio a domicilio, pinto el checkbox y el shipping Address
+            shippingAddressField.classList.remove('hidden');
+            return useSameAddressCheckboxContainer.classList.remove('hidden');
+          }
+          //Aca pinto retiro por el local, escondo el checkbox y el shippingAddress
+          shippingAddressField.classList.add('hidden');
+          useSameAddressCheckboxContainer.classList.add('hidden');
+          useSameAddressCheckbox.checked = false; //Lo dejo false
+          return
+        })
+      }
+    }
 
-      }
+    
+    function createCartDetailContainer() {
+      //TODO: Ver productLength, productsCost con el carro
+      const productsLength = 10;
+      const productsCost = 150;
+      const shippingCost = 20;
+      const totalCost = 170;
+
+      // Crear contenedor principal
+      const container = document.createElement("div");
+      container.className = "cart-detail-container";
+  
+      // Crear título
+      const title = document.createElement("p");
+      title.className = "cart-detail-title page-title";
+      title.textContent = isInSpanish ? "Detalle": "Detail";
+      container.appendChild(title);
+  
+      // Crear contenedor de detalles
+      const detailListContainer = document.createElement("div");
+      detailListContainer.className = "detail-list-container";
+  
+      // Crear fila: Número de productos
+      const productRow = document.createElement("div");
+      productRow.className = "detail-list-row";
+  
+      const productLengthElement = document.createElement("p");
+      productLengthElement.className = "detail-row-p detail-row-product-length";
+      productLengthElement.textContent = `${productsLength} ${isInSpanish ? 'productos' : 'products'}`; 
+      productRow.appendChild(productLengthElement);
+  
+      const productCost = document.createElement("p");
+      productCost.className = "detail-row-p detail-row-product-cost";
+      productCost.textContent = `$${productsCost}`;
+      productRow.appendChild(productCost);
+  
+      detailListContainer.appendChild(productRow);
+  
+      // Crear fila: Envío
+      const shippingRow = document.createElement("div");
+      shippingRow.className = "detail-list-row";
+  
+      const shippingLabel = document.createElement("p");
+      shippingLabel.className = "detail-row-p detail-row-shipping";
+      shippingLabel.textContent = isInSpanish ? "Envio" : "Shipping"; 
+      shippingRow.appendChild(shippingLabel);
+  
+      const shippingCostContainer = document.createElement("p");
+      shippingCostContainer.className = "detail-row-p";
+      shippingCostContainer.innerHTML = `$<span class="detail-row-shipping-cost">${shippingCost}</span>`;
+      shippingRow.appendChild(shippingCostContainer);
+  
+      detailListContainer.appendChild(shippingRow);
+  
+      // Crear fila: Total
+      const totalRow = document.createElement("div");
+      totalRow.className = "detail-list-row last-row";
+  
+      const totalLabel = document.createElement("p");
+      totalLabel.className = "detail-row-p detail-row-total";
+      totalLabel.textContent = "Total";
+      totalRow.appendChild(totalLabel);
+  
+      const totalCostElement = document.createElement("p");
+      totalCostElement.className = "detail-row-p detail-row-total-cost";
+      totalCostElement.textContent = `$${totalCost}`;
+      totalRow.appendChild(totalCostElement);
+  
+      detailListContainer.appendChild(totalRow);
+  
+      // Agregar contenedor de detalles al principal
+      container.appendChild(detailListContainer);
+  
+      // Crear botón de finalizar compra
+      const finalizeButton = document.createElement("button");
+      finalizeButton.className = "ui button negative finalize-order-button section-handler-button";
+      finalizeButton.type = "button";
+      finalizeButton.textContent = isInSpanish ? "Finalizar compra" : "Go to checkout"; 
+      container.appendChild(finalizeButton);
+  
+      return container;
+  }
+  
   } catch (error) {
     console.log("falle");
     return console.log(error);

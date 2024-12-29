@@ -1,9 +1,5 @@
 .main{
     min-height: 70vh;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    height: fit-content;
     margin: 5vh 0;
 }
 .cart-products-container,
@@ -12,6 +8,9 @@
     display: flex;
     flex-direction: column;
     align-items: center;
+}
+.cart-detail-rail-container{
+    width: 100%;
 }
 .page-title{
     text-align: center;
@@ -28,11 +27,8 @@
 .cart-products-cards-wrapper .checkout-card{
     margin-top: .75rem;
 }
-.cart-detail-container{
+.cart-detail-rail-container{
     margin: 5vh 0;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
 }
 .detail-list-container{
     width: 90vw;
@@ -63,10 +59,11 @@
 }
 .main-sections-wrapper{
     position: relative;
-  display: flex;
-  width: 100%;
-  height: auto;
-  overflow: hidden;
+    display: flex;
+    flex-direction: row;
+    width: 100%;
+    height: auto;
+    overflow: visible;
 }
 .main-sections-wrapper > section {
     width: 100%;
@@ -101,14 +98,17 @@
 
 .form-container label{
     font-weight: 600;
+    font-size: clamp(1.2rem,1vw + .15rem, 1.4rem);
 }
 .form-container .checkbox-container{
     flex-direction: row;
+    align-items: center;
 }
 .form-container .checkbox-container > *{
     width: fit-content;
     cursor: pointer;
 }
+
 .form-container .checkbox-container > input{
     margin-top: 0;
     margin-right: 5px;
@@ -117,6 +117,13 @@
     display: flex;
     flex-direction: column;
     height: fit-content;
+    padding: 0 5vw;
+}
+.checkout-section .title{
+    font-size: clamp(1.75rem, 3vw + .3rem, 2.2rem);
+    font-weight: 600;
+    width: 100%;
+    color: #000;
 }
 .checkout-section .ui.button.basic.back-to-cart-button{
     display: flex;
@@ -131,6 +138,12 @@
     border-radius: .5rem;
     color: var(--red-color);
     cursor: pointer;
+}
+.back-to-cart-button-container{
+    margin-bottom: 5vh;
+}
+.back-to-cart-button-container *{
+    color: var(--red-color);
 }
 @media(min-width: 1024px){
     .main{
@@ -155,9 +168,20 @@
         flex: 1 1 100%; /* Ocupa toda la fila en la primera línea */
         margin-bottom: 2.5vh;
     }
-
+    .cart-detail-rail-container{
+        position: relative;
+        overflow: visible;
+        height: auto;
+    }
+    .cart-detail-container {
+        position: sticky;
+        top: 5vh; /* Ajusta según tu diseño */
+        height: auto; /* Ajusta según el contenido */
+        margin: 0;
+    }
     .cart-products-container,
-    .cart-detail-container{
+    .cart-detail-container,
+    .cart-detail-rail-container{
         align-items: flex-start;
     }
     .page-title{
@@ -166,7 +190,7 @@
     .cart-products-container{
         width: 60%;
     }
-    .cart-detail-container{
+    .cart-detail-rail-container{
         width: 30%;
         margin-top: 0;
     }

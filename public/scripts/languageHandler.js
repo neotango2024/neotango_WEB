@@ -6,6 +6,8 @@ import { toggleBodyScrollableBehavior, toggleOverlay } from './utils.js';
 import { exportObj } from "./cart.js";
 
 export let settedLanguage = null;
+export let isInSpanish = true;
+
 window.addEventListener('DOMContentLoaded', () => {
     checkForLanguageClick();
     checkForLanguageSelection();
@@ -79,6 +81,7 @@ const handleChangeLanguage = async(param) => { //param es esp/eng
         case 'cart': //Van todos los cambios de cart
             //Aca tengo que pintar denuevo cards y detalle y form
             exportObj.generateCheckoutForm && await exportObj.generateCheckoutForm();
+            exportObj.setDetailContainer && exportObj.setDetailContainer();
             break;
     
         default:
@@ -97,6 +100,7 @@ const toggleLanguagesModalClasses = () => {
 //Cambia las variables
 const updateLanguage = (lang)=>{
     setItem('language', lang); //Seteo en base al parametro el lenguaje
-    settedLanguage = lang
+    settedLanguage = lang;
+    isInSpanish = settedLanguage == 'esp';
 }
 

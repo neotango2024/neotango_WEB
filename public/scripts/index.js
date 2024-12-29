@@ -214,9 +214,10 @@ window.addEventListener('load',()=>{
 
 
   function dotsNextSlide() {
+    if(!dots.length) return
     const activeDot = document.querySelector('.dot-active')
-    activeDot.classList.remove('dot-active')
-    if (activeDot.nextElementSibling) {
+    activeDot?.classList.remove('dot-active')
+    if (activeDot?.nextElementSibling) {
       const dotToActive = activeDot.nextElementSibling;
       dotToActive.classList.add('dot-active')
     } else {
@@ -226,7 +227,7 @@ window.addEventListener('load',()=>{
 
 
   function dotsJump() {
-    dots.forEach((dot, i) => {
+    dots?.forEach((dot, i) => {
       dot.addEventListener('click', () => {
         if (!dot.classList.contains('dot-active')) {
           const activeDot = document.querySelector('.dot-active')

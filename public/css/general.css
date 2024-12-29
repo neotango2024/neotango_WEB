@@ -3,6 +3,8 @@
     padding: 0;
     box-sizing: border-box;
     font-family: "Raleway", sans-serif;
+    scroll-behavior: smooth;
+    color: #000;
 }
 
 /* TODO - DIFFERENT RED TONES*/ 
@@ -29,12 +31,7 @@ body{
 }
 .main{
     display: flex;
-    flex-direction: column;
-    justify-content: flex-start;
-    align-items: center;
-    gap: 1vh;
     overflow-x: hidden;
-    padding-bottom: 5vh;
     position: relative;
 }
 /* CARDS */
@@ -124,6 +121,16 @@ ul{
     font-weight: 600;
     width: 100%;
 }
+.ui.modal .header{
+    position: relative;
+}
+.close_modal_btn {
+    position: absolute;
+    top: 50%;
+    right: 15px;
+    font-size: 2rem;
+    transform: translateY(-50%);
+  }
 @media(min-width:768px){
     .mobile-only{
         display: none !important;

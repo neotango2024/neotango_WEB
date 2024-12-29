@@ -1,9 +1,8 @@
 import { countriesFromDB, setCountries } from "./getStaticTypesFromDB.js";
-import { settedLanguage } from "./languageHandler.js";
-import { activateDropdown, createModal, generateRandomString } from "./utils.js";
+import { isInSpanish, settedLanguage } from "./languageHandler.js";
+import { activateDropdown, generateRandomString } from "./utils.js";
 
 export function checkoutCard (props) {
-    let isInSpanish =  settedLanguage == 'esp'
     const productMainFile = props.files?.find(file=>file.main_file)
     props.quantity = props.quantity || 1; //TODO: cambiar por lo que trae el carro
     const container = document.createElement("div");
@@ -284,6 +283,18 @@ export function form (props) {
         inputContainer.classList.add('checkbox-container')
         inputContainer.appendChild(inputElement);
         label && inputContainer.appendChild(label)
+      } else if (input.type === 'switchCheckbox') {
+        inputElement.type = 'checkbox'
+        // Manejo de switchCheckbox
+        const toggleContainer = document.createElement("div");
+        toggleContainer.className = "ui toggle checkbox";
+        inputElement.classList.add("hidden");
+        inputElement.tabIndex = 0;
+
+        toggleContainer.appendChild(inputElement);
+        label && toggleContainer.appendChild(label);
+
+        inputContainer.appendChild(toggleContainer);
       } else{
         label && inputContainer.appendChild(label)
         inputContainer.appendChild(inputElement);
@@ -357,7 +368,6 @@ export function productCard (prod, infoFontSize) {
 }
 
 export async function createPhoneModal() {
-   let isInSpanish =  settedLanguage == 'esp'
   try {
     createModal({
       headerTitle: isInSpanish ? "Agregar Telefono" : "Add Phone",
@@ -377,6 +387,7 @@ export async function createPhoneModal() {
                     label: isInSpanish ? "Numero de telefono": "Phone Number",
                     type: "text",
                     className: "numeric-only-input",
+                    name: "phone_number",
                     required: true,
                   },
             ]
@@ -405,7 +416,6 @@ export async function createPhoneModal() {
 };
 
 export async function createAddressModal() {
-  let isInSpanish =  settedLanguage == 'esp'
   try {
     createModal({
       headerTitle: isInSpanish ? "Agregar Direccion" : "Add Address",
@@ -490,7 +500,6 @@ export async function createAddressModal() {
 };
 
 export async function createUserLoginModal(){
-  let isInSpanish =  settedLanguage == 'esp'
   try {
     createModal({
       headerTitle: isInSpanish ? "Iniciar Sesion" : 'Login',
@@ -531,4 +540,148 @@ export async function createUserLoginModal(){
     console.log("falle");
     return console.log(error);
   }
+}
+
+export function createModal({ headerTitle, formFields, submitButtonText }) {
+  // Eliminar cualquier modal existente antes de crear uno nuevo
+  const existingModal = document.querySelector(".ui.small.modal");
+  if (existingModal) {
+    existingModal.remove();
+  }
+  // Crear el contenedor del modal
+  const modal = document.createElement("div");
+  modal.className = "ui small modal";
+
+  // Crear el header del modal
+  const header = document.createElement("div");
+  header.className = "header";
+  header.innerHTML = `${headerTitle} <i class='bx bx-x close_modal_btn mobile-only'></i>`;
+  modal.appendChild(header);
+
+  // Crear el contenedor de contenido
+  const content = document.createElement("div");
+  content.className = "content";
+
+  // Crear el formulario
+  const form = document.createElement("form");
+  form.className = "ui form";
+
+  // Recorrer los campos y añadirlos al formulario
+  formFields.forEach((field) => {
+      let fieldContainer;
+
+      // Si es un contenedor "two fields"
+      if (field.type === "two-fields") {
+          fieldContainer = document.createElement("div");
+          fieldContainer.className = "two fields";
+
+          field.fields.forEach((subField) => {
+              const subFieldContainer = document.createElement("div");
+              subFieldContainer.className = `field ${subField.required ? "required" : ""}`;
+
+              if (subField.label) {
+                  const label = document.createElement("label");
+                  label.textContent = subField.label;
+                  subFieldContainer.appendChild(label);
+              }
+
+              if (subField.type === "select") {
+                  const select = document.createElement("select");
+                  select.name = subField.name || "";
+                  select.className = subField.className || "ui dropdown";
+                  select.required = subField.required || false;
+
+                  if (Array.isArray(subField.options)) {
+                      subField.options.forEach((option) => {
+                          const optionElement = document.createElement("option");
+                          optionElement.value = option.value || "";
+                          optionElement.textContent = option.label || "";
+                          if (option.selected) optionElement.selected = true;
+                          select.appendChild(optionElement);
+                      });
+                  }
+
+                  subFieldContainer.appendChild(select);
+              } else {
+                  const input = document.createElement("input");
+                  input.type = subField.type || "text";
+                  input.name = subField.name || "";
+                  input.placeholder = subField.placeHolder || "";
+                  input.required = subField.required || false;
+                  input.className = subField.className || "";
+                  subFieldContainer.appendChild(input);
+              }
+
+              fieldContainer.appendChild(subFieldContainer);
+          });
+      } else {
+          // Para campos individuales
+          fieldContainer = document.createElement("div");
+          fieldContainer.className = `field ${field.required ? "required" : ""}`;
+
+          if (field.label) {
+              const label = document.createElement("label");
+              label.textContent = field.label;
+              fieldContainer.appendChild(label);
+          }
+
+          if (field.type === "select") {
+              const select = document.createElement("select");
+              select.name = field.name || "";
+              select.className = field.className || "ui dropdown";
+              select.required = field.required || false;
+
+              if (Array.isArray(field.options)) {
+                  field.options.forEach((option) => {
+                      const optionElement = document.createElement("option");
+                      optionElement.value = option.value || "";
+                      optionElement.textContent = option.label || "";
+                      if (option.selected) optionElement.selected = true;
+                      select.appendChild(optionElement);
+                  });
+              }
+
+              fieldContainer.appendChild(select);
+          } else {
+              const input = document.createElement("input");
+              input.type = field.type || "text";
+              input.name = field.name || "";
+              input.placeholder = field.placeHolder || "";
+              input.required = field.required || false;
+              input.className = field.className || "";
+              fieldContainer.appendChild(input);
+          }
+      }
+
+      form.appendChild(fieldContainer);
+  });
+
+  // Agregar botón de envío
+  const submitButton = document.createElement("button");
+  submitButton.type = "button";
+  submitButton.className = "ui right floated button submit basic negative send-modal-form-btn";
+  submitButton.textContent = submitButtonText || "Submit";
+  form.appendChild(submitButton);
+  const divFieldToAppend = document.createElement("div");
+  divFieldToAppend.className = "field";
+  form.appendChild(divFieldToAppend);
+  // Agregar mensaje de error
+  const errorMessage = document.createElement("div");
+  errorMessage.className = "ui error message";
+  form.appendChild(errorMessage);
+
+  // Agregar el formulario al contenido
+  content.appendChild(form);
+
+  // Agregar el contenido al modal
+  modal.appendChild(content);
+
+  // Insertar el modal en el DOM
+  document.body.appendChild(modal);
+  
+  // Antes del return esucho los botones
+  modal.querySelector('.close_modal_btn')?.addEventListener('click',()=>{
+    $(modal).modal("hide")
+  })
+  return modal;
 }
