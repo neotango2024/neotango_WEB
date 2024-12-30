@@ -30,7 +30,7 @@ export default (sequelize, dataTypes) => {
     const User = sequelize.define(alias, cols, config);
 
     User.associate = (models) => {
-        const {TempCartItem, Order, Phone} = models;
+        const {TempCartItem, Order, Phone, Address} = models;
         User.hasMany(TempCartItem, {
             as: 'tempCartItems',
             foreignKey: 'user_id'
@@ -41,6 +41,10 @@ export default (sequelize, dataTypes) => {
         });
         User.hasMany(Phone, {
             as: 'phones',
+            foreignKey: 'user_id'
+        });
+        User.hasMany(Address, {
+            as: 'addresses',
             foreignKey: 'user_id'
         });
     };

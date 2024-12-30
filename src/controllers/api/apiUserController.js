@@ -25,6 +25,7 @@ import { getUserAddressesFromDB } from "./apiAddressController.js";
 import getFileType from "../../utils/helpers/getFileType.js";
 import { destroyFilesFromAWS, getFilesFromAWS, uploadFilesToAWS } from "../../utils/helpers/awsHandler.js";
 import { ENGLISH, SPANISH } from "../../utils/staticDB/languages.js";
+import { getMappedErrors } from "../../utils/helpers/getMappedErrors.js";
 
 const { verify } = jwt;
 
@@ -71,10 +72,11 @@ const controller = {
         user_role_id: 2, //User
         verified_email: false,
       };
-      
-      await generateAndInstertEmailCode(userDataToDB);
-      //return res.status(201).json({ userDataToDB });
       const userCreated = await insertUserToDB(userDataToDB); //Creo el usuario
+      let emailResponse = await generateAndInstertEmailCode(userDataToDB);
+      if(!emailResponse) return res.status(500).json({});
+      //return res.status(201).json({ userDataToDB });
+      
       // Lo tengo que loggear directamente
       const cookieTime = 1000 * 60 * 60 * 24 * 7; //1 Semana
 
@@ -314,7 +316,7 @@ const controller = {
   },
   generateNewEmailCode: async (req, res) => {
     try {
-      let { user_id } = req.body;
+      let { user_id } = req.query;
       // busco el usuario
       const userFromDB = await getUsersFromDB(user_id)
       if(!userFromDB) return res
@@ -324,7 +326,7 @@ const controller = {
       await generateAndInstertEmailCode(userFromDB);
       return res.status(200).json({
         ok: true,
-        msg: systemMessages.userMsg.verificationCodeSuccess.es,
+        msg: systemMessages.userMsg.verificationCodeSuccess,
       });
     } catch (error) {
       console.log("Falle en apiUserController.getEmailCode:", error);
@@ -417,7 +419,7 @@ const controller = {
       if (code != user.verification_code) {
         return res.status(200).json({
           ok: false,
-          msg: "El codigo introducido es incorrecto. Intente nuevamente", //TODO: IDIOMA
+          msg: systemMessages.userMsg.userVerifiedFail, 
         });
       }
       // Aca esta todo ok ==> Hago el update al usuario y mando el status ok
@@ -427,13 +429,20 @@ const controller = {
         expiration_time: null,
       }
       let response = await updateUserFromDB(updateObj, user_id);
+      //Ahora elimino todos los usuarios con ese mismo mail y sin verificar
+      await db.User.destroy({
+        where:{
+          email: user.email,
+          verified_email: false
+        }
+      })
       if(!response) return res.status(500).json({
         ok: false,
         msg: 'Internal server error' //TODO: IDIOMA
       })
       return res.status(200).json({
         ok: true,
-        msg: "Codigo verificado correctamente. Redirigiendo...", //TODO: IDIOMA
+        msg: systemMessages.userMsg.userVerifiedSuccess, 
       });
     } catch (error) {
       console.log(error);
@@ -536,24 +545,27 @@ export async function generateAndInstertEmailCode(user) {
     // Genero el codigo de verificacion
   const { verificationCode, expirationTime } =
   generateRandomCodeWithExpiration();
-  await sendVerificationCodeMail(verificationCode, user.email);
+  let emailHasBeenSent = await sendVerificationCodeMail(verificationCode, user.email);
+  if(!emailHasBeenSent)return false;
   let objectToDB = {
     verification_code: verificationCode,
     expiration_time: expirationTime,
   };
   //Lo cambio en db
-  await db.User.update({objectToDB},{
+  await db.User.update(objectToDB,{
     where: {
       id: user.id
     }
   });
+  return true;
   } catch (error) {
     console.log(`Falle en generateAndInstertEmailCode`);
-    return console.log(error);
+    console.log(error);
+    return false;
   }
 }
 
-let userIncludeObj = ['cart','orders']
+let userIncludeObj = ['tempCartItems','orders',"phones","addresses"]
 export async function getUsersFromDB(id) {
   try {
     let usersToReturn, userToReturn
@@ -621,7 +633,7 @@ export async function updateUserFromDB(obj,id) {
 
 export async function insertUserToDB(obj) {
   try {
-    if(!obj || !id)return undefined
+    if(!obj)return undefined
     //Lo inserto en db
     let createdUser = await db.User.create(obj);
     return createdUser

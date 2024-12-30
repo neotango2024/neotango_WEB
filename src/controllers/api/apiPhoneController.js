@@ -58,8 +58,8 @@ const controller = {
           method: "POST",
         },
         ok: true,
-        msg: systemMessages.phoneMsg.createSuccesfull.es, //TODO: ver tema idioma
-        redirect: "/user/phone",
+        msg: systemMessages.phoneMsg.createSuccesfull,
+        phone: createdPhone,
       });
     } catch (error) {
       console.log(`Falle en apiPhoneController.createPhone`);

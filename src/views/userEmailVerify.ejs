@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <%- include ('./partials/head.ejs') %>
+    <link rel="stylesheet" href="/css/userEmailVerify.css">
+    <script src="/scripts/userEmailVerify.js" type="module"></script>
+    <title>Verificar Email</title>
+</head>
+<body>
+    <%- include ('./partials/header.ejs') %>
+    <main class="main">
+        <h1 class="title">Por favor, verifica tu cuenta para poder continuar</h1>
+        <div class="desc-container">
+            <p>¿Todavía no lo recibiste?</p>
+            <a class="ui button basic  tiny">Reenviar codigo</a>
+        </div>
+        <section class="code-input-section">
+            <input type="text" class="numeric-only-input verify-code-input">
+            <input type="text" class="numeric-only-input verify-code-input">
+            <input type="text" class="numeric-only-input verify-code-input">
+            <input type="text" class="numeric-only-input verify-code-input">
+            <input type="text" class="numeric-only-input verify-code-input">
+            <input type="text" class="numeric-only-input verify-code-input">
+        </section>
+        <div class="button-container">
+            <button class="ui button basic negative verify-button disabled">Verificar</button>
+        </div>
+        
+    </main>
+    <%- include ('./partials/footer.ejs') %>
+</body>
+</html>

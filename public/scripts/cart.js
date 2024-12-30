@@ -12,18 +12,27 @@ import { isInSpanish, settedLanguage } from "./languageHandler.js";
 import {
   activateContainerLoader,
   activateDropdown,
+  buildAddressBodyData,
+  buildPhoneBodyData,
   generateRandomString,
   getFromSessionStorage,
+  handleAddressCreateFetch,
   handleModalCheckForComplete,
+  handleModalCreation,
   handlePageModal,
+  handlePhoneCreateFetch,
   isInDesktop,
   productsFromDB,
   saveToSessionStorage,
   setProductsFromDB,
+  updateAddressElements,
+  updatePhoneElements,
 } from "./utils.js";
 let exportObj = {
   generateCheckoutForm: null,
-  setDetailContainer: null
+  setDetailContainer: null,
+  paintCheckoutPhoneSelect: null,
+  paintCheckoutAddressesSelect: null
 }
 window.addEventListener("load", async () => {
   try {
@@ -180,7 +189,7 @@ window.addEventListener("load", async () => {
         }
         let shippingTypesForSelect = shippingTypesFromDB?.map((type) => ({
           value: type.id,
-          label: isInSpanish ? type.type.es : type.type.es, 
+          label: isInSpanish ? type.type.es : type.type.en, 
         }));
         let userAddressesForDB = userLogged?.addresses?.map((address) => ({
           value: address.id,
@@ -265,7 +274,7 @@ window.addEventListener("load", async () => {
           },
           {
             label: isInSpanish ? "Dirección de Facturación" : "Billing Address",
-            name: "billingAddress.id",
+            name: "billing-address-id",
             type: "select",
             options: userAddressesForDB || [],
             required: true,
@@ -275,7 +284,7 @@ window.addEventListener("load", async () => {
           },
           {
             label: isInSpanish ? "Dirección de Envío" : "Shipping Address",
-            name: "shippingAddress.id",
+            name: "shipping-address-id",
             type: "select",
             options: userAddressesForDB || [],
             required: true,
@@ -291,7 +300,8 @@ window.addEventListener("load", async () => {
         //Activo lo de SemanticUI
         $('.ui.checkbox').checkbox();
         await addCheckoutFormDynamicButtons();
-        paintCheckoutPhoneSelect(); //Pinto los select del phone
+        exportObj.paintCheckoutPhoneSelect(); //Pinto los select del phone;
+        exportObj.paintCheckoutAddressesSelect();//Pinto los select de address
         listenToCheckoutFormTriggers(); //Esta funcion se fija las cosas que hace que shipping no aparezca
       } catch (error) {
         console.log(`Falle`);
@@ -346,58 +356,31 @@ window.addEventListener("load", async () => {
         await createPhoneModal();
         // Abro el modal
         handlePageModal(true);
-        await listenToPhoneCreateBtn()//hago el fetch para crear ese telefono
+        // await listenToPhoneCreateBtn()//hago el fetch para crear ese telefono
+        await handleModalCreation({
+          entityType: 'phone',
+          buildBodyData: buildPhoneBodyData,
+          saveGuestEntity: (bodyData) => saveToSessionStorage(bodyData, "guestPhones", true), //El true es porque es array
+          updateElements: updatePhoneElements, // Funcion que actualiza el select de phones,
+          postToDatabase: handlePhoneCreateFetch
+        })//hago el fetch para crear ese telefono
     }
     const handleNewAddressButtonClick = async ()=>{
         await createAddressModal();
         // Abro el modal
         handlePageModal(true);
-    }
-    async function listenToPhoneCreateBtn(){
-      const submitButton = document.querySelector('.ui.modal .send-modal-form-btn');
-      const form = document.querySelector('.ui.form')
-      let bodyData = {};
-      submitButton.addEventListener('click',async ()=>{
-        let formIsOK = handleModalCheckForComplete();
-        if(!formIsOK)return;
-        //ACa sigo, pinto loading el boton
-        submitButton.classList.add('loading');
-        // Armo el bodyData con lo del telefono
-        bodyData.country_id = form.phone_country_id?.value;
-        bodyData.phone_number = form.phone_number?.value;
-        if(userLogged){//Aca esta loggeado, lo creo en db
-          bodyData.user_id = userLogged.id;
-          return
-        } else {
-          //Aca es un guest, lo creo en session
-          // Le agrego un randomID para despues poder pegarle
-          const randomPhoneID = generateRandomString(10);
-          bodyData.id = randomPhoneID
-          saveToSessionStorage(bodyData,"guestPhones",true);
-        };
-        // Cierro el modal
-        handlePageModal(false);
-        //Ahora deberia actualizar dependiendo donde este
-        await updatePhoneElements();
-        return;
-      });
-      
+        await handleModalCreation({
+          entityType: 'address',
+          buildBodyData: buildAddressBodyData,
+          saveGuestEntity: (bodyData) => saveToSessionStorage(bodyData, "guestAddresses", true), //El true es porque es array
+          updateElements: updateAddressElements, // Funcion que actualiza el select de phones
+          postToDatabase: handleAddressCreateFetch
+        })//hago el fetch para crear esa address
     };
-    async function updatePhoneElements(){
-      // Obtener el path de la URL actual
-      const path = window.location.pathname;
-      //Me fijo url y en base a eso veo si estoy en cart o en el perfil del usuario
-      // Verificar el final de la URL
-      if (path.endsWith('/cart')) {
-          // Lógica específica para la página del carrito
-          await paintCheckoutPhoneSelect();
-      } else if (path.endsWith('/profile')) {
-          // Lógica específica para la página del perfil
-          // TODO: UpdatePhoneCards
-      }
-    };
-    //Pinta el select de los telefonos
-    async function paintCheckoutPhoneSelect(){
+    
+    
+    //Pinta el select de los telefonos & addresses
+    exportObj.paintCheckoutPhoneSelect =  async function(){
       if(!countriesFromDB?.length) await setCountries();
       //Aca agarro el select del carro y lo repinto con todos los telefonos
       const userPhoneSelect = document.querySelector('.checkout-section select[name="phone_id"]');
@@ -423,7 +406,44 @@ window.addEventListener("load", async () => {
         optionElement.selected = options.length == 1 ? true : false;
         userPhoneSelect.appendChild(optionElement);
       });
-    }
+    };
+
+    exportObj.paintCheckoutAddressesSelect = async function(){
+      try {
+        //Aca agarro el select del carro y lo repinto con todos los telefonos
+      const billingAddressSelect = document.querySelector('select[name="billing-address-id"]');
+      const shippingAddressSelect = document.querySelector('select[name="shipping-address-id"]');
+      let selectArray = [billingAddressSelect,shippingAddressSelect];      
+      selectArray.forEach(select=>{
+        let valueSelected = select.value || null; //Si ya habia elegido lo dejo elegido por mas que pinte
+        // Limpiar las opciones actuales
+        select.innerHTML = "";
+        let options = userLogged ? userLogged.addresses : getFromSessionStorage('guestAddresses');
+        // Agregar las nuevas opciones
+        options?.forEach((option,i) => {
+        if(i == 0){
+          //Primera opcion
+          let firstOptionElement = document.createElement("option");
+          firstOptionElement.value = "";
+          firstOptionElement.textContent = isInSpanish ? "Elije una direccion" : "Choose an address";
+          firstOptionElement.disabled = true;
+          firstOptionElement.selected = options.length > 1 ? true : false;
+          select.appendChild(firstOptionElement);
+        }
+        //Le pongo el pais
+        let optionAlreadySelected = option.id == valueSelected;
+        const optionElement = document.createElement("option");
+        optionElement.value = option.id || "";
+        optionElement.textContent = `(${option?.label}) ${option?.street} | CP: ${option?.zip_code}`;
+        optionElement.selected = options.length == 1 ? true : optionAlreadySelected ? true : false;
+        select.appendChild(optionElement);
+        });
+      })
+      } catch (error) {
+        return console.log(error);
+        
+      }
+    };
     //Esta funcion se fija los triggers para esconder shippingAddress
     function listenToCheckoutFormTriggers(){
       const shippingTypeSelect = document.querySelector('.checkout-section select[name="shipping_type_id"]');

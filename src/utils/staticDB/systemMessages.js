@@ -30,6 +30,14 @@ export default {
             en: 'A code has been sent to your mailbox',
             es: 'Se ha enviado un codigo a tu casilla de correo'
         },
+        userVerifiedSuccess: {
+            en: 'Code successfully verified. Redirecting..',
+            es: 'Codigo verificado correctamente. Redirigiendo...'
+        },
+        userVerifiedFail: {
+            en: 'The code entered is incorrect. Please try again',
+            es: 'El codigo introducido es incorrecto. Intente nuevamente'
+        }
        
     },
     addressMsg: {

@@ -16,7 +16,7 @@ import apiCartRouter from './routes/api/apiCartRouter.js'
 import apiOrderRouter from './routes/api/apiOrderRouter.js';
 import apiTypeRouter from './routes/api/apiTypeRouter.js';
 import { languageMiddleware } from './middlewares/language.js';
-
+import unverifiedUser from './middlewares/unverifiedUser.js';
 
 // way to replace __dirname in es modules 
 const __filename = fileURLToPath(import.meta.url);
@@ -51,8 +51,8 @@ app.use('/api/cart', apiCartRouter);
 app.use('/api/phone', apiPhoneRouter);
 app.use('/api/order', apiOrderRouter);
 app.use('/api/type', apiTypeRouter);
+app.use(unverifiedUser); //En todas las consultas de render
 app.use('/',mainRouter);
-
 const PORT = process.env.PORT || 3500;
 
 app.listen(PORT,()=>{

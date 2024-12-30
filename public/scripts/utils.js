@@ -1,7 +1,66 @@
+import { exportObj } from "./cart.js";
+import { userLogged } from "./checkForUserLogged.js";
 import { countriesFromDB } from "./getStaticTypesFromDB.js";
+import { isInSpanish } from "./languageHandler.js";
 
 export function activateAccordions() {
     $('.ui.accordion').accordion(); // Activa los acordeones
+}
+// Logica para que todos los inputs numericos no acepten letras
+export function checkForNumericInputs() {
+  let numericInputs = document.querySelectorAll(".numeric-only-input");
+  numericInputs.forEach((input) => {
+    // Tomo el ultimo valor
+    let lastInputValue = input.value;
+    input.addEventListener("input", function (e) {
+      var inputValueArray = e.target.value.split("");
+      let flag = true;
+      //Esto es para que me permita poner espacios
+      inputValueArray.forEach((value) => {
+        if (!isNumber(value) && value != " ") flag = false;
+      });
+
+      if (!flag) {
+        // Si no es un número, borra el contenido del campo
+        e.target.value = lastInputValue;
+      } else {
+        lastInputValue = e.target.value; // Almacenar el último valor válido
+      }
+    });
+  });
+}
+
+// Logica para todos los inputs float
+export function checkForFloatInputs() {
+  let floatInputs = document.querySelectorAll(".float-only-input");
+  floatInputs.forEach((input) => {
+    if (input.dataset.listened) return;
+    input.dataset.listened = true;
+    // Tomo el ultimo valor
+    let lastInputValue = input.value;
+    input.addEventListener("input", function (e) {
+      var inputValue = e.target.value;
+      // Reemplazar ',' por '.'
+      inputValue = inputValue.replace(",", ".");
+      if (!isFloat(inputValue)) {
+        // Si no es un número, borra el contenido del campo
+        e.target.value = lastInputValue;
+      } else {
+        // Actualizar el campo con el valor modificado
+        e.target.value = inputValue;
+        lastInputValue = inputValue; // Almacenar el último valor válido
+      }
+    });
+  });
+}
+
+// Devuelve true si es todo numerico el valor
+export function isNumber(value) {
+  return /^[0-9]*$/.test(value);
+}
+// Devuelve true si es todo numerico el valor
+export function isFloat(value) {
+  return /^[0-9]*\.?[0-9]*$/.test(value);
 }
 
 //Toglea las classes del overlay
@@ -115,7 +174,7 @@ export function handleModalCheckForComplete(){
   if(!formIsComplete){
     submitButton.classList.remove('basic'); //Lo dejo full rojo
     modalForm.classList.add('error'); //Le agrego el rojo
-    errorsContainer.innerHTML = '<p>Debes completar todos los campos requeridos</p>';
+    errorsContainer.innerHTML = `<p>${isInSpanish ? 'Debes completar todos los campos requeridos' : 'You have to complete all required fields'}</p>`;
     return false;
   };
   return true;
@@ -150,3 +209,176 @@ export function saveToSessionStorage (dataToSave, keyName, isArray) {
 export function getFromSessionStorage (keyName) {
   return JSON.parse(sessionStorage.getItem(keyName));
 };
+
+//Esto maneja todos los post que se hacen en un modal, para ver los parametros en cart.js se invoca
+export async function handleModalCreation({entityType, buildBodyData, saveGuestEntity, updateElements, postToDatabase }){
+  try {
+   const submitButton = document.querySelector('.ui.modal .send-modal-form-btn');
+   const form = document.querySelector('.ui.form');
+   if (!submitButton || !form) {
+    throw new Error(`Form or submit button not found for ${entityType}`);
+  }
+   submitButton.addEventListener('click',async ()=>{
+     let formIsOK = handleModalCheckForComplete();
+     if(!formIsOK)return;
+     //ACa sigo, pinto loading el boton
+     submitButton.classList.add('loading');
+    // Armo el bodyData con lo que viene de parametro
+    // Construir el bodyData con la función personalizada
+    const bodyData = buildBodyData(form);
+     if(userLogged){//Aca esta loggeado, lo creo en db
+       bodyData.user_id = userLogged.id;
+       if (postToDatabase) {
+        try {
+          await postToDatabase(bodyData);
+        } catch (error) {
+          console.error(`Error posting ${entityType} to database`, error);
+          submitButton.classList.remove('loading');
+          return;
+        }
+      }
+     } else {
+       //Aca es un guest, lo creo en session
+       // Invitado: guardar en sessionStorage
+      saveGuestEntity(bodyData);
+     };
+     // Cierro el modal
+     handlePageModal(false);
+     if(updateElements){
+      //Ahora deberia actualizar dependiendo donde este
+      await updateElements();
+     }
+     
+     return;
+   });
+  } catch (error) {
+   console.log("FALLE");
+   return console.log(error);
+  }
+ };
+
+//Arma los body data de las entidades
+export function buildPhoneBodyData(form){
+  return {
+    country_id: form.phone_country_id?.value,
+    phone_number: form.phone_number?.value,
+    id: userLogged ? undefined : generateRandomString(10),
+  }
+};
+
+export function buildAddressBodyData(form){
+  return {
+    label: form['address-label']?.value,
+    street: form['address-street']?.value,
+    detail: form['address-detail']?.value,
+    city: form['address-city']?.value,
+    province: form['address-province']?.value,
+    country_id: form['address-country-id']?.value,
+    zip_code: form['address-zip']?.value,
+    id: userLogged ? undefined : generateRandomString(10),
+  }
+}
+
+//Una vez que se crea la entidad, ahi dependiendo si es en carro o profile tengo que hacer algo
+export async function updateAddressElements(){
+  try {
+      // Obtener el path de la URL actual
+      const path = window.location.pathname;
+      //Me fijo url y en base a eso veo si estoy en cart o en el perfil del usuario
+      // Verificar el final de la URL
+      if (path.endsWith('/cart')) {
+          // Lógica específica para la página del carrito
+          await exportObj.paintCheckoutAddressesSelect();
+      } else if (path.endsWith('/profile')) {
+          // Lógica específica para la página del perfil
+          // TODO: UpdatePhoneCards
+      }
+  } catch (error) {
+    return console.log(error);
+  }
+};
+export async function updatePhoneElements(){
+  try {
+    // Obtener el path de la URL actual
+  const path = window.location.pathname;
+  //Me fijo url y en base a eso veo si estoy en cart o en el perfil del usuario
+  // Verificar el final de la URL
+  if (path.endsWith('/cart')) {
+      // Lógica específica para la página del carrito
+      await exportObj.paintCheckoutPhoneSelect();
+  } else if (path.endsWith('/profile')) {
+      // Lógica específica para la página del perfil
+      // TODO: UpdatePhoneCards
+  }
+  } catch (error) {
+    return console.log(error);
+  }
+};
+
+//Crea y actualiza los valores de phone & address del usuario loggeado (se supone que solo creamos phone & address de los usuarios)
+export async function handlePhoneCreateFetch(bodyData){
+  let response = await fetch('/api/phone', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(bodyData),
+  });
+  
+  if(response.ok){
+    response = response.ok &&  await response.json();
+    //Aca dio ok, entonces al ser de un usuario actualizo al usuarioLogged.phones
+    userLogged.phones?.push(response.phone)
+  }
+};
+export async function handleAddressCreateFetch(bodyData){
+  let response = await fetch('/api/address', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(bodyData),
+  });
+  
+  if(response.ok){
+    response = response.ok &&  await response.json();
+    //Aca dio ok, entonces al ser de un usuario actualizo al usuarioLogged.phones
+    userLogged.addresses?.push(response.address);
+  }
+}
+
+//Pinta la tarjeta de succes/error
+export function showCardMessage(isPositive, messageText) {
+  // Seleccionar el contenedor padre
+  const messageContainer = document.querySelector('.view_message_container');
+
+  if (!messageContainer) {
+      console.error("Contenedor principal no encontrado");
+      return;
+  }
+
+  // Seleccionar los mensajes positivo y negativo
+  const positiveMessage = messageContainer.querySelector('.ui.positive.huge.message');
+  const negativeMessage = messageContainer.querySelector('.ui.negative.huge.message');
+
+  if (!positiveMessage || !negativeMessage) {
+      console.error("Mensajes positivo o negativo no encontrados");
+      return;
+  }
+
+  // Ocultar ambos mensajes inicialmente
+  positiveMessage.classList.add('hidden');
+  negativeMessage.classList.add('hidden');
+
+  // Mostrar el mensaje correspondiente
+  const messageToShow = isPositive ? positiveMessage : negativeMessage;
+  messageToShow.querySelector('.header').textContent = messageText || '';
+  messageToShow.classList.remove('hidden');
+  // Volver a ocultarlo después de 2 segundos
+  setTimeout(() => {
+    messageToShow.classList.add('hidden');
+}, 2000);
+}
+//Deshabilita un boton por x cantidad de tiempo
+export function disableBtn(btn,time){
+  btn.classList.add('disabled');
+  setTimeout(() => {
+      btn.classList.remove('disabled');
+  }, time);
+}

@@ -1,15 +1,15 @@
 // import nodemailer from 'nodemailer';
 import emailConfig from '../staticDB/mailConfig.js';
-
+import nodemailer from 'nodemailer'
 async function sendVerificationCodeMail(code,userEmail) {
     code = code.split('');//Lo armo array
     // Configuración del transporte del correo
     // const transporter = nodemailer.createTransport(emailConfig);
-    let transporter
+    let transporter = nodemailer.createTransport(emailConfig);
     // Contenido del correo
     let userMailContent = {
         es: `
-    <div style="display:flex;flex-direction:column;width:100%;align-items-center;">
+    <div style="display:flex;flenpm i nodemailerx-direction:column;width:100%;align-items-center;">
         <p>Estimado usuario,</p>
         <p>Gracias por registrarte, su codigo de verificación es: </p>
         <div class="code-container" style="display:flex;width:40%;justify-content: space-between;">
@@ -45,7 +45,7 @@ async function sendVerificationCodeMail(code,userEmail) {
     }
     // Opciones del correo
     const userMailOptions = {
-        from: 'contacto@neotanhoshoes.com',
+        from: process.env.EMAIL_USER,
         to: userEmail,
         subject: subject.es,
         html: userMailContent.es
@@ -53,10 +53,11 @@ async function sendVerificationCodeMail(code,userEmail) {
     try {
         // Envío de los correos
         const userMail = await transporter.sendMail(userMailOptions);
-        // console.log('Correos enviados:', userMail.messageId);
-        return
+        console.log('Correos enviados:', userMail.messageId);
+        return true;
     } catch (error) {
         console.error('Error al enviar el correo:', error);
+        return false
     }
 };
 

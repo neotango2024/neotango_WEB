@@ -4,6 +4,7 @@ const router = express.Router();
 
 router.get('/',mainController.index);
 router.get('/cart',mainController.cart);
+router.get('/verify',mainController.userVerification);
 
 
 export default router;

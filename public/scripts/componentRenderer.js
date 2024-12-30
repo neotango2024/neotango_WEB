@@ -394,7 +394,7 @@ export async function createPhoneModal() {
         }
         
       ],
-      submitButtonText: "Create",
+      submitButtonText: isInSpanish ? "Crear": "Create",
     });
     //Una vez creado el modal, activo con los paises
     if (!countriesFromDB.length) {
@@ -447,7 +447,7 @@ export async function createAddressModal() {
         {
             label: isInSpanish ? "Codigo Postal" : "ZIP",
             type: "text",
-            name: "address_zip",
+            name: "address-zip",
             className:"short-input",
             required: true,
             placeHolder: isInSpanish ? "Codigo postal" :"ZIP code"
@@ -471,14 +471,14 @@ export async function createAddressModal() {
         {
             label: isInSpanish ? "Pais" :"Country",
             type: "select",
-            name: "phone_country_id",
+            name: "address-country-id",
             className:
               "ui search dropdown country_search_input form_search_dropdown",
             required: true,
             placeHolder: isInSpanish ? "Elegi un pais" : "Select a country"
           },
       ],
-      submitButtonText: "Create",
+      submitButtonText: isInSpanish ? "Crear": "Create",
     });
     //Una vez creado el modal, activo con los paises
     if (!countriesFromDB.length) {

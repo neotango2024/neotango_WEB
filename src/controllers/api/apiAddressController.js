@@ -58,8 +58,8 @@ const controller = {
           method: "POST",
         },
         ok: true,
-        msg: systemMessages.addressMsg.createSuccesfull.es, //TODO: ver tema idioma
-        redirect: "/user/address",
+        msg: systemMessages.addressMsg.createSuccesfull,
+        address: createdAddress,
       });
     } catch (error) {
       console.log(`Falle en apiAddressController.createUser`);
