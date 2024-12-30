@@ -1,7 +1,8 @@
 
 import { translations } from "../constants/constants.js";
+import { productCard } from "./componentRenderer.js";
 import { settedLanguage } from "./languageHandler.js";
-const SCREEN_WIDTH = window.innerWidth;
+import { productsFromDB, setProductsFromDB } from "./utils.js";
 const companyInfoTranslations = translations.companyInfo;
 
 const products = [
@@ -71,8 +72,8 @@ const products = [
 ];
 
 
-window.addEventListener('load',()=>{
-    
+window.addEventListener('load', async ()=>{
+  if(!window.location.pathname.endsWith('/')) return;
     const addressList = [
         {
             id: '1',
@@ -156,13 +157,11 @@ window.addEventListener('load',()=>{
     //renderProducts();
     //renderCheckoutCard()
 
-    const slides = document.querySelectorAll('.slider-img-container');
+  const slides = document.querySelectorAll('.slider-img-container');
   const dotsContainer = document.querySelector('.dots-container');
-
 
   let currentImage = 0;
   let slidesLength = slides.length;
-
 
   const carouselInterval = setInterval(handleCarouselActualImage, 3000);
   const dotsInterval = setInterval(dotsNextSlide, 3001);
@@ -209,9 +208,7 @@ window.addEventListener('load',()=>{
   const dots = document.querySelectorAll('.home-slider-dot');
   // i needed to declare the dots here because of the for because if not it came undefined
 
-
   dotsJump()
-
 
   function dotsNextSlide() {
     if(!dots.length) return
@@ -241,6 +238,8 @@ window.addEventListener('load',()=>{
       })
     })
   }
+
+  await handleRenderFeatureProducts();
 });
 
 export const translateCompanyInfo = () => {
@@ -251,5 +250,17 @@ export const translateCompanyInfo = () => {
     const itemDesc = item.querySelector('.info-description');
     itemTitle.textContent = companyInfoTranslations?.[itemDataset]?.[settedLanguage];
     itemDesc.textContent = companyInfoTranslations?.[itemDataset]?.description?.[settedLanguage];
+  })
+}
+
+const handleRenderFeatureProducts = async () => {
+  if(productsFromDB.length === 0){
+    await setProductsFromDB(null, 4);
+  }
+
+  const skeletons = document.querySelectorAll('.skeleton-product');
+  productsFromDB.forEach((prod, index) => {
+    skeletons[index].style.display = 'none';
+    productCard(prod);
   })
 }

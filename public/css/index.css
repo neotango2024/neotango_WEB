@@ -1,3 +1,7 @@
+.main {
+    flex-direction: column;
+}
+
 .slider-container {
     width: 100%;
     height: 250px;
@@ -75,8 +79,8 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    margin-top: 5%;
     width: 100%;
+    margin: 5% auto;
 }
 
 .info-item-container {
@@ -105,6 +109,10 @@
 
 .info-description {
     font-style: italic;
+}
+
+.category-title {
+    margin-top: 45px!important;
 }
 
 @media (min-width: 468px) {
@@ -154,26 +162,23 @@
         height: 600px;
     }
 
-    .company-info-container {
-        width: 100%;
-    }
-
     .item-icon {
         color: #EF6161;
         font-size: 35px;
     }
     
     .info-title {
-        font-size: 20px;
+        font-size: 18px;
+        text-transform: uppercase;
     }
     
     .info-description {
-       font-size: 16px;
+       font-size: 14px;
     }
     
 
     .info-item-container {
-        width: 30%;
+        width: 25%;
         max-width: 400px;
     }
 }
@@ -188,12 +193,8 @@
         height: 650px;
     }
 
-    .company-info-container {
-        max-width: 1400px;
-    }
-
     .info-item-container {
-        width: 25%;
+        width: 22%;
         max-width: 400px;
     }
 

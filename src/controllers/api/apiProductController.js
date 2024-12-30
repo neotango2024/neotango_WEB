@@ -21,11 +21,13 @@ const PRODUCTS_FOLDER_NAME = 'products';
 const controller = {
     handleGetAllProducts: async (req, res) => {
         try {
-            const categoryId = req.query.categoryId || null;
-            const productId = req.query.productId;
+            let {categoryId, productId, limit, offset} = req.query
+            if(limit) limit = parseInt(limit);
+            if(categoryId) categoryId = parseInt(categoryId);
+            if(offset) offset = parseInt(offset);
             let products;
             if(productId){
-                const [success, foundProduct] = await findProductsInDb(productId,null,true);
+                const [success, foundProduct] = await findProductsInDb(productId,null,true, limit, offset);
                 if(success && !foundProduct){
                     return res.status(404).json({
                         ok: false,
@@ -41,7 +43,7 @@ const controller = {
                 }
                 products = [foundProduct];
             } else {
-                const productsFetched = await findProductsInDb(null,categoryId,true);                
+                const productsFetched = await findProductsInDb(null,categoryId,true, limit, offset);                
                 if (!productsFetched.length){
                     return res.status(500).json({
                         ok: false,
@@ -299,13 +301,15 @@ let productIncludeArray =  [
     'files',
     'variations'
 ]
-export async function findProductsInDb(id = null, categoryId = null, withImages = false) {
+export async function findProductsInDb(id = null, categoryId = null, withImages = false, limit, offset) {
     try {
     let productsToReturn, productToReturn;
     // Condición si id es un string
     if (typeof id === "string") {
         productToReturn = await db.Product.findByPk(id,{
-          include: productIncludeArray
+          include: productIncludeArray,
+          limit,
+          offset
         });
         if(!productToReturn) return null
         productToReturn = getDeepCopy(productToReturn);
@@ -317,19 +321,25 @@ export async function findProductsInDb(id = null, categoryId = null, withImages 
           where: {
             id: id, // id es un array, se hace un WHERE id IN (id)
           },
-          include: productIncludeArray
+          include: productIncludeArray,
+          limit,
+          offset
         });
-        
-      } else if(categoryId){
+    } else if(categoryId){
         productsToReturn = await Product.findAll({
                 where: {
                     category_id: categoryId
                 },
-                include: productIncludeArray
+                include: productIncludeArray,
+                limit,
+                offset
             });
+          
         } else{
             productsToReturn = await Product.findAll({
-                include: productIncludeArray
+                include: productIncludeArray,
+                limit,
+                offset
             });
         }
         if(!productsToReturn || !productsToReturn.length) return null

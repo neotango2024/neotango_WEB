@@ -112,6 +112,7 @@ nav {
     color: black;
     font-size: 20px;
     transition: color 0.3s;
+    text-transform: uppercase;
 }
 
 .shop-mobile-span {
@@ -314,7 +315,7 @@ nav {
     }
 
     .page-link-item a {
-        font-size: 17px;
+        font-size: 14px;
     }
 
     .active-flag-container {
@@ -437,7 +438,7 @@ nav {
 
 
     .page-link-item a {
-        font-size: 19px;
+        font-size: 16px;
     }
 
     .languages-modal {
