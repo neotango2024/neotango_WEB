@@ -9,6 +9,7 @@ import {
   shippingTypesFromDB,
 } from "./getStaticTypesFromDB.js";
 import { isInSpanish, settedLanguage } from "./languageHandler.js";
+import { getLocalStorageItem } from "./localStorage.js";
 import {
   activateContainerLoader,
   activateDropdown,
@@ -40,6 +41,12 @@ window.addEventListener("load", async () => {
     //Activo el loader
     activateContainerLoader(main, true);
     //seteo los productos TODO: Esto es con los productos del carro
+    let cartProducts = [];
+    if(userLogged){
+      cartProducts = userLogged.cartItems;
+    } else{
+      cartProducts = getLocalStorageItem('cartItems') || [];
+    }
     await setProductsFromDB();    
     activateContainerLoader(main, false);
     //Pinta la seccion de detalle

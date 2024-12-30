@@ -1,7 +1,7 @@
 import {form, button, createUserLoginModal} from './componentRenderer.js';
 import { userLogged } from './checkForUserLogged.js';
 import { translations } from '../constants/constants.js';
-import { getItem } from './localStorage.js';
+import { getLocalStorageItem } from './localStorage.js';
 import { languages } from '../constants/constants.js';
 import { handlePageModal, toggleBodyScrollableBehavior, toggleOverlay } from './utils.js';
 import { settedLanguage } from './languageHandler.js';
@@ -91,7 +91,7 @@ const toggleLoginModal = () => {
 }
 
 const renderFormAndButton = () => {
-    const localStorageItem = getItem('language');
+    const localStorageItem = getLocalStorageItem('language');
     const settedLanguage = userLogged && userLogged.language ? userLogged.language : localStorageItem ? localStorageItem : null;
 
     const inputProps = [

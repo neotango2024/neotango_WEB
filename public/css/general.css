@@ -130,10 +130,22 @@ ul{
     right: 15px;
     font-size: 2rem;
     transform: translateY(-50%);
-  }
+}
+.tablet-only{
+    display: none;
+}
+.ui.breadcrumb a.section{
+    color: #000;
+}
+.breadcrumb .section.active{
+    color: var(--red-color);
+}
 @media(min-width:768px){
     .mobile-only{
         display: none !important;
+    };
+    .tablet-only{
+        display: inital;
     }
 }
 @media(min-width:1024px){

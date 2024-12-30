@@ -39,7 +39,7 @@ const unverifiedUser = async (req, res, next) => {
             }
         };
         //Si alguien que no este loggueado quiere ir a verify lo mando al main
-        if (pathToGo == '/verify' && !userInCookie) return res.redirect('/');
+        // if (pathToGo == '/verify' && !userInCookie) return res.redirect('/');
         return next();
 
 

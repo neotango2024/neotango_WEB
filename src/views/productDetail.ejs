@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <%- include('./partials/head.ejs') %>
+    <link rel="stylesheet" href="/css/form.css">
+    <link rel="stylesheet" href="/css/productDetail.css">
+    <script type="module" src="/scripts/productDetail.js"></script>
+    <title>Cart</title>
+</head>
+<body data-page_name="productDetail">
+    <%- include('./partials/header.ejs') %>
+    <main class="main" data-category_id="1" data-product_id:"">
+        <div class="ui active inverted dimmer">
+            <div class="ui text loader">Cargando productos</div> <!-- TODO: IDIOMA-->
+        </div>
+        <section class="product-images-section">
+            <div class="images-wrapper">
+                <img src="./img/product/IMG_5490.png" alt="1" class="image-element">
+                <img src="./img/product/IMG_5492.png" alt="2" class="image-element">
+                <img src="./img/product/IMG_5504.png" alt="3" class="image-element">
+            </div>
+            <div class="small-images-container tablet-only">
+                <img src="./img/product/IMG_5490.png" alt="1" class="small-image-element">
+                <img src="./img/product/IMG_5492.png" alt="2" class="small-image-element">
+                <img src="./img/product/IMG_5504.png" alt="3" class="small-image-element">
+            </div>
+        </section>
+        <section class="product-detail-section">
+            <div class="ui breadcrumb">
+                <a class="section" href="/">Home</a>
+                <div class="divider"> / </div>
+                <a class="section" href="#">Category</a>
+                <div class="divider"> / </div>
+                <div class="active section">Product Name</div>
+            </div>
+            <h1 class="product-name">Zapato de dama</h1>
+            <p class="product-price">$150</p>
+            <p class="product-desc">Lorem ipsum dolor sit amet consectetur adipisicing elit. Eligendi ullam voluptates ipsum quasi hic? Cumque vel deleniti vero vitae labore.</p>
+            <div class="selects-wrapper">
+                <div class="select-container">
+                    <label for="taco-id">Taco</label>
+                    <select name="taco-id" id="taco-id">
+                        <% tacos.forEach(taco => { %>
+                            <option value="<%= taco.id %>"><%= taco.name %></option>
+                        <% }) %>
+                    </select>
+                </div>
+                <div class="select-container">
+                    <label for="size-id">Talle</label>
+                    <select name="size-id" id="size-id">
+                        <% sizes.forEach(size => { %>
+                            <option value="<%= size.id %>"><%= size.size %></option>
+                        <% }) %>
+                    </select>
+                </div>
+            </div>
+           
+            <div class="button-container">
+                <button class="ui button negative add-to-cart-btn" type="button">Agregar al carrito</button>
+            </div>
+        </section>
+        <section class="related-products-section">
+            <p class="page-title">Productos Relacionados</p>
+            <div class="product-cards-wrapper"></div>
+        </section>
+    </main>
+  <%- include('./partials/footer.ejs') %>
+  <style>
+    .small-images-container {
+        --image-count: 3; /* Cambia según el número de imágenes */
+    }
+  </style>
+  
+</body>
+</html>

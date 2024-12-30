@@ -56,7 +56,7 @@ const controller = {
         });
       }
       // Datos del body
-      let { first_name, last_name, email, password } = req.body;
+      let { first_name, last_name, email, password, language } = req.body;
       
 
       //Nombres y apellidos van capitalziados
@@ -71,6 +71,7 @@ const controller = {
         password: bcrypt.hashSync(password, 10), //encripta la password ingresada ,
         user_role_id: 2, //User
         verified_email: false,
+        preffered_language: language,
       };
       const userCreated = await insertUserToDB(userDataToDB); //Creo el usuario
       let emailResponse = await generateAndInstertEmailCode(userDataToDB);
@@ -565,7 +566,7 @@ export async function generateAndInstertEmailCode(user) {
   }
 }
 
-let userIncludeObj = ['tempCartItems','orders',"phones","addresses"]
+let userIncludeObj = ['tempCartItems','orders',"phones","addresses"];
 export async function getUsersFromDB(id) {
   try {
     let usersToReturn, userToReturn

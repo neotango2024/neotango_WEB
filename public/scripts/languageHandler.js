@@ -1,6 +1,6 @@
 import { translateNavbar } from "./header.js";
 import { translateCompanyInfo } from "./index.js";
-import {setItem, getItem} from './localStorage.js';
+import {setLocalStorageItem, getLocalStorageItem} from './localStorage.js';
 import { userLogged } from "./checkForUserLogged.js";
 import { toggleBodyScrollableBehavior, toggleOverlay } from './utils.js';
 import { exportObj } from "./cart.js";
@@ -46,7 +46,7 @@ const checkForLanguageSelection = () => {
 
 //Se ejecuta cuando carga la pagina para ver que idioma esta establecido
 const decideLanguageInsertion = () => {
-    const localStorageItem = getItem('language');
+    const localStorageItem = getLocalStorageItem('language');
     const languageToSet = userLogged && userLogged.language ? userLogged.language : localStorageItem ? localStorageItem : null;
     if(languageToSet) {
         handleChangeLanguage(languageToSet)
@@ -99,7 +99,7 @@ const toggleLanguagesModalClasses = () => {
 
 //Cambia las variables
 const updateLanguage = (lang)=>{
-    setItem('language', lang); //Seteo en base al parametro el lenguaje
+    setLocalStorageItem('language', lang); //Seteo en base al parametro el lenguaje
     settedLanguage = lang;
     isInSpanish = settedLanguage == 'esp';
 }

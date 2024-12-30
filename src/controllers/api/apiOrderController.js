@@ -91,6 +91,7 @@ const controller = {
         payment_types_id,
         shipping_types_id,
         variationsFromDB, //Del middleware
+        language //TODO: Cambiar modelos y setear dependiendo lo que llegue
         } = req.body
       // Si esta logueado y no tenia los nros y direcciones armadas...
       if(!billingAddress.id && user_id){ 
