@@ -1,6 +1,7 @@
 import { countriesFromDB, setCountries } from "./getStaticTypesFromDB.js";
 import { isInSpanish, settedLanguage } from "./languageHandler.js";
-import { activateDropdown, generateRandomString } from "./utils.js";
+import { activateDropdown, generateRandomString, getProductImageSizeUrl, getProductMainImage } from "./utils.js";
+const SCREEN_WIDTH = window.screen.width;
 
 export function checkoutCard (props) {
     const productMainFile = props.files?.find(file=>file.main_file)
@@ -346,21 +347,24 @@ export function productCard (prod, infoFontSize) {
   imgContainer.className = 'prod-img-container';
   cardAnchor.appendChild(imgContainer);
 
+  const mainImage = getProductMainImage(prod);
+  const imageUrl = mainImage ? getProductImageSizeUrl(mainImage) : '';
   const img = document.createElement('img');
   img.className = 'prod-img';
-  img.src = `/img/product/${filename}`;
+  img.src = imageUrl;
   imgContainer.appendChild(img);
 
   const productInfoContainer = document.createElement('div');
   productInfoContainer.className = 'product-info-container';
   cardAnchor.appendChild(productInfoContainer);
   
+  const {es_name, eng_name, ars_price, usd_price} = prod;
   const productName = document.createElement('span');
-  productName.textContent = name;
+  productName.textContent = settedLanguage === 'esp' ? es_name : eng_name;
   productName.style.fontSize = infoFontSize ? `${infoFontSize}%` : '120%'
 
   const productPrice = document.createElement('span');
-  productPrice.textContent = `$${price}`;
+  productPrice.textContent = `$${settedLanguage === 'esp' ? ars_price : usd_price}`;
   productPrice.style.fontSize = infoFontSize ? `${infoFontSize}%` : '120%'
 
   productInfoContainer.appendChild(productName);

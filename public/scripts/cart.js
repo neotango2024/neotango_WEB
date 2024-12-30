@@ -25,8 +25,9 @@ let exportObj = {
   generateCheckoutForm: null,
   setDetailContainer: null
 }
-window.addEventListener("load", async () => {
+window.addEventListener("DOMContentLoaded", async () => {
   try {
+    if(!window.location.pathname.endsWith('/cart')) return;
     const main = document.querySelector(".main");
     //Activo el loader
     activateContainerLoader(main, true);

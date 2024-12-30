@@ -22,17 +22,25 @@ export function generateRandomString(length){
 
 export let productsFromDB = [];
 
-export async function setProductsFromDB(){
-    try {
-        let array = (
-          await (await fetch(`${window.location.origin}/api/product/`)).json()
-        ).data || [];
-        productsFromDB = array;
-      } catch (error) {
-        return console.log(`Falle en setProductsFromDB: ${error}`);
-      } 
-}
+export async function setProductsFromDB(categoryId, limit, offset) {
+  try {
+      const queryParams = new URLSearchParams();
 
+      if (categoryId) queryParams.append('categoryId', categoryId);
+      if (limit) queryParams.append('limit', limit);
+      if (offset) queryParams.append('offset', offset);
+
+      const url = `${window.location.origin}/api/product?${queryParams.toString()}`;
+
+      let array = (
+        await (await fetch(url)).json()
+      ).data || [];
+
+      productsFromDB = array;
+  } catch (error) {
+      console.log(`Falle en setProductsFromDB: ${error}`);
+  }
+}
 //busca y pinta el primer loader de un contenedor
 export function activateContainerLoader(cont,boolean){
     const loaderToPaint = cont.querySelector('.ui.dimmer')
@@ -150,3 +158,26 @@ export function saveToSessionStorage (dataToSave, keyName, isArray) {
 export function getFromSessionStorage (keyName) {
   return JSON.parse(sessionStorage.getItem(keyName));
 };
+
+export function getProductMainImage(prod){
+  
+  let mainFile;
+  const {files} = prod;
+  if(files.length > 0){
+    files.forEach(file =>  {
+      if(file.main_file === 1){
+        mainFile = file;
+        return;
+      }
+    })
+  } else {
+    mainFile = null;
+  }
+  return mainFile;
+}
+
+export function getProductImageSizeUrl (file, screenWidth){
+  const sizeToFind = screenWidth <= 720 ? '1x' : '2x';
+  const url = file.file_urls.find(fileUrl => fileUrl.size === sizeToFind).url;
+  return url;
+}
