@@ -331,7 +331,7 @@ export function button(props) {
 }
 
 export function productCard (prod, infoFontSize) {
-  const {name, filename, price, id} = prod;
+  const { id, es_name, eng_name, ars_price, usd_price } = prod;
   const container = document.querySelector('.products-container');
 
   const card = document.createElement('div');
@@ -340,7 +340,7 @@ export function productCard (prod, infoFontSize) {
 
   const cardAnchor = document.createElement('a');
   cardAnchor.className = 'product-card-anchor';
-  cardAnchor.href = `products/${id}`;
+  cardAnchor.href = `producto/${id}`;
   card.appendChild(cardAnchor);
 
   const imgContainer = document.createElement('div');
@@ -357,8 +357,7 @@ export function productCard (prod, infoFontSize) {
   const productInfoContainer = document.createElement('div');
   productInfoContainer.className = 'product-info-container';
   cardAnchor.appendChild(productInfoContainer);
-  
-  const {es_name, eng_name, ars_price, usd_price} = prod;
+
   const productName = document.createElement('span');
   productName.textContent = settedLanguage === 'esp' ? es_name : eng_name;
   productName.style.fontSize = infoFontSize ? `${infoFontSize}%` : '120%'

@@ -60,7 +60,11 @@
     font-size: clamp(1rem, 2vw + .25rem, 1.3rem);
 }
 .select-container select{
+    padding: 5px 0;
     padding-right: 20px;
+    border-radius: 7.5px;
+    width: 80px;
+    cursor: pointer;
 }
 .button-container{
     display: flex;

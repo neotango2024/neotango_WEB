@@ -37,17 +37,17 @@ let exportObj = {
 }
 window.addEventListener("DOMContentLoaded", async () => {
   try {
-    if(!window.location.pathname.endsWith('/cart')) return;
+    if(!window.location.pathname.endsWith('/carro')) return;
     const main = document.querySelector(".main");
     //Activo el loader
     activateContainerLoader(main, true);
     //seteo los productos TODO: Esto es con los productos del carro
     let cartProducts = [];
-    if(userLogged){
-      cartProducts = userLogged.cartItems;
-    } else{
-      cartProducts = getLocalStorageItem('cartItems') || [];
-    }
+    // if(userLogged){
+    //   cartProducts = userLogged.cartItems;
+    // } else{
+    //   cartProducts = getLocalStorageItem('cartItems') || [];
+    // }
     await setProductsFromDB();    
     activateContainerLoader(main, false);
     //Pinta la seccion de detalle

@@ -1,5 +1,6 @@
 import { userLogged } from './checkForUserLogged.js';
-import { checkForNumericInputs, disableBtn } from './utils.js'
+import { isInSpanish } from './languageHandler.js';
+import { checkForNumericInputs, disableBtn, showCardMessage } from './utils.js'
 window.addEventListener('load', () => {
     checkForNumericInputs();
     // Logica para ir cambiando de input a medida que se escribe
@@ -89,7 +90,7 @@ window.addEventListener('load', () => {
                 headers: {
                     "Content-Type": "application/json",
                 },
-                body: JSON.stringify({ code, user_id: userLogged.id }),
+                body: JSON.stringify({ code, user_id: userLogged?.id }),
             });
             // Antes de hacer el fetch le hago el disabled
             response = await response.json();
@@ -108,7 +109,8 @@ window.addEventListener('load', () => {
             }, 1000);
             return
         } catch (error) {
-            return console.log(`Falle en verifyButton.addEventListener: ${error}`)
+            console.log(`Falle en verifyButton.addEventListener: ${error}`)
+            return console.log(error)
         }
     });
     function checkForAllInputsFilled() {

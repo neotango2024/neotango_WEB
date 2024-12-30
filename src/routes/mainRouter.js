@@ -3,9 +3,9 @@ import mainController from '../controllers/mainController.js';
 const router = express.Router();
 
 router.get('/',mainController.index);
-router.get('/cart',mainController.cart);
-router.get('/verify',mainController.userVerification);
-router.get('/product',mainController.productDetail);
+router.get('/carro',mainController.cart);
+router.get('/verificar',mainController.userVerification);
+router.get('/producto/:id',mainController.productDetail);
 
 
 export default router;

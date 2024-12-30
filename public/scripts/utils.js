@@ -88,9 +88,7 @@ export async function setProductsFromDB(categoryId, limit, offset) {
       if (categoryId) queryParams.append('categoryId', categoryId);
       if (limit) queryParams.append('limit', limit);
       if (offset) queryParams.append('offset', offset);
-
-      const url = `${window.location.origin}/api/product?${queryParams.toString()}`;
-
+      const url = `${window.location.origin}/api/product?${queryParams.toString()}`;    
       let array = (
         await (await fetch(url)).json()
       ).data || [];
@@ -125,8 +123,6 @@ export function handlePageModal(boolean){
   $(".ui.modal").modal("hide");
   return;
 }
-
-
 
 export function activateDropdown(className, array, placeHolder){
   $(className)?.each(function () {
@@ -197,6 +193,7 @@ function checkForAllModalRequiredFields(){
   return flag;
 };
 
+//TODO: ELiminar
 export function saveToSessionStorage (dataToSave, keyName, isArray) {
   if(!isArray){
     //Si no es array simplemente lo guardo
