@@ -35,7 +35,11 @@ const controller = {
                         data: []
                     })
                 } 
-                products = [foundProduct];
+                if (Array.isArray(foundProduct)) { //Si hizo un fetch por arrays entocnes aca llega arary
+                    products = [...foundProduct];
+                } else{
+                    products = [foundProduct];
+                }
             } else {
                 const productsFetched = await findProductsInDb(null,categoryId,true, limit, offset);                
                 if (!productsFetched.length){
@@ -46,6 +50,8 @@ const controller = {
                     })
                 }
                 products = productsFetched;
+                console.log(products);
+                
             }
             return res.status(200).json({
                 ok: true,

@@ -81,8 +81,7 @@ const handleChangeLanguage = async(param) => { //param es esp/eng
             break;
         case 'cart': //Van todos los cambios de cart
             //Aca tengo que pintar denuevo cards y detalle y form
-            cartExportObj.generateCheckoutForm && await cartExportObj.generateCheckoutForm();
-            cartExportObj.setDetailContainer && cartExportObj.setDetailContainer();
+            cartExportObj.handleLanguageChange && await cartExportObj.handleLanguageChange();
             break;
         case 'productDetail': //Aca repinto el detalle
             productFromDB && productDetailExportObj.createProductDetailsSection(productFromDB);

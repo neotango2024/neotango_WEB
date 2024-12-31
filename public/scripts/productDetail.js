@@ -1,6 +1,6 @@
 import { productCard } from "./componentRenderer.js";
 import { isInSpanish, settedLanguage } from "./languageHandler.js";
-import { setProductFromDB, productsFromDB, setProductsFromDB, productFromDB, scrollToTop } from "./utils.js";
+import { setProductFromDB, productsFromDB, setProductsFromDB, productFromDB, scrollToTop, generateRandomString } from "./utils.js";
 
 let productDetailExportObj = {
   createProductDetailsSection : null,
@@ -8,6 +8,7 @@ let productDetailExportObj = {
 }
 import { deleteLocalStorageItem, getLocalStorageItem, setLocalStorageItem } from "./localStorage.js";
 import { activateContainerLoader } from "./utils.js";
+import { userLogged } from "./checkForUserLogged.js";
 
 let productId;
 
@@ -107,14 +108,15 @@ window.addEventListener("load", async () => {
       const relatedProductCardWrapper = document.querySelector('.product-cards-wrapper');
       relatedProductCardWrapper.innerHTML = '';
       let productsToPaint = [...productsFromDB];
-       // Filtrar el array para excluir el producto con el mismo id y devuelve solo los primeros 3 elementos
-      productsToPaint = productsFromDB.filter(product => product.id !== productID).slice(0, 3);    
+      
+      // Filtrar el array para excluir el producto con el mismo id y devuelve solo los primeros 3 elementos
+      productsToPaint = productsFromDB.filter(product => product.id !== productId).slice(0, 3);    
       productsToPaint.forEach( prod =>{
-        productCard(prod);
+        productCard(prod,'product-cards-wrapper');
       });
     }
-    let productID = getProductIdFromUrl(); //Obtengo el id del producto   
-    await setProductFromDB(productID); //Seteo el producto
+    productId = getProductIdFromUrl(); //Obtengo el id del producto   
+    await setProductFromDB(productId); //Seteo el producto
     if(!productFromDB)return window.location.href = '/tienda'; //Lo mando a la tienda si no encontro
     let productCategoryID = productFromDB?.category?.id
     await setProductsFromDB(productCategoryID, 4); //Aca seteo los products fromDB
@@ -271,6 +273,7 @@ const handleAddProductToCart = async () => {
       body: JSON.stringify(cartObject)
     })
   } else {
+    cartObject.variation_id = generateRandomString(10)
     setLocalStorageItem('cartItems', cartObject, true);
   }
 }

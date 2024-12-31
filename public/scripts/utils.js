@@ -81,6 +81,7 @@ export function generateRandomString(length){
 
 export let productsFromDB = [];
 
+//TODO: Unificar juntos
 export async function setProductsFromDB(categoryId, limit, offset) {
   try {
       const queryParams = new URLSearchParams();
@@ -98,24 +99,41 @@ export async function setProductsFromDB(categoryId, limit, offset) {
       console.log(`Falle en setProductsFromDB: ${error}`);
   }
 }
-
 export let productFromDB = null;
-export async function setProductFromDB(id) {
+export async function setProductFromDB(ids) {
   try {
-      const url = `${window.location.origin}/api/product?productId=${id}`;    
-      let array = (
-        await (await fetch(url)).json()
-      ).data || [];
-      if(!array.length)return null
+      // Construir la query string dependiendo de si es un único id o un array de ids
+      let query;
+      if (Array.isArray(ids)) {
+          query = ids.map(id => `productId[]=${encodeURIComponent(id)}`).join("&");
+      } else {
+          query = `productId=${encodeURIComponent(ids)}`;
+      }
+
+      // Construir la URL con la query
+      const url = `${window.location.origin}/api/product?${query}`;
+      
+      // Hacer la petición
+      const response = await fetch(url);
+      const result = await response.json();
+
+      // Validar y asignar datos
+      const array = result.data || [];
+      if (!array.length) return null;
+      if (Array.isArray(ids)) {
+        productsFromDB = array;
+        return
+      };
       productFromDB = array[0];
+      return
   } catch (error) {
-      console.log(`Falle en setProductsFromDB: ${error}`);
+      console.log(`Falle en setProductFromDB: ${error}`);
+      return null;
   }
 }
 //busca y pinta el primer loader de un contenedor
 export function activateContainerLoader(cont,boolean){
     const loaderToPaint = cont.querySelector('.ui.dimmer')
-    console.log(loaderToPaint)
     if(!loaderToPaint)return;
     if(boolean) return loaderToPaint.classList.add('active');
     return loaderToPaint.classList.remove('active')
@@ -208,28 +226,6 @@ function checkForAllModalRequiredFields(){
   return flag;
 };
 
-//TODO: ELiminar
-export function saveToSessionStorage (dataToSave, keyName, isArray) {
-  if(!isArray){
-    //Si no es array simplemente lo guardo
-    return sessionStorage.setItem(keyName, JSON.stringify(dataToSave));
-  }; 
-
-  //Aca quiere agregarlo en forma de array
-  const existingData = sessionStorage.getItem(keyName)
-  ? JSON.parse(sessionStorage.getItem(keyName))
-  : [];
-  // Agregar el nuevo objeto al array
-  existingData.push(dataToSave);
-  // Guardar el array actualizado en sessionStorage
-  sessionStorage.setItem(keyName, JSON.stringify(existingData));
-  return
-};
-
-export function getFromSessionStorage (keyName) {
-  return JSON.parse(sessionStorage.getItem(keyName));
-};
-
 //Esto maneja todos los post que se hacen en un modal, para ver los parametros en cart.js se invoca
 export async function handleModalCreation({entityType, buildBodyData, saveGuestEntity, updateElements, postToDatabase }){
   try {
@@ -246,7 +242,22 @@ export async function handleModalCreation({entityType, buildBodyData, saveGuestE
     // Armo el bodyData con lo que viene de parametro
     // Construir el bodyData con la función personalizada
     const bodyData = buildBodyData(form);
-     if(userLogged){//Aca esta loggeado, lo creo en db
+    if(entityType == 'user'){
+      //Aca es para los forms de user
+      if (postToDatabase) {
+        try {
+          await postToDatabase(bodyData);
+        } catch (error) {
+          console.error(`Error posting ${entityType} to database`, error);
+          submitButton.classList.remove('loading');
+          return;
+        }
+      }
+      // Cierro el modal
+      handlePageModal(false);
+      return
+    }
+    if(userLogged){//Aca esta loggeado, lo creo en db
        bodyData.user_id = userLogged.id;
        if (postToDatabase) {
         try {

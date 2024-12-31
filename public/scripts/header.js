@@ -1,10 +1,10 @@
 import {form, button, createUserLoginModal} from './componentRenderer.js';
-import { userLogged } from './checkForUserLogged.js';
+import { checkForUserLogged, userLogged } from './checkForUserLogged.js';
 import { translations } from '../constants/constants.js';
 import { getLocalStorageItem } from './localStorage.js';
 import { languages } from '../constants/constants.js';
-import { handlePageModal, scrollToTop, toggleBodyScrollableBehavior, toggleOverlay } from './utils.js';
-import { settedLanguage } from './languageHandler.js';
+import { handleModalCreation, handlePageModal, isInDesktop, scrollToTop, showCardMessage, toggleBodyScrollableBehavior, toggleOverlay } from './utils.js';
+import { isInSpanish, settedLanguage } from './languageHandler.js';
 const {english, spanish} = languages;
 const headerTranslations  = translations['header'];
 const categoriesTranslations = translations['categories'];
@@ -63,17 +63,55 @@ const toggleShopDropdown = () => {
 
 const checkForUserIconClicks = () => {
     const userIcon = document.querySelector('.user-icon');
-    userIcon.addEventListener('click', () => {
+    userIcon.addEventListener('click', async () => {
         if(!userLogged){
             // toggleLoginModal();
             createUserLoginModal();
             // Abro el modal
             handlePageModal(true);
+            await handleModalCreation({
+                entityType: 'user',
+                buildBodyData: buildUserBodyData,
+                postToDatabase: handleUserLoginFetch
+              })//hago el fetch para crear ese telefono
         } else {
             // TODO - REDIRECT TO USER PROFILE
+            window.location.href = '/perfil'
         }
     })
 }
+function buildUserBodyData(form){
+    return {
+        email: form['user-email']?.value,
+        password: form['user-password']?.value,
+    }
+}
+
+async function handleUserLoginFetch(bodyData){
+    let response = await fetch('/api/user/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(bodyData),
+    });
+    console.log(response);
+    
+    if(response.ok){
+      response = response.ok ?  await response.json() : null;
+      console.log(response);
+      
+      if(response.ok){
+        //Esta es la respuesta de las credenciales
+        //Aca dio ok, entonces al ser de un usuario actualizo al usuarioLogged.phones
+        showCardMessage(true,isInSpanish ? response.msg.es: response.msg);
+        await checkForUserLogged();
+        return
+      }
+      showCardMessage(false,isInSpanish ? response.msg.es: response.msg);
+      return
+    };
+    let msg = isInSpanish ? "Ha ocuriddo un error inesperado, intente nuevamente": "There was an unexpected error, please try again"
+    showCardMessage(false,msg);
+  }
 
 const checkForLoginModalCloseClicks = () => {
     const closeBtn = document.querySelector('.close-sign-in-modal');
