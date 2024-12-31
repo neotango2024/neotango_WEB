@@ -174,15 +174,41 @@ export const translateCompanyInfo = () => {
 
 const handleRenderFeatureProducts = async () => {
   if(productsFromDB.length === 0){
-    await setProductsFromDB(null, 5);
+    await setProductsFromDB(1, 5);
   }
-
   const skeletons = document.querySelectorAll('.skeleton-product');
+  const container = document.querySelector('.products-carousel');
+  const cardWidth = 200; 
+  const totalProducts = productsFromDB.length * 2; 
   productsFromDB.forEach((prod, index) => {
-    skeletons[index].style.display = 'none';
-    productCard(prod, 'products-carousel');
+    if(skeletons[index]){
+      skeletons[index].style.display = 'none';
+    }
+    productCard(prod, 'products-carousel',null, true);
   })
-  productsFromDB.forEach((prod) => {
-    productCard(prod, 'products-carousel');
+  const items = [...container.children];
+  items.forEach(item => {
+    const clone = item.cloneNode(true); 
+    container.appendChild(clone);     
   });
+  const totalWidth = totalProducts * cardWidth; 
+  const scrollDistance = -totalWidth + cardWidth;
+
+  container.style.setProperty('--scroll-distance', `${scrollDistance}px`);
+  
+  container.style.animationDuration = '20s';
+}
+
+export const handleTranslateFeatureProducts = (param) => {
+  const container = document.querySelector('.products-carousel');
+  const items = [...container.children];
+  const isSpanish = param === 'esp';
+  items.forEach(item => {
+    const {productId} = item.dataset;
+    const productInDb = productsFromDB.find(prod => prod.id === productId);
+    const productNameElement = item.querySelector('.product-name');
+    const productPriceElement = item.querySelector('.product-price');
+    productNameElement.textContent = isSpanish ? productInDb.es_name : productInDb.eng_name;
+    productPriceElement.textContent = isSpanish ? productInDb.ars_price : productInDb.usd_price;
+  })
 }

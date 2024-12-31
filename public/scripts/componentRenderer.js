@@ -330,13 +330,14 @@ export function button(props) {
     return button;
 }
 
-export function productCard (prod, containerClass, infoFontSize) {
+export function productCard (prod, containerClass, infoFontSize, isCarouselCard = false) {
   const { id, es_name, eng_name, ars_price, usd_price } = prod;
   const container = document.querySelector(`.${containerClass}`);
 
   const card = document.createElement('div');
-  card.className = 'product-card';
-  container.appendChild(card)
+  card.className = `${isCarouselCard ? 'carousel-card' : 'product-card'}`;
+  card.dataset.productId = id;
+  container.appendChild(card);
 
   const cardAnchor = document.createElement('a');
   cardAnchor.className = 'product-card-anchor';
@@ -359,10 +360,12 @@ export function productCard (prod, containerClass, infoFontSize) {
   cardAnchor.appendChild(productInfoContainer);
 
   const productName = document.createElement('span');
+  productName.className = 'product-name';
   productName.textContent = settedLanguage === 'esp' ? es_name : eng_name;
   productName.style.fontSize = infoFontSize ? `${infoFontSize}%` : '120%'
 
   const productPrice = document.createElement('span');
+  productPrice.className = 'product-price';
   productPrice.textContent = `$${settedLanguage === 'esp' ? ars_price : usd_price}`;
   productPrice.style.fontSize = infoFontSize ? `${infoFontSize}%` : '120%'
 
