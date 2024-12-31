@@ -27,20 +27,14 @@ const controller = {
             if(offset) offset = parseInt(offset);
             let products;
             if(productId){
-                const [success, foundProduct] = await findProductsInDb(productId,null,true, limit, offset);
-                if(success && !foundProduct){
+                const foundProduct = await findProductsInDb(productId,null,true, null, null);
+                if(!foundProduct){
                     return res.status(404).json({
                         ok: false,
-                        msg: notFound.es,
+                        msg: notFound,
                         data: []
                     })
-                } else if (!success){
-                    return res.status(500).json({
-                        ok: false,
-                        msg: fetchFailed.es,
-                        data: []
-                    })
-                }
+                } 
                 products = [foundProduct];
             } else {
                 const productsFetched = await findProductsInDb(null,categoryId,true, limit, offset);                
@@ -342,7 +336,7 @@ export async function findProductsInDb(id = null, categoryId = null, withImages 
                 offset
             });
         }
-        if(!productsToReturn || !productsToReturn.length) return null
+        if(!productToReturn && (!productsToReturn || !productsToReturn.length)) return null
         productsToReturn = getDeepCopy(productsToReturn);
         for (let i = 0; i < productsToReturn.length; i++) {
             const prod = productsToReturn[i];

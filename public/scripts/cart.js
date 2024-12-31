@@ -29,7 +29,7 @@ import {
   updateAddressElements,
   updatePhoneElements,
 } from "./utils.js";
-let exportObj = {
+let cartExportObj = {
   generateCheckoutForm: null,
   setDetailContainer: null,
   paintCheckoutPhoneSelect: null,
@@ -38,7 +38,7 @@ let exportObj = {
 window.addEventListener("DOMContentLoaded", async () => {
   try {
     if(!window.location.pathname.endsWith('/carro')) return;
-    const main = document.querySelector(".main");
+    const main = document.querySelector(".main");    
     //Activo el loader
     activateContainerLoader(main, true);
     //seteo los productos TODO: Esto es con los productos del carro
@@ -51,7 +51,7 @@ window.addEventListener("DOMContentLoaded", async () => {
     await setProductsFromDB();    
     activateContainerLoader(main, false);
     //Pinta la seccion de detalle
-    exportObj.setDetailContainer = function(){
+    cartExportObj.setDetailContainer = function(){
       const containersToAppend = document.querySelectorAll('.cart-detail-rail-container');      
       containersToAppend.forEach(cont => {
         cont.innerHTML = ''
@@ -64,7 +64,7 @@ window.addEventListener("DOMContentLoaded", async () => {
     }
     
     //Pinto el detalle
-    exportObj.setDetailContainer();
+    cartExportObj.setDetailContainer();
 
     const cartProductsWrapper = document.querySelector(
       ".cart-products-cards-wrapper"
@@ -90,8 +90,8 @@ window.addEventListener("DOMContentLoaded", async () => {
           window.scrollTo(0,0)
           try {
             if (btn.classList.contains("finalize-order-button")) {
-              await exportObj.generateCheckoutForm();
-              exportObj.setDetailContainer();
+              await cartExportObj.generateCheckoutForm();
+              cartExportObj.setDetailContainer();
               //TODO: Aca hago fetch para cambiar el estado del carro
               return main.classList.add("active");
             }
@@ -183,7 +183,7 @@ window.addEventListener("DOMContentLoaded", async () => {
       totalCostElement.innerHTML = `$${totalCost}`;
     }
 
-    exportObj.generateCheckoutForm = async () => {
+    cartExportObj.generateCheckoutForm = async () => {
       try {
         const formWrapper = document.querySelector(".form-wrapper");
         formWrapper.innerHTML = "";
@@ -308,8 +308,8 @@ window.addEventListener("DOMContentLoaded", async () => {
         //Activo lo de SemanticUI
         $('.ui.checkbox').checkbox();
         await addCheckoutFormDynamicButtons();
-        exportObj.paintCheckoutPhoneSelect(); //Pinto los select del phone;
-        exportObj.paintCheckoutAddressesSelect();//Pinto los select de address
+        cartExportObj.paintCheckoutPhoneSelect(); //Pinto los select del phone;
+        cartExportObj.paintCheckoutAddressesSelect();//Pinto los select de address
         listenToCheckoutFormTriggers(); //Esta funcion se fija las cosas que hace que shipping no aparezca
       } catch (error) {
         console.log(`Falle`);
@@ -388,7 +388,7 @@ window.addEventListener("DOMContentLoaded", async () => {
     
     
     //Pinta el select de los telefonos & addresses
-    exportObj.paintCheckoutPhoneSelect =  async function(){
+    cartExportObj.paintCheckoutPhoneSelect =  async function(){
       if(!countriesFromDB?.length) await setCountries();
       //Aca agarro el select del carro y lo repinto con todos los telefonos
       const userPhoneSelect = document.querySelector('.checkout-section select[name="phone_id"]');
@@ -416,7 +416,7 @@ window.addEventListener("DOMContentLoaded", async () => {
       });
     };
 
-    exportObj.paintCheckoutAddressesSelect = async function(){
+    cartExportObj.paintCheckoutAddressesSelect = async function(){
       try {
         //Aca agarro el select del carro y lo repinto con todos los telefonos
       const billingAddressSelect = document.querySelector('select[name="billing-address-id"]');
@@ -572,4 +572,4 @@ window.addEventListener("DOMContentLoaded", async () => {
 });
 
 
-export {exportObj}
+export {cartExportObj}

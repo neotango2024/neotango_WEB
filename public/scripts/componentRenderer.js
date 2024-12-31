@@ -340,7 +340,7 @@ export function productCard (prod, infoFontSize) {
 
   const cardAnchor = document.createElement('a');
   cardAnchor.className = 'product-card-anchor';
-  cardAnchor.href = `producto/${id}`;
+  cardAnchor.href = `/producto/${id}`;
   card.appendChild(cardAnchor);
 
   const imgContainer = document.createElement('div');

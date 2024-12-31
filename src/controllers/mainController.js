@@ -15,8 +15,9 @@ const controller = {
     },
     productDetail: async(req,res) =>{
         try {
-            let {id} = req.params;
-            let productFromDB = await findProductsInDb(id);
+            let { id } = req.params;
+            let productFromDB = await findProductsInDb(id,null,true);
+            // return res.send(productFromDB);
             return res.render('productDetail',{tacos, sizes, productFromDB})
         } catch (error) {
             console.log('FALLE EN mainController.productDetail');

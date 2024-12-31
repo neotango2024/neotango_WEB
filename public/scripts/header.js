@@ -3,7 +3,7 @@ import { userLogged } from './checkForUserLogged.js';
 import { translations } from '../constants/constants.js';
 import { getLocalStorageItem } from './localStorage.js';
 import { languages } from '../constants/constants.js';
-import { handlePageModal, toggleBodyScrollableBehavior, toggleOverlay } from './utils.js';
+import { handlePageModal, scrollToTop, toggleBodyScrollableBehavior, toggleOverlay } from './utils.js';
 import { settedLanguage } from './languageHandler.js';
 const {english, spanish} = languages;
 const headerTranslations  = translations['header'];
@@ -13,6 +13,7 @@ const formTranslations = translations['userForm'];
 const SCREEN_WIDTH = window.innerWidth;
 
 window.addEventListener('DOMContentLoaded', () => {
+    scrollToTop()
     if(SCREEN_WIDTH < 720){
         checkForNavbarClicks();
         checkForShopDropdownClicks();

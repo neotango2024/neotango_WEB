@@ -1,4 +1,4 @@
-import { exportObj } from "./cart.js";
+import { cartExportObj } from "./cart.js";
 import { userLogged } from "./checkForUserLogged.js";
 import { countriesFromDB } from "./getStaticTypesFromDB.js";
 import { isInSpanish } from "./languageHandler.js";
@@ -94,6 +94,20 @@ export async function setProductsFromDB(categoryId, limit, offset) {
       ).data || [];
 
       productsFromDB = array;
+  } catch (error) {
+      console.log(`Falle en setProductsFromDB: ${error}`);
+  }
+}
+
+export let productFromDB = null;
+export async function setProductFromDB(id) {
+  try {
+      const url = `${window.location.origin}/api/product?productId=${id}`;    
+      let array = (
+        await (await fetch(url)).json()
+      ).data || [];
+      if(!array.length)return null
+      productFromDB = array[0];
   } catch (error) {
       console.log(`Falle en setProductsFromDB: ${error}`);
   }
@@ -293,7 +307,7 @@ export async function updateAddressElements(){
       // Verificar el final de la URL
       if (path.endsWith('/cart')) {
           // Lógica específica para la página del carrito
-          await exportObj.paintCheckoutAddressesSelect();
+          await cartExportObj.paintCheckoutAddressesSelect();
       } else if (path.endsWith('/profile')) {
           // Lógica específica para la página del perfil
           // TODO: UpdatePhoneCards
@@ -310,7 +324,7 @@ export async function updatePhoneElements(){
   // Verificar el final de la URL
   if (path.endsWith('/cart')) {
       // Lógica específica para la página del carrito
-      await exportObj.paintCheckoutPhoneSelect();
+      await cartExportObj.paintCheckoutPhoneSelect();
   } else if (path.endsWith('/profile')) {
       // Lógica específica para la página del perfil
       // TODO: UpdatePhoneCards
@@ -407,4 +421,8 @@ export function getProductImageSizeUrl (file, screenWidth){
   const sizeToFind = screenWidth <= 720 ? '1x' : '2x';
   const url = file.file_urls.find(fileUrl => fileUrl.size === sizeToFind).url;
   return url;
+}
+
+export function scrollToTop(){
+  return window.scrollTo(0,0);
 }
