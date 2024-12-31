@@ -115,6 +115,7 @@ export async function setProductFromDB(id) {
 //busca y pinta el primer loader de un contenedor
 export function activateContainerLoader(cont,boolean){
     const loaderToPaint = cont.querySelector('.ui.dimmer')
+    console.log(loaderToPaint)
     if(!loaderToPaint)return;
     if(boolean) return loaderToPaint.classList.add('active');
     return loaderToPaint.classList.remove('active')

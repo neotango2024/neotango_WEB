@@ -6,6 +6,10 @@ let productDetailExportObj = {
   createProductDetailsSection : null,
   paintRelatedProductCards: null,
 }
+import { deleteLocalStorageItem, getLocalStorageItem, setLocalStorageItem } from "./localStorage.js";
+import { activateContainerLoader } from "./utils.js";
+
+let productId;
 
 window.addEventListener("load", async () => {
   try {
@@ -122,6 +126,7 @@ window.addEventListener("load", async () => {
     productsFromDB.length && productDetailExportObj.paintRelatedProductCards(); //Pinto los related
     productDetailExportObj.createProductDetailsSection(productFromDB);
     scrollToTop();
+    checkForAddToCartBtnClicks();
     //Hago el pedido al fetch de 4 productos y filtrar 3
 
     function getProductIdFromUrl() {
@@ -233,11 +238,41 @@ window.addEventListener("load", async () => {
           });
       });
   }
-}catch (error) {
+}   
+   catch (error) {
     console.log("falle");
     return console.log(error);
   }
 });
 
-export {productDetailExportObj};
 
+
+const checkForAddToCartBtnClicks = async () => {
+  const addToCartBtn = document.querySelector('.add-to-cart-btn');
+  addToCartBtn.addEventListener('click', async () => {
+    addToCartBtn.classList.add('loading');
+    await handleAddProductToCart(addToCartBtn);
+    addToCartBtn.classList.remove('loading');
+  })
+}
+
+const handleAddProductToCart = async () => {
+  const size = document.getElementById('size-id').value;
+  const taco = document.getElementById('taco-id').value;
+  const cartObject = {
+    productId,
+    sizeId: size,
+    tacoId: taco,
+    quantity: 1
+  }
+  if(userLogged !== null) {
+    fetch(`/api/cart/${userLogged.id}`, {
+      method: 'POST',
+      body: JSON.stringify(cartObject)
+    })
+  } else {
+    setLocalStorageItem('cartItems', cartObject, true);
+  }
+}
+
+export {productDetailExportObj};

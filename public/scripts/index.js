@@ -74,88 +74,6 @@ const products = [
 
 window.addEventListener('load', async ()=>{
   if(!window.location.pathname.endsWith('/')) return;
-    const addressList = [
-        {
-            id: '1',
-            name: 'Casa',
-            street: 'Av. Libertador 1555',
-            detail: '6to B',
-            zip: '1429',
-            city: 'Buenos Aires',
-            country: 'Argentina',
-            default: false
-        },
-        {
-            id: '2',
-            name: 'Oficina',
-            street: 'Calle Corrientes 200',
-            detail: 'Piso 12',
-            zip: '1043',
-            city: 'Buenos Aires',
-            country: 'Argentina',
-            default: false
-        },
-        {
-            id: '3',
-            name: 'Casa de Verano',
-            street: 'Av. del Mar 550',
-            detail: '',
-            zip: '7600',
-            city: 'Mar del Plata',
-            country: 'Argentina',
-            default: true
-        },
-        {
-            id: '4',
-            name: 'Departamento',
-            street: 'San Martín 1120',
-            detail: '3er A',
-            zip: '8300',
-            city: 'Neuquén',
-            country: 'Argentina',
-            default: false
-        },
-        {
-            id: '5',
-            name: 'Casa de Familia',
-            street: 'Av. Roca 3200',
-            detail: '',
-            zip: '4600',
-            city: 'San Salvador de Jujuy',
-            country: 'Argentina',
-            default: false
-        },
-    ];
-    let homeLabels = [
-        {
-            id: 1,
-            name: "Formas de pago",
-            desc: ["Para las compras dentro de Argentina te ofrecemos depósito o transferencia bancaria o tarjeta de crédito. El pago se realiza a través de Mercado Pago","Para compras internacionales las compras se realizan a través de Paypal"]
-        },
-        {
-            id: 2,
-            name: "Envíos",
-            desc: ["Los envíos se realizan a través de Andreani"]
-        },
-        {
-            id: 3,
-            name: "Cambios",
-            desc: ["Dentro de los 30 dias"]
-        }
-    ];   
-    // const addresWrapper = document.querySelector('.main');
-    // addresWrapper.innerHTML = '';
-    // homeLabels.forEach(label => {
-    //     let card = homeLabel({
-    //         name: label.name,
-    //         desc: label.desc,
-    //     });        
-    //     addresWrapper.appendChild(card);
-    // });
-    // activateAccordions();
-   
-    //renderProducts();
-    //renderCheckoutCard()
 
   const slides = document.querySelectorAll('.slider-img-container');
   const dotsContainer = document.querySelector('.dots-container');
@@ -240,6 +158,7 @@ window.addEventListener('load', async ()=>{
   }
 
   await handleRenderFeatureProducts();
+
 });
 
 export const translateCompanyInfo = () => {
@@ -255,12 +174,15 @@ export const translateCompanyInfo = () => {
 
 const handleRenderFeatureProducts = async () => {
   if(productsFromDB.length === 0){
-    await setProductsFromDB(null, 4);
+    await setProductsFromDB(null, 5);
   }
 
   const skeletons = document.querySelectorAll('.skeleton-product');
   productsFromDB.forEach((prod, index) => {
     skeletons[index].style.display = 'none';
-    productCard(prod);
+    productCard(prod, 'products-carousel');
   })
+  productsFromDB.forEach((prod) => {
+    productCard(prod, 'products-carousel');
+  });
 }
