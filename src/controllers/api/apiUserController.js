@@ -375,7 +375,7 @@ const controller = {
           data: null
         })
       }
-      const decoded = verify(token);
+      const decoded = verify(token,webTokenSecret);
       const user = await getUsersFromDB(decoded.id);
       if(!user) {
         return res.status(500).json({
@@ -500,7 +500,10 @@ const controller = {
               url: 'api/user/login'
             },
             ok: true,
-            msg: "Succesfully logged",
+            msg: {
+              en: "Succesfully logged in",
+              es: "Inicio de sesion correcto"
+            },
             redirect: '/'
           });
         }
@@ -515,7 +518,10 @@ const controller = {
           url: 'api/user/login'
         },
         ok: false,
-        msg: "Wrong credentials"
+        msg: {
+          en: "Wrong credentials",
+          es: "Credenciales incorrectas"
+        }
       });
     } catch (error) {
       console.log(`Error in processLogin`);

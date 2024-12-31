@@ -156,6 +156,12 @@ ul{
     font-size: 20px;
 }
 
+.view_message_container{
+    position: absolute;
+    bottom: 10px;
+    right: 0;
+    font-size: .8rem;
+}
 @media(min-width:768px){
     .mobile-only{
         display: none !important;

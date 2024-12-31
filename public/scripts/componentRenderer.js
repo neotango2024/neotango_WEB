@@ -4,11 +4,12 @@ import { activateDropdown, generateRandomString, getProductImageSizeUrl, getProd
 const SCREEN_WIDTH = window.screen.width;
 
 export function checkoutCard (props) {
-    const productMainFile = props.files?.find(file=>file.main_file)
-    props.quantity = props.quantity || 1; //TODO: cambiar por lo que trae el carro
+    const productFromDB = props.productFromDB
+    const productMainFile = productFromDB.files?.find(file=>file.main_file)
+    props.quantity = props.quantity || 1;
     const container = document.createElement("div");
     container.className = "card checkout-card";
-    const productPrice = isInSpanish ? props.ars_price : props.usd_price;
+    const productPrice = isInSpanish ? productFromDB.ars_price : productFromDB.usd_price;
     container.dataset.price =  productPrice
     // Image section
     const imageDiv = document.createElement("div");
@@ -39,15 +40,15 @@ export function checkoutCard (props) {
     // Header
     const header = document.createElement("a");
     header.className = "card-header";
-    header.href = `/product/${props.id}`; // Puedes parametrizar este enlace si es necesario
-    header.textContent = isInSpanish ? props.es_name : props.eng_name;
+    header.href = `/producto/${productFromDB.id}`; // Puedes parametrizar este enlace si es necesario
+    header.textContent = isInSpanish ? productFromDB.es_name : productFromDB.eng_name;
   
     // Meta
     const metaDiv = document.createElement("div");
     metaDiv.className = "meta";
     const categorySpan = document.createElement("span");
     categorySpan.className = "card_desc";
-    categorySpan.textContent = isInSpanish ? props.category?.name.es : props.category?.name.en;
+    categorySpan.textContent = isInSpanish ? productFromDB.category?.name.es : productFromDB.category?.name.en;
     metaDiv.appendChild(categorySpan);
   
     // Price
@@ -341,7 +342,7 @@ export function productCard (prod, containerClass, infoFontSize, isCarouselCard 
 
   const cardAnchor = document.createElement('a');
   cardAnchor.className = 'product-card-anchor';
-  cardAnchor.href = `producto/${id}`;
+  cardAnchor.href = `/producto/${id}`;
   card.appendChild(cardAnchor);
 
   const imgContainer = document.createElement('div');
@@ -527,7 +528,7 @@ export async function createUserLoginModal(){
             placeHolder: isInSpanish ? "Contraseña" : "Password",
         },
       ],
-      submitButtonText: "Create",
+      submitButtonText: isInSpanish ? "Iniciar Sesion":"Log In",
     });
     //Una vez creado el modal, activo con los paises
     if (!countriesFromDB.length) {
@@ -665,7 +666,7 @@ export function createModal({ headerTitle, formFields, submitButtonText }) {
   // Agregar botón de envío
   const submitButton = document.createElement("button");
   submitButton.type = "button";
-  submitButton.className = "ui right floated button submit basic negative send-modal-form-btn";
+  submitButton.className = "ui right floated button submit negative send-modal-form-btn";
   submitButton.textContent = submitButtonText || "Submit";
   form.appendChild(submitButton);
   const divFieldToAppend = document.createElement("div");

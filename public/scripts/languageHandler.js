@@ -2,8 +2,9 @@ import { translateNavbar } from "./header.js";
 import { handleTranslateFeatureProducts, translateCompanyInfo } from "./index.js";
 import {setLocalStorageItem, getLocalStorageItem} from './localStorage.js';
 import { userLogged } from "./checkForUserLogged.js";
-import { toggleBodyScrollableBehavior, toggleOverlay } from './utils.js';
-import { exportObj } from "./cart.js";
+import { productFromDB, productsFromDB, toggleBodyScrollableBehavior, toggleOverlay } from './utils.js';
+import { cartExportObj } from "./cart.js";
+import { productDetailExportObj } from "./productDetail.js";
 
 export let settedLanguage = null;
 export let isInSpanish = true;
@@ -81,8 +82,11 @@ const handleChangeLanguage = async(param) => { //param es esp/eng
             break;
         case 'cart': //Van todos los cambios de cart
             //Aca tengo que pintar denuevo cards y detalle y form
-            exportObj.generateCheckoutForm && await exportObj.generateCheckoutForm();
-            exportObj.setDetailContainer && exportObj.setDetailContainer();
+            cartExportObj.handleLanguageChange && await cartExportObj.handleLanguageChange();
+            break;
+        case 'productDetail': //Aca repinto el detalle
+            productFromDB && productDetailExportObj.createProductDetailsSection(productFromDB);
+            productDetailExportObj.paintRelatedProductCards && productsFromDB && productDetailExportObj.paintRelatedProductCards();
             break;
     
         default:

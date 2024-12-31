@@ -9,14 +9,13 @@ import {
   shippingTypesFromDB,
 } from "./getStaticTypesFromDB.js";
 import { isInSpanish, settedLanguage } from "./languageHandler.js";
-import { getLocalStorageItem } from "./localStorage.js";
+import { getLocalStorageItem, setLocalStorageItem } from "./localStorage.js";
 import {
   activateContainerLoader,
   activateDropdown,
   buildAddressBodyData,
   buildPhoneBodyData,
   generateRandomString,
-  getFromSessionStorage,
   handleAddressCreateFetch,
   handleModalCheckForComplete,
   handleModalCreation,
@@ -24,34 +23,44 @@ import {
   handlePhoneCreateFetch,
   isInDesktop,
   productsFromDB,
-  saveToSessionStorage,
+  setProductFromDB,
   setProductsFromDB,
   updateAddressElements,
   updatePhoneElements,
 } from "./utils.js";
-let exportObj = {
-  generateCheckoutForm: null,
-  setDetailContainer: null,
+let cartExportObj = {
+  handleLanguageChange: null, 
   paintCheckoutPhoneSelect: null,
   paintCheckoutAddressesSelect: null
 }
 window.addEventListener("DOMContentLoaded", async () => {
   try {
     if(!window.location.pathname.endsWith('/carro')) return;
-    const main = document.querySelector(".main");
+    const main = document.querySelector(".main");    
     //Activo el loader
     activateContainerLoader(main, true);
     //seteo los productos TODO: Esto es con los productos del carro
     let cartProducts = [];
-    // if(userLogged){
-    //   cartProducts = userLogged.cartItems;
-    // } else{
-    //   cartProducts = getLocalStorageItem('cartItems') || [];
-    // }
-    await setProductsFromDB();    
+    await setCartProducts();
+    console.log(cartProducts); 
     activateContainerLoader(main, false);
+    cartExportObj.handleLanguageChange = async function (){
+     try {
+      setDetailContainer();
+      if(main.classList.contains('active')){
+        //aca se que estoy en el formulario de pago
+        await generateCheckoutForm();
+        return
+      };
+      //Aca solo pinto las cards
+      paintCheckoutCards();
+      return
+     } catch (error) {
+      return console.log(error);
+     }
+    }
     //Pinta la seccion de detalle
-    exportObj.setDetailContainer = function(){
+    function setDetailContainer(){
       const containersToAppend = document.querySelectorAll('.cart-detail-rail-container');      
       containersToAppend.forEach(cont => {
         cont.innerHTML = ''
@@ -62,23 +71,37 @@ window.addEventListener("DOMContentLoaded", async () => {
       });
       checkForSectionButtons(); //Para los botones de "finalizar compra" o directo el de mp
     }
-    
+    function paintCheckoutCards(){
+      cartProductsWrapper.innerHTML = '';
+      const formWrapper = document.querySelector(".form-wrapper");
+      formWrapper.innerHTML = "";//Esto es porque si pinto las checkout cards entonces se que estoy en la primer seccion
+      if (cartProducts?.length) {
+        cartProducts.forEach((cartItem) => {
+          const checkoutCardElement = checkoutCard(cartItem);
+          cartProductsWrapper.appendChild(checkoutCardElement);
+        });
+        //Ahora escucho los botones
+        checkCheckoutButtons();
+        // Pinto el detail
+        modifyDetailList();
+        return
+      };
+      //ACa no tiene proudctos, pinto algo
+      cartProductsWrapper.innerHTML = `<p>${isInSpanish ? 'No tienes productos en el carro!':'There are no products on your cart!'}</p>`
+      //Pinto disabled el boton de finalizar compra
+      const sectionHandlerBtns = document.querySelectorAll('.section-handler-button');
+      sectionHandlerBtns.forEach(btn=>btn.classList.add('disabled'))
+    }
     //Pinto el detalle
-    exportObj.setDetailContainer();
+    setDetailContainer();
 
     const cartProductsWrapper = document.querySelector(
       ".cart-products-cards-wrapper"
     );
-    if (productsFromDB?.length) {
-      productsFromDB.forEach((prod) => {
-        const checkoutCardElement = checkoutCard(prod);
-        cartProductsWrapper.appendChild(checkoutCardElement);
-      });
-      //Ahora escucho los botones
-      checkCheckoutButtons();
-      // Pinto el detail
-      modifyDetailList();
-    }
+    //Pinto las tarjetas
+    paintCheckoutCards();
+
+
     function checkForSectionButtons() {
       const sectionButtons = document.querySelectorAll(
         ".section-handler-button"
@@ -90,8 +113,8 @@ window.addEventListener("DOMContentLoaded", async () => {
           window.scrollTo(0,0)
           try {
             if (btn.classList.contains("finalize-order-button")) {
-              await exportObj.generateCheckoutForm();
-              exportObj.setDetailContainer();
+              await generateCheckoutForm();
+              setDetailContainer();
               //TODO: Aca hago fetch para cambiar el estado del carro
               return main.classList.add("active");
             }
@@ -183,7 +206,7 @@ window.addEventListener("DOMContentLoaded", async () => {
       totalCostElement.innerHTML = `$${totalCost}`;
     }
 
-    exportObj.generateCheckoutForm = async () => {
+    async function generateCheckoutForm (){
       try {
         const formWrapper = document.querySelector(".form-wrapper");
         formWrapper.innerHTML = "";
@@ -308,8 +331,8 @@ window.addEventListener("DOMContentLoaded", async () => {
         //Activo lo de SemanticUI
         $('.ui.checkbox').checkbox();
         await addCheckoutFormDynamicButtons();
-        exportObj.paintCheckoutPhoneSelect(); //Pinto los select del phone;
-        exportObj.paintCheckoutAddressesSelect();//Pinto los select de address
+        cartExportObj.paintCheckoutPhoneSelect(); //Pinto los select del phone;
+        cartExportObj.paintCheckoutAddressesSelect();//Pinto los select de address
         listenToCheckoutFormTriggers(); //Esta funcion se fija las cosas que hace que shipping no aparezca
       } catch (error) {
         console.log(`Falle`);
@@ -368,7 +391,7 @@ window.addEventListener("DOMContentLoaded", async () => {
         await handleModalCreation({
           entityType: 'phone',
           buildBodyData: buildPhoneBodyData,
-          saveGuestEntity: (bodyData) => saveToSessionStorage(bodyData, "guestPhones", true), //El true es porque es array
+          saveGuestEntity: (bodyData) => setLocalStorageItem("guestPhones", bodyData,  true), //El true es porque es array
           updateElements: updatePhoneElements, // Funcion que actualiza el select de phones,
           postToDatabase: handlePhoneCreateFetch
         })//hago el fetch para crear ese telefono
@@ -380,7 +403,7 @@ window.addEventListener("DOMContentLoaded", async () => {
         await handleModalCreation({
           entityType: 'address',
           buildBodyData: buildAddressBodyData,
-          saveGuestEntity: (bodyData) => saveToSessionStorage(bodyData, "guestAddresses", true), //El true es porque es array
+          saveGuestEntity: (bodyData) => setLocalStorageItem("guestAddresses", bodyData, true), //El true es porque es array
           updateElements: updateAddressElements, // Funcion que actualiza el select de phones
           postToDatabase: handleAddressCreateFetch
         })//hago el fetch para crear esa address
@@ -388,13 +411,13 @@ window.addEventListener("DOMContentLoaded", async () => {
     
     
     //Pinta el select de los telefonos & addresses
-    exportObj.paintCheckoutPhoneSelect =  async function(){
+    cartExportObj.paintCheckoutPhoneSelect =  async function(){
       if(!countriesFromDB?.length) await setCountries();
       //Aca agarro el select del carro y lo repinto con todos los telefonos
       const userPhoneSelect = document.querySelector('.checkout-section select[name="phone_id"]');
       // Limpiar las opciones actuales
       userPhoneSelect.innerHTML = "";
-      let options = userLogged ? userLogged.phones : getFromSessionStorage('guestPhones');
+      let options = userLogged ? userLogged.phones : getLocalStorageItem('guestPhones');
       // Agregar las nuevas opciones
       options?.forEach((option,i) => {
         if(i == 0){
@@ -416,7 +439,7 @@ window.addEventListener("DOMContentLoaded", async () => {
       });
     };
 
-    exportObj.paintCheckoutAddressesSelect = async function(){
+    cartExportObj.paintCheckoutAddressesSelect = async function(){
       try {
         //Aca agarro el select del carro y lo repinto con todos los telefonos
       const billingAddressSelect = document.querySelector('select[name="billing-address-id"]');
@@ -426,7 +449,7 @@ window.addEventListener("DOMContentLoaded", async () => {
         let valueSelected = select.value || null; //Si ya habia elegido lo dejo elegido por mas que pinte
         // Limpiar las opciones actuales
         select.innerHTML = "";
-        let options = userLogged ? userLogged.addresses : getFromSessionStorage('guestAddresses');
+        let options = userLogged ? userLogged.addresses : getLocalStorageItem('guestAddresses');
         // Agregar las nuevas opciones
         options?.forEach((option,i) => {
         if(i == 0){
@@ -484,11 +507,15 @@ window.addEventListener("DOMContentLoaded", async () => {
 
     
     function createCartDetailContainer() {
-      //TODO: Ver productLength, productsCost con el carro
-      const productsLength = 10;
-      const productsCost = 150;
-      const shippingCost = 20;
-      const totalCost = 170;
+      const productsLength = cartProducts.length;
+      let productsCost = 0;
+      cartProducts.forEach(cartItem => {        
+        const productPrice = isInSpanish ? cartItem.productFromDB.ars_price : cartItem.productFromDB.usd_price;        
+        const itemQuantity = cartItem.quantity;
+        productsCost += parseFloat(productPrice) * parseInt(itemQuantity)
+      });
+      const shippingCost = 80; //TODO: ver este tema
+      const totalCost = productsCost + shippingCost;
 
       // Crear contenedor principal
       const container = document.createElement("div");
@@ -564,7 +591,23 @@ window.addEventListener("DOMContentLoaded", async () => {
   
       return container;
   }
-  
+
+    async function setCartProducts(){
+      if(userLogged){
+        cartProducts = userLogged.cartItems;
+        return
+      };
+      //aca es un guest
+      cartProducts = getLocalStorageItem('cartItems') ||[];
+      if(!cartProducts.length) return
+      let IdsToFetch = cartProducts?.map(cartItem=>cartItem.productId);
+      //Tengo que pegarle el producto a cada cartItem para poder renderizarlo con precio/imagen/etc
+      await setProductFromDB(IdsToFetch);
+      cartProducts.forEach(cartItem=>{
+        cartItem.productFromDB = productsFromDB.find(prodFromDB => prodFromDB.id == cartItem.productId)
+      });
+      return
+    }
   } catch (error) {
     console.log("falle");
     return console.log(error);
@@ -572,4 +615,4 @@ window.addEventListener("DOMContentLoaded", async () => {
 });
 
 
-export {exportObj}
+export {cartExportObj}
