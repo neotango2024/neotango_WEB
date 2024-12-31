@@ -11,7 +11,7 @@ export function setLocalStorageItem(keyName, dataToSave, isArray = false) {
   if (!isArray) {
     // Si no es array, simplemente guarda el dato
     return localStorage.setItem(keyName, JSON.stringify(dataToSave));
-}
+  }
 
   let existingData;
 
@@ -29,7 +29,6 @@ export function setLocalStorageItem(keyName, dataToSave, isArray = false) {
   console.log(existingData)
   // Agrega el nuevo dato al array
   existingData.push(dataToSave);
-  console.log(existingData)
 
   // Guarda el array actualizado en localStorage
   localStorage.setItem(keyName, JSON.stringify(existingData));

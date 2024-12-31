@@ -7,8 +7,8 @@
 }
 
 .product-card, .skeleton-product {
-    flex: 1 1 calc(80% - 20px);
-    max-width: calc(80% - 20px);
+    flex: 1 1 calc(50% - 20px);
+    max-width: calc(50% - 20px);
     height: 300px; 
     box-sizing: border-box;
     border: 2px solid transparent;

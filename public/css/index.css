@@ -115,6 +115,54 @@
     margin-top: 45px!important;
 }
 
+.products-carousel {
+    display: flex;
+    overflow: clip;
+    position: relative;
+    gap: 3rem;
+    width: 100%;
+    padding: 2rem;
+}
+
+.products-carousel::before,
+.products-carousel::after {
+  content: "";
+  background: linear-gradient(
+    to right,
+    white 0%,
+    rgba(255, 255, 255, 0) 100%
+  );
+  position: absolute;
+  height: 100%;
+  width: 10rem;
+  z-index: 2;
+}
+
+.products-carousel::after {
+  right: 0;
+  top: 0;
+  transform: rotateZ(180deg);
+}
+
+.products-carousel::before {
+  left: 0;
+  top: 0;
+}
+
+@keyframes scroll {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(calc(-10rem * 5));
+  }
+}
+
+.products-carousel .product-card {
+  cursor: pointer;
+  animation: scroll 10s linear infinite;
+}
+
 @media (min-width: 468px) {
     .slider-container {
         height: 300px;

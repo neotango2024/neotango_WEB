@@ -330,9 +330,9 @@ export function button(props) {
     return button;
 }
 
-export function productCard (prod, infoFontSize) {
+export function productCard (prod, containerClass, infoFontSize) {
   const { id, es_name, eng_name, ars_price, usd_price } = prod;
-  const container = document.querySelector('.products-container');
+  const container = document.querySelector(`.${containerClass}`);
 
   const card = document.createElement('div');
   card.className = 'product-card';
