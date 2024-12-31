@@ -26,7 +26,6 @@ export function setLocalStorageItem(keyName, dataToSave, isArray = false) {
       // Si hay un error en el parseo, inicia con un array vacío
       existingData = [];
   }
-  console.log(existingData)
   // Agrega el nuevo dato al array
   existingData.push(dataToSave);
 
@@ -37,3 +36,4 @@ export function setLocalStorageItem(keyName, dataToSave, isArray = false) {
 export const deleteLocalStorageItem = (key) => {
     localStorage.removeItem(key);
 }
+

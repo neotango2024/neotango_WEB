@@ -36,3 +36,29 @@ export async function setCountries(){
         return console.log(error);        
     }
 }
+
+export let tacosFromDB = [];
+export async function setTacos(){
+    try {
+        let array = (
+            await (await fetch(`${window.location.origin}/api/type/taco`)).json()
+          ).data || [];
+          tacosFromDB = array;
+    } catch (error) {
+        console.log("Falle");
+        return console.log(error);        
+    }
+}
+
+export let sizesFromDB = [];
+export async function setSizes(){
+    try {
+        let array = (
+            await (await fetch(`${window.location.origin}/api/type/size`)).json()
+          ).data || [];
+          sizesFromDB = array;
+    } catch (error) {
+        console.log("Falle");
+        return console.log(error);        
+    }
+}

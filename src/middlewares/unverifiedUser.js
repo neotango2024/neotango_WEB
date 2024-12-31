@@ -33,9 +33,9 @@ const unverifiedUser = async (req, res, next) => {
             res.locals.userLogged = userInCookie;
             //ACa esta loggueado, me tengo que fijar si esta verificado
             if(!userInCookie.verified_email){
-                if (pathToGo == '/verify') return next(); //Si ya estaba yendo lo mando
+                if (pathToGo == '/verificar') return next(); //Si ya estaba yendo lo mando
                 //Aca no esta verificado y taba tratando de ir a otro lugar, lo redirijo
-                return res.redirect('/verify');
+                return res.redirect('/verificar');
             }
         };
         //Si alguien que no este loggueado quiere ir a verify lo mando al main

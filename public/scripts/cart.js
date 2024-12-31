@@ -6,46 +6,44 @@ import {
   setCountries,
   setPaymentTypes,
   setShippingTypes,
+  setSizes,
+  setTacos,
   shippingTypesFromDB,
+  sizesFromDB,
+  tacosFromDB,
 } from "./getStaticTypesFromDB.js";
 import { isInSpanish, settedLanguage } from "./languageHandler.js";
-import { getLocalStorageItem, setLocalStorageItem } from "./localStorage.js";
+import { deleteLocalStorageItem, getLocalStorageItem, setLocalStorageItem } from "./localStorage.js";
 import {
   activateContainerLoader,
-  activateDropdown,
-  buildAddressBodyData,
-  buildPhoneBodyData,
-  generateRandomString,
-  handleAddressCreateFetch,
-  handleModalCheckForComplete,
-  handleModalCreation,
   handlePageModal,
   handlePhoneCreateFetch,
   isInDesktop,
   productsFromDB,
   setProductFromDB,
-  setProductsFromDB,
-  updateAddressElements,
-  updatePhoneElements,
 } from "./utils.js";
 let cartExportObj = {
-  handleLanguageChange: null, 
+  pageConstructor: null, 
   paintCheckoutPhoneSelect: null,
   paintCheckoutAddressesSelect: null
 }
 window.addEventListener("DOMContentLoaded", async () => {
   try {
     if(!window.location.pathname.endsWith('/carro')) return;
-    const main = document.querySelector(".main");    
-    //Activo el loader
-    activateContainerLoader(main, true);
-    //seteo los productos TODO: Esto es con los productos del carro
+    const main = document.querySelector(".main");   
+    const cartProductsWrapper = document.querySelector(
+      ".cart-products-cards-wrapper"
+    ); 
+    //Escribo el title
+    document.title = isInSpanish ? `Carro` : `Cart`;
+    //seteo los productos
     let cartProducts = [];
     await setCartProducts();
-    console.log(cartProducts); 
-    activateContainerLoader(main, false);
-    cartExportObj.handleLanguageChange = async function (){
+    cartExportObj.pageConstructor = async function (){
      try {
+      //Agaro el titulo "carro de compras" y dependiendo que idioma lo pinto
+      const pageTitle = document.querySelector('.main .cart-products-title');
+      pageTitle.innerHTML = isInSpanish ? 'Carro de compras' : "Shopping cart"
       setDetailContainer();
       if(main.classList.contains('active')){
         //aca se que estoy en el formulario de pago
@@ -59,6 +57,12 @@ window.addEventListener("DOMContentLoaded", async () => {
       return console.log(error);
      }
     }
+    
+    //Construyo la pagina
+    await cartExportObj.pageConstructor();
+
+    // =========================================
+    // funciones
     //Pinta la seccion de detalle
     function setDetailContainer(){
       const containersToAppend = document.querySelectorAll('.cart-detail-rail-container');      
@@ -68,9 +72,10 @@ window.addEventListener("DOMContentLoaded", async () => {
         let newDetailContainer = createCartDetailContainer();
         // Reemplazar el contenedor antiguo con el nuevo
         cont.appendChild(newDetailContainer);
-      });
+      });      
       checkForSectionButtons(); //Para los botones de "finalizar compra" o directo el de mp
     }
+    //Pinta las tarjetas
     function paintCheckoutCards(){
       cartProductsWrapper.innerHTML = '';
       const formWrapper = document.querySelector(".form-wrapper");
@@ -81,7 +86,7 @@ window.addEventListener("DOMContentLoaded", async () => {
           cartProductsWrapper.appendChild(checkoutCardElement);
         });
         //Ahora escucho los botones
-        checkCheckoutButtons();
+        checkCheckoutCardButtons();
         // Pinto el detail
         modifyDetailList();
         return
@@ -92,15 +97,6 @@ window.addEventListener("DOMContentLoaded", async () => {
       const sectionHandlerBtns = document.querySelectorAll('.section-handler-button');
       sectionHandlerBtns.forEach(btn=>btn.classList.add('disabled'))
     }
-    //Pinto el detalle
-    setDetailContainer();
-
-    const cartProductsWrapper = document.querySelector(
-      ".cart-products-cards-wrapper"
-    );
-    //Pinto las tarjetas
-    paintCheckoutCards();
-
 
     function checkForSectionButtons() {
       const sectionButtons = document.querySelectorAll(
@@ -113,9 +109,34 @@ window.addEventListener("DOMContentLoaded", async () => {
           window.scrollTo(0,0)
           try {
             if (btn.classList.contains("finalize-order-button")) {
+              btn.classList.add('loading');
               await generateCheckoutForm();
+              
+              if(userLogged){
+                //Aca tengo que actualizar el carro //TODO:
+              } else{
+                //aca es un guest
+                let checkoutCards = Array.from(document.querySelectorAll('.checkout-card'));
+                checkoutCards = checkoutCards.map(card=>{
+                  return {
+                    id: card.dataset?.variation_id,
+                    quantity: card.querySelector('.card_product_amount').innerText
+                  }
+                });
+                // Aca borro y vuelvo a armar el local
+                deleteLocalStorageItem('cartItems');
+                checkoutCards.forEach(card => {
+                  let cartProduct = cartProducts.find(cartItem => cartItem.variation_id == card.id);
+                  if(!cartProduct)return;
+                  cartProduct.quantity = card.quantity;
+                  delete cartProduct.productFromDB;
+                  setLocalStorageItem('cartItems', cartProduct, true)  
+                });                           
+              }
+              // return;
+              await setCartProducts();
               setDetailContainer();
-              //TODO: Aca hago fetch para cambiar el estado del carro
+              btn.classList.remove('loading');
               return main.classList.add("active");
             }
             //ACa limipio el checkout section
@@ -129,7 +150,7 @@ window.addEventListener("DOMContentLoaded", async () => {
         });
       });
     }
-    function checkCheckoutButtons() {
+    function checkCheckoutCardButtons() {
       const checkoutCards = document.querySelectorAll(".checkout-card");
       checkoutCards.forEach((card) => {
         if (card.dataset.listened) return;
@@ -138,7 +159,9 @@ window.addEventListener("DOMContentLoaded", async () => {
         const minusBtn = card.querySelector(".remove_more_product");
         const removeBtn = card.querySelector(".remove_card_btn");
         const cardPrice = card.querySelector(".card_price");
-        const productPrice = card.dataset.price;
+        let cardVariationID = card.dataset.variation_id;
+        let cartProductFromDB = cartProducts.find(cartItem=>cartItem.variation_id == cardVariationID)
+        const productPrice = isInSpanish ? parseFloat(cartProductFromDB.productFromDB?.ars_price) : parseFloat(cartProductFromDB.productFromDB?.usd_price);   
         addBtn.addEventListener("click", () => {
           let actualQuantitySpan = card.querySelector(".card_product_amount");
           actualQuantitySpan.innerHTML =
@@ -173,7 +196,7 @@ window.addEventListener("DOMContentLoaded", async () => {
         });
       });
     }
-
+    //escucha los + y - de los productos y en base a eso modifica el detalle
     function modifyDetailList() {
       let productLengthElement = document.querySelector(
         ".detail-row-product-length"
@@ -192,7 +215,9 @@ window.addEventListener("DOMContentLoaded", async () => {
       let totalCost = parseFloat(shippingCostElement); //al principio es solo el shipping
       let productCost = 0;
       productCards.forEach((card) => {
-        const unityPrice = parseFloat(card.dataset.price);
+        let cardVariationID = card.dataset.variation_id;
+        let cartProductFromDB = cartProducts.find(cartItem=>cartItem.variation_id == cardVariationID)
+        const unityPrice = isInSpanish ? parseFloat(cartProductFromDB.productFromDB?.ars_price) : parseFloat(cartProductFromDB.productFromDB?.usd_price);        
         const totalUnits = parseInt(
           card.querySelector(".card_product_amount").innerText
         );
@@ -205,7 +230,7 @@ window.addEventListener("DOMContentLoaded", async () => {
       productCostElement.innerHTML = `$${productCost}`;
       totalCostElement.innerHTML = `$${totalCost}`;
     }
-
+    //Genera el formulario de pago
     async function generateCheckoutForm (){
       try {
         const formWrapper = document.querySelector(".form-wrapper");
@@ -339,7 +364,7 @@ window.addEventListener("DOMContentLoaded", async () => {
         return console.log(error);
       }
     };
-
+    //Agrega los botones de "add"
     async function addCheckoutFormDynamicButtons() {
       const shippingAddressFieldContainer = document.querySelector(
         ".shipping-address-container"
@@ -381,35 +406,19 @@ window.addEventListener("DOMContentLoaded", async () => {
             container.appendChild(button);
         }
     }
-    
     //Estas funciones pintan y activan el modal de telefonos/direcciones
     const handleNewPhoneButtonClick = async ()=>{
         await createPhoneModal();
         // Abro el modal
         handlePageModal(true);
         // await listenToPhoneCreateBtn()//hago el fetch para crear ese telefono
-        await handleModalCreation({
-          entityType: 'phone',
-          buildBodyData: buildPhoneBodyData,
-          saveGuestEntity: (bodyData) => setLocalStorageItem("guestPhones", bodyData,  true), //El true es porque es array
-          updateElements: updatePhoneElements, // Funcion que actualiza el select de phones,
-          postToDatabase: handlePhoneCreateFetch
-        })//hago el fetch para crear ese telefono
+        
     }
     const handleNewAddressButtonClick = async ()=>{
         await createAddressModal();
         // Abro el modal
         handlePageModal(true);
-        await handleModalCreation({
-          entityType: 'address',
-          buildBodyData: buildAddressBodyData,
-          saveGuestEntity: (bodyData) => setLocalStorageItem("guestAddresses", bodyData, true), //El true es porque es array
-          updateElements: updateAddressElements, // Funcion que actualiza el select de phones
-          postToDatabase: handleAddressCreateFetch
-        })//hago el fetch para crear esa address
-    };
-    
-    
+    };    
     //Pinta el select de los telefonos & addresses
     cartExportObj.paintCheckoutPhoneSelect =  async function(){
       if(!countriesFromDB?.length) await setCountries();
@@ -504,13 +513,13 @@ window.addEventListener("DOMContentLoaded", async () => {
         })
       }
     }
-
-    
+    //Crea la tarjeta de Detalle
     function createCartDetailContainer() {
-      const productsLength = cartProducts.length;
+      const productsLength = cartProducts?.length || 0;
       let productsCost = 0;
-      cartProducts.forEach(cartItem => {        
-        const productPrice = isInSpanish ? cartItem.productFromDB.ars_price : cartItem.productFromDB.usd_price;        
+      cartProducts?.forEach(cartItem => {       
+        // console.log(cartItem.productFromDB); 
+        const productPrice = isInSpanish ? cartItem.productFromDB?.ars_price : cartItem.productFromDB?.usd_price;        
         const itemQuantity = cartItem.quantity;
         productsCost += parseFloat(productPrice) * parseInt(itemQuantity)
       });
@@ -590,8 +599,8 @@ window.addEventListener("DOMContentLoaded", async () => {
       container.appendChild(finalizeButton);
   
       return container;
-  }
-
+    }
+    //Define los cart product dependiendo si esta loggeado o no
     async function setCartProducts(){
       if(userLogged){
         cartProducts = userLogged.cartItems;
@@ -603,9 +612,14 @@ window.addEventListener("DOMContentLoaded", async () => {
       let IdsToFetch = cartProducts?.map(cartItem=>cartItem.productId);
       //Tengo que pegarle el producto a cada cartItem para poder renderizarlo con precio/imagen/etc
       await setProductFromDB(IdsToFetch);
+      await setTacos();
+      await setSizes();      
       cartProducts.forEach(cartItem=>{
-        cartItem.productFromDB = productsFromDB.find(prodFromDB => prodFromDB.id == cartItem.productId)
+        cartItem.productFromDB = productsFromDB.find(prodFromDB => prodFromDB.id == cartItem.productId);
+        cartItem.tacoFromDB = tacosFromDB.find(tacoFromDB => tacoFromDB.id == cartItem.tacoId);
+        cartItem.sizeFromDB = sizesFromDB.find(sizeFromDB => sizeFromDB.id == cartItem.sizeId);
       });
+      
       return
     }
   } catch (error) {

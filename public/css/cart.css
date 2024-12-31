@@ -145,6 +145,27 @@
 .back-to-cart-button-container *{
     color: var(--red-color);
 }
+.ui.placeholder {    
+    width: 80%;
+    max-width: none;
+    height: 15vh;
+    margin-bottom: 2.5vh;
+}
+.cart-products-title .ui.placeholder{
+    height: 5vh;
+    margin: 0 auto;
+}
+.detail-placeholder-container{
+    width: 100%;
+    display: flex;
+    justify-content: center;
+}
+.detail-placeholder-container .ui.ui.placeholder{
+    height: 45vh;
+}
+.card-header:hover{
+    color: var(--red-color);
+}
 @media(min-width: 1024px){
     .main{
         flex-direction: row;
@@ -216,5 +237,12 @@
     }
     .form-wrapper{
         width: 50%;
+    }
+    .ui.placeholder {    
+        height: 21vh;
+    }
+    .cart-products-title .ui.placeholder{
+        height: 5vh;
+        margin: 0;
     }
 }

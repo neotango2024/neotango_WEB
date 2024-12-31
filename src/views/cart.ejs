@@ -11,17 +11,48 @@
 <body data-page_name="cart">
     <%- include('./partials/header.ejs') %>
     <main class="main main-sections-wrapper">
-        <div class="ui active inverted dimmer">
-            <div class="ui text loader">Cargando productos</div> <!-- TODO: IDIOMA-->
-          </div>
         <section class="cart-section">
             <div class="cart-products-container">
-                <h1 class="cart-products-title page-title">Carro de Compras</h1> <!-- TODO: IDIOMA-->
+                <h1 class="cart-products-title page-title">
+                  <div class="ui placeholder">
+                      <div class="line"></div>
+                  </div>
+                </h1>
                 <div class="cart-products-cards-wrapper">
-                    
+                    <div class="ui placeholder">
+                        <div class="image header">
+                          <div class="line"></div>
+                          <div class="line"></div>
+                        </div>
+                        <div class="paragraph">
+                          <div class="medium line"></div>
+                          <div class="short line"></div>
+                        </div>
+                      </div>
+                      <div class="ui placeholder">
+                        <div class="image header">
+                          <div class="line"></div>
+                          <div class="line"></div>
+                        </div>
+                        <div class="paragraph">
+                          <div class="medium line"></div>
+                          <div class="short line"></div>
+                        </div>
+                      </div>
                 </div>
             </div>
-            <div class="cart-detail-rail-container"></div>
+            
+            <div class="cart-detail-rail-container">
+                <div class="detail-placeholder-container">
+                    <div class="ui placeholder">
+                        <div class="line"></div>
+                        <div class="line"></div>
+                        <div class="line"></div>
+                        <div class="line"></div>
+                        <div class="line"></div>
+                      </div>
+                </div>
+            </div>
         </section>
        <section class="checkout-section">
         <div class="back-to-cart-button-container">
