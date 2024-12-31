@@ -148,6 +148,14 @@ ul{
     justify-content: center;
     margin: 0 auto;
 }
+
+.category-title {
+    color: var(--red-color);
+    margin-top: 45px!important;
+    text-transform: uppercase;
+    font-size: 20px;
+}
+
 .view_message_container{
     position: absolute;
     bottom: 10px;
@@ -164,6 +172,10 @@ ul{
 
     .content-container {
         width: 90%;
+    }
+
+    .category-title {
+        font-size: 22px;
     }
 }
 @media(min-width:1024px){
@@ -192,4 +204,9 @@ ul{
     .content-container {
         width: 85%;
     }
+
+    .category-title {
+        font-size: 24px;
+    }
+    
 }

@@ -80,7 +80,7 @@
     flex-direction: column;
     align-items: center;
     width: 100%;
-    margin: 5% auto;
+    margin: 45px auto;
 }
 
 .info-item-container {
@@ -112,67 +112,66 @@
 }
 
 .category-title {
-    margin-top: 45px!important;
+    padding-left: 35px;
+    margin-bottom: 20px;
 }
+
 
 .products-carousel {
+    width: 3000px; 
     display: flex;
-    overflow: clip;
-    position: relative;
-    gap: 3rem;
-    width: 100%;
-    padding: 2rem;
-}
-
-.products-carousel::before,
-.products-carousel::after {
-  content: "";
-  background: linear-gradient(
-    to right,
-    white 0%,
-    rgba(255, 255, 255, 0) 100%
-  );
-  position: absolute;
-  height: 100%;
-  width: 10rem;
-  z-index: 2;
-}
-
-.products-carousel::after {
-  right: 0;
-  top: 0;
-  transform: rotateZ(180deg);
-}
-
-.products-carousel::before {
-  left: 0;
-  top: 0;
-}
-
-@keyframes scroll {
-  0% {
-    transform: translateX(0);
+    flex-wrap: nowrap;
+    gap: 1rem; /* Reducción temporal */
   }
-  100% {
-    transform: translateX(calc(-10rem * 5));
+  
+  .products-carousel::before,
+  .products-carousel::after {
+    content: "";
+    background: linear-gradient(
+      to right,
+      white 0%,
+      rgba(255, 255, 255, 0) 100%
+    );
+    position: absolute;
+    height: 100%;
+    width: 10rem;
+    z-index: 2;
   }
-}
+  
+  .products-carousel::after {
+    right: 0;
+    top: 0;
+    transform: rotateZ(180deg);
+  }
+  
+  .products-carousel::before {
+    left: 0;
+    top: 0;
+  }
 
-.products-carousel .product-card {
-  cursor: pointer;
-  animation: scroll 10s linear infinite;
-}
+  .content-container {
+    margin-top: 30px;
+  }
+  
+  @keyframes scroll {
+    0% {
+      transform: translateX(0);
+    }
+    100% {
+      transform: translateX(var(--scroll-distance, 0));
+    }
+  }
 
 @media (min-width: 468px) {
     .slider-container {
-        height: 300px;
+        height: 100%;
     }
 }
 
 
 @media (min-width: 576px) {
     .slider-container {
-        height: 400px;
+        height: 100%;
     }
 
     .second-slider-container {
@@ -197,6 +196,8 @@
     .info-title {
         font-size: 18px;
     }
+
+  
 
 }
 
@@ -245,5 +246,10 @@
         width: 22%;
         max-width: 400px;
     }
+
+    .category-title {
+        font-size: 26px;
+    }
+
 
 }

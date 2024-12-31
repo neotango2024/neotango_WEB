@@ -1,5 +1,5 @@
 import { translateNavbar } from "./header.js";
-import { translateCompanyInfo } from "./index.js";
+import { handleTranslateFeatureProducts, translateCompanyInfo } from "./index.js";
 import {setLocalStorageItem, getLocalStorageItem} from './localStorage.js';
 import { userLogged } from "./checkForUserLogged.js";
 import { productFromDB, productsFromDB, toggleBodyScrollableBehavior, toggleOverlay } from './utils.js';
@@ -78,6 +78,7 @@ const handleChangeLanguage = async(param) => { //param es esp/eng
     switch (bodyName) {
         case 'index': //Van todos los cambios de index
             translateCompanyInfo();
+            handleTranslateFeatureProducts(param);
             break;
         case 'cart': //Van todos los cambios de cart
             //Aca tengo que pintar denuevo cards y detalle y form
