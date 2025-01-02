@@ -438,3 +438,11 @@ export function getProductImageSizeUrl (file, screenWidth){
 export function scrollToTop(){
   return window.scrollTo(0,0);
 }
+
+export function getEjsElementAndTranslate(classname, language){
+  // recibo la clase del elemento
+  // puede ser un titulo, una descripción, cualquier cosa
+  // agarro el elemento
+  // en base al lenguaje saco el dataset-eng dataset-esp
+  // seteo el text content
+}

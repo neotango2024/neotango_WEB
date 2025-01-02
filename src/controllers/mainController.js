@@ -1,3 +1,4 @@
+import { categories } from "../utils/staticDB/categories.js";
 import sizes from "../utils/staticDB/sizes.js";
 import tacos from "../utils/staticDB/tacos.js";
 import { findProductsInDb } from "./api/apiProductController.js";
@@ -25,7 +26,17 @@ const controller = {
         }
     
     },
-
+    productList: async (req, res) => {
+        try {
+            const {categoryId} = req.params;
+            const categoryExists = categories.find(cat => cat.id === Number(categoryId));
+            if(!categoryExists) return res.redirect('/')
+            return res.render('productList', {categoryId})
+        } catch (error) {
+            console.log(`error in main controller product list: ${error}`);
+            return res.redirect('/')
+        }
+    }
 };
 
 export default controller;
