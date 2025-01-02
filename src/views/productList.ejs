@@ -11,23 +11,34 @@
 <body data-page_name="category">
     <%- include('./partials/header.ejs') %>
     <main>
-        <h2></h2>
+        <div class="category-title-filters-container">
+            <h2 class="category-title"></h2>
+            <select class="ui dropdown hidden">
+                <option class="dropdown-option" value="newest" data-esp_translation="Más nuevo" data-eng_translation="Newest"></option>
+                <option class="dropdown-option" value="oldest" data-esp_translation="Más viejo" data-eng_translation="Oldest"></option>
+                <option class="dropdown-option" value="lowToHigh" data-esp_translation="Precio: mayor a menor" data-eng_translation="Price: high to low"></option>
+                <option class="dropdown-option" value="highToLow" data-esp_translation="Precio: menor a mayor" data-eng_translation="Price: low to high"></option>
+              </select>
+        </div>
+        <div class="placeholders-container">
+            <div class="ui placeholder image-placeholder">
+                <div class="image"></div>
+            </div>
+            <div class="ui placeholder image-placeholder">
+                <div class="image"></div>
+            </div>
+            <div class="ui placeholder image-placeholder">
+                <div class="image"></div>
+            </div>
+            <div class="ui placeholder image-placeholder">
+                <div class="image"></div>
+            </div>
+            <div class="ui placeholder image-placeholder">
+                <div class="image"></div>
+            </div>
+        </div>
         <div class="products-container">
-            <div class="ui placeholder image-placeholder">
-                <div class="image"></div>
-            </div>
-            <div class="ui placeholder image-placeholder">
-                <div class="image"></div>
-            </div>
-            <div class="ui placeholder image-placeholder">
-                <div class="image"></div>
-            </div>
-            <div class="ui placeholder image-placeholder">
-                <div class="image"></div>
-            </div>
-            <div class="ui placeholder image-placeholder">
-                <div class="image"></div>
-            </div>
+            
         </div>
     </main>
 </body>

@@ -1,7 +1,7 @@
 
 import { translations } from "../constants/constants.js";
 import { productCard } from "./componentRenderer.js";
-import { settedLanguage } from "./languageHandler.js";
+import { settedLanguage, translateProductCards } from "./languageHandler.js";
 import { productsFromDB, setProductsFromDB } from "./utils.js";
 const companyInfoTranslations = translations.companyInfo;
 
@@ -201,14 +201,5 @@ const handleRenderFeatureProducts = async () => {
 
 export const handleTranslateFeatureProducts = (param) => {
   const container = document.querySelector('.products-carousel');
-  const items = [...container.children];
-  const isSpanish = param === 'esp';
-  items.forEach(item => {
-    const {productId} = item.dataset;
-    const productInDb = productsFromDB.find(prod => prod.id === productId);
-    const productNameElement = item.querySelector('.product-name');
-    const productPriceElement = item.querySelector('.product-price');
-    productNameElement.textContent = isSpanish ? productInDb.es_name : productInDb.eng_name;
-    productPriceElement.textContent = isSpanish ? productInDb.ars_price : productInDb.usd_price;
-  })
+  translateProductCards(param, container);
 }

@@ -5,6 +5,7 @@ import { userLogged } from "./checkForUserLogged.js";
 import { productFromDB, productsFromDB, toggleBodyScrollableBehavior, toggleOverlay } from './utils.js';
 import { cartExportObj } from "./cart.js";
 import { productDetailExportObj } from "./productDetail.js";
+import { handleTranslateCategoryProducts, translateCategoryTitle, translateFilters } from "./productList.js";
 
 export let settedLanguage = null;
 export let isInSpanish = true;
@@ -88,7 +89,10 @@ const handleChangeLanguage = async(param) => { //param es esp/eng
             productFromDB && productDetailExportObj.createProductDetailsSection(productFromDB);
             productDetailExportObj.paintRelatedProductCards && productsFromDB && productDetailExportObj.paintRelatedProductCards();
             break;
-    
+        case 'category':
+            translateCategoryTitle();
+            translateFilters();
+            handleTranslateCategoryProducts();
         default:
             break;
     }
@@ -107,5 +111,17 @@ const updateLanguage = (lang)=>{
     setLocalStorageItem('language', lang); //Seteo en base al parametro el lenguaje
     settedLanguage = lang;
     isInSpanish = settedLanguage == 'esp';
+}
+
+export const translateProductCards = (container) => {
+    const items = [...container.children];
+    items.forEach(item => {
+      const {productId} = item.dataset;
+      const productInDb = productsFromDB.find(prod => prod.id === productId);
+      const productNameElement = item.querySelector('.product-name');
+      const productPriceElement = item.querySelector('.product-price');
+      productNameElement.textContent = isInSpanish ? productInDb.es_name : productInDb.eng_name;
+      productPriceElement.textContent = isInSpanish ? productInDb.ars_price : productInDb.usd_price;
+    })
 }
 

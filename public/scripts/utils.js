@@ -91,6 +91,7 @@ export async function setProductsFromDB(categoryId, limit, offset) {
       if (limit) queryParams.append('limit', limit);
       if (offset) queryParams.append('offset', offset);
       const url = `${window.location.origin}/api/product?${queryParams.toString()}`;    
+  
       let array = (
         await (await fetch(url)).json()
       ).data || [];
@@ -396,11 +397,9 @@ export async function handleUserLoginFetch(bodyData){
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(bodyData),
   });
-  console.log(response);
   
   if(response.ok){
     response = response.ok ?  await response.json() : null;
-    console.log(response);
     
     if(response.ok){
       //Esta es la respuesta de las credenciales
