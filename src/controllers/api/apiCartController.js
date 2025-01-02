@@ -1,8 +1,10 @@
 import db from '../../database/models/index.js';
 import { populateSize, populateTaco } from '../../utils/helpers/populateStaticDb.js';
 import { findProductsInDb } from './apiProductController.js';
+import variationsController from '../variationsController.js';
 import { v4 as UUIDV4 } from 'uuid';
 const { TempCartItem } = db;
+const {findVariationsInDb} = variationsController;
 
 const controller = {
     handleGetCartItems: async (req, res) => {
@@ -42,9 +44,9 @@ const controller = {
             })
         }
     },
-    handleCreateCartItem: async (req, res) => { //TODO: cambiar para pegarle bien a la db, llega en body disitnto a como lo capturas aca
+    handleCreateCartItem: async (req, res) => { 
         try {
-            const userId = req.params.userId;
+        const userId = req.params.userId;
         if(!userId){
             return res.status(400).json({
                 ok: false,
@@ -53,19 +55,19 @@ const controller = {
             })
         }
         const {body} = req;
-        const isValidPayload = validateCreateItemPayload(body);
-        if(!isValidPayload){
-            console.log('invalid payload')
+        const {productId, variation_id} = body;
+        const [productExists, product] = await findProductsInDb(productId);
+        if(!productExists || !product){
+            console.log('failed to fetched product')
             return res.status(500).json({
                 ok: false,
                 msg: 'Internal server error',
                 data: null
             })
         }
-        const {productId} = body;
-        const [productExists, product] = await findProductsInDb(productId);
-        if(!productExists || !product){
-            console.log('failed to fetched product')
+        const variationExists = await findVariationsInDb(variation_id);
+        if(!variationExists){
+            console.log('variation not found')
             return res.status(500).json({
                 ok: false,
                 msg: 'Internal server error',
@@ -146,18 +148,13 @@ async function findTempCartItemsByUserId(userId){
     }
 }
 
-function validateCreateItemPayload(body) {
-    return body.productId && body.quantity && body.tacoId && body.sizeId ? true : false;
-}
 
 async function createCartItemInDb(payload, userId){
     try {
-        const {productId, sizeId, tacoId, quantity} = payload;
+        const {variation_id, quantity} = payload;
         const objectToCreate = {
             id: UUIDV4(),
-            product_id: productId,
-            size_id: sizeId,
-            taco_id: tacoId,
+            variation_id,
             user_id: userId,
             quantity
         }
