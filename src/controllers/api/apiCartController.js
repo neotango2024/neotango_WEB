@@ -42,7 +42,7 @@ const controller = {
             })
         }
     },
-    handleCreateCartItem: async (req, res) => {
+    handleCreateCartItem: async (req, res) => { //TODO: cambiar para pegarle bien a la db, llega en body disitnto a como lo capturas aca
         try {
             const userId = req.params.userId;
         if(!userId){

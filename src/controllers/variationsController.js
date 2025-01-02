@@ -102,12 +102,13 @@ const controller = {
     },
     populateVariations(variations){
         return variations.map(variation => {
-            const { size_id, taco_id, quantity, product_id } = variation;
+            const { id, size_id, taco_id, quantity, product_id } = variation;
     
             const tacoPopulated = populateTaco(taco_id);
             const sizePopulated = populateSize(size_id);
 
             return {
+                id,
                 quantity,
                 product_id,
                 taco: tacoPopulated,

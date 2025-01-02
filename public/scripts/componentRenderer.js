@@ -1,6 +1,8 @@
+import { userLogged } from "./checkForUserLogged.js";
 import { countriesFromDB, setCountries } from "./getStaticTypesFromDB.js";
 import { isInSpanish, settedLanguage } from "./languageHandler.js";
-import { activateDropdown, generateRandomString, getProductImageSizeUrl, getProductMainImage } from "./utils.js";
+import { handleAddressCreateModal, handlePhoneCreateModal, handleUserLoginModal, handleUserSignUpModal } from "./modalHandlers.js";
+import { activateDropdown, generateRandomString, getProductImageSizeUrl, getProductMainImage, handleUserSignUpClick } from "./utils.js";
 const SCREEN_WIDTH = window.screen.width;
 
 export function checkoutCard (props) {
@@ -9,8 +11,8 @@ export function checkoutCard (props) {
     props.quantity = props.quantity || 1;
     const container = document.createElement("div");
     container.className = "card checkout-card";
+    container.dataset.variation_id = props.variation_id;
     const productPrice = isInSpanish ? productFromDB.ars_price : productFromDB.usd_price;
-    container.dataset.price =  productPrice
     // Image section
     const imageDiv = document.createElement("div");
     imageDiv.className = "card_image";
@@ -44,12 +46,19 @@ export function checkoutCard (props) {
     header.textContent = isInSpanish ? productFromDB.es_name : productFromDB.eng_name;
   
     // Meta
-    const metaDiv = document.createElement("div");
-    metaDiv.className = "meta";
-    const categorySpan = document.createElement("span");
+    const metaCategoryDiv = document.createElement("div");
+    metaCategoryDiv.className = "meta";
+    let categorySpan = document.createElement("span");
     categorySpan.className = "card_desc";
     categorySpan.textContent = isInSpanish ? productFromDB.category?.name.es : productFromDB.category?.name.en;
-    metaDiv.appendChild(categorySpan);
+    metaCategoryDiv.appendChild(categorySpan);
+
+    const metaVariationDiv = document.createElement("div");
+    metaVariationDiv.className = "meta";
+    categorySpan = document.createElement("span");
+    categorySpan.className = "card_desc";
+    categorySpan.textContent = `Taco: ${props.tacoFromDB?.name} || ${isInSpanish ? 'Talle:' : `Size:`} ${props.sizeFromDB?.size}`;
+    metaVariationDiv.appendChild(categorySpan);
   
     // Price
     const priceSpan = document.createElement("span");
@@ -86,7 +95,8 @@ export function checkoutCard (props) {
     amountContainer.appendChild(addButton);
   
     contentDiv.appendChild(header);
-    contentDiv.appendChild(metaDiv);
+    contentDiv.appendChild(metaCategoryDiv);
+    contentDiv.appendChild(metaVariationDiv);
     contentDiv.appendChild(priceSpan);
     contentDiv.appendChild(amountContainer);
   
@@ -401,7 +411,13 @@ export async function createPhoneModal() {
         }
         
       ],
-      submitButtonText: isInSpanish ? "Crear": "Create",
+      buttons: [
+        {
+          text: isInSpanish ? "Crear" : "Create",
+          className: "ui button submit negative send-modal-form-btn",
+          onClick: async() => await handlePhoneCreateModal()
+        },
+      ],
     });
     //Una vez creado el modal, activo con los paises
     if (!countriesFromDB.length) {
@@ -485,7 +501,13 @@ export async function createAddressModal() {
             placeHolder: isInSpanish ? "Elegi un pais" : "Select a country"
           },
       ],
-      submitButtonText: isInSpanish ? "Crear": "Create",
+      buttons: [
+        {
+          text: isInSpanish ? "Crear" : "Create",
+          className: "ui button submit negative send-modal-form-btn",
+          onClick: async() => await handleAddressCreateModal(),
+        },
+      ],
     });
     //Una vez creado el modal, activo con los paises
     if (!countriesFromDB.length) {
@@ -509,26 +531,35 @@ export async function createAddressModal() {
 export async function createUserLoginModal(){
   try {
     createModal({
-      headerTitle: isInSpanish ? "Iniciar Sesion" : 'Login',
+      headerTitle: "Login",
       formFields: [
         {
-            label: "Email",
-            type: "text",
-            name: "user-email",
-            className:"",
-            required: true,
-            placeHolder: "Email",
+          label: "Email",
+          type: "text",
+          name: "user-email",
+          required: true,
+          placeHolder: "Email",
         },
         {
-            label: isInSpanish ? "Contraseña" : "Password",
-            type: "password",
-            name: "user-password",
-            className:"",
-            required: true,
-            placeHolder: isInSpanish ? "Contraseña" : "Password",
+          label: "Password",
+          type: "password",
+          name: "user-password",
+          required: true,
+          placeHolder: "Password",
         },
       ],
-      submitButtonText: isInSpanish ? "Iniciar Sesion":"Log In",
+      buttons: [
+        {
+          text: isInSpanish ? "Iniciar Sesión" : "login",
+          className: "ui button submit negative send-modal-form-btn",
+          onClick: async() => await handleUserLoginModal(),
+        },
+        {
+          text: isInSpanish ?  "Registrarse" : "Sign up",
+          className: "ui button right floated basic negative submit black sign-up-btn",
+          onClick: async() => handleUserSignUpClick(),
+        },
+      ],
     });
     //Una vez creado el modal, activo con los paises
     if (!countriesFromDB.length) {
@@ -549,12 +580,86 @@ export async function createUserLoginModal(){
   }
 }
 
-export function createModal({ headerTitle, formFields, submitButtonText }) {
+export async function createUserSignUpModal(){
+  try {
+    createModal({
+      headerTitle: isInSpanish ? "Registrarse" : "Sign up",
+      formFields: [
+        {
+          type: "two-fields",
+          fields: [
+              {
+                  label: isInSpanish ? "Nombre":"First name",
+                  type: "text",
+                  name: "user-first-name",
+                  className:"",
+                  required: true,
+                },
+                {
+                  label: isInSpanish ? "Apellido": "Last name",
+                  type: "text",
+                  className: "",
+                  name: "user-last-name",
+                  required: true,
+                },
+          ]
+      },
+        {
+          label: "Email",
+          type: "text",
+          name: "user-email",
+          required: true,
+          placeHolder: "Email",
+        },
+        {
+          label: isInSpanish ? "Contraseña" : "Password",
+          type: "password",
+          name: "user-password",
+          required: true,
+          placeHolder: "Password",
+        },
+        {
+          label: isInSpanish ? "Confirmar contraseña" :"Confirm password",
+          type: "password",
+          name: "user-re-password",
+          required: true,
+          placeHolder: "Password",
+        },
+      ],
+      buttons: [
+        {
+          text: isInSpanish ? "Registrarse" : "Sign up",
+          className: "ui button submit negative send-modal-form-btn",
+          onClick: async() => await handleUserSignUpModal(),
+        },
+      ],
+    });
+    //Una vez creado el modal, activo con los paises
+    if (!countriesFromDB.length) {
+      await setCountries();
+    }
+    //Aca los paises van solo nombre
+    let arrayToActivateInDropdown = countriesFromDB.map(country=>({
+        id: country.id,
+        name: country.name,
+    }))
+    let classToActivate = '.ui.search.dropdown.country_search_input.form_search_dropdown'
+    // Ahora activo el select
+    activateDropdown(classToActivate,arrayToActivateInDropdown, "Select Country");
+    
+  } catch (error) {
+    console.log("falle");
+    return console.log(error);
+  }
+}
+
+export function createModal({ headerTitle, formFields, buttons }) {
   // Eliminar cualquier modal existente antes de crear uno nuevo
-  const existingModal = document.querySelector(".ui.small.modal");
+  const existingModal = document.querySelector(".ui.modal");
   if (existingModal) {
     existingModal.remove();
   }
+
   // Crear el contenedor del modal
   const modal = document.createElement("div");
   modal.className = "ui small modal";
@@ -575,103 +680,110 @@ export function createModal({ headerTitle, formFields, submitButtonText }) {
 
   // Recorrer los campos y añadirlos al formulario
   formFields.forEach((field) => {
-      let fieldContainer;
+    let fieldContainer;
 
-      // Si es un contenedor "two fields"
-      if (field.type === "two-fields") {
-          fieldContainer = document.createElement("div");
-          fieldContainer.className = "two fields";
+    // Si es un contenedor "two fields"
+    if (field.type === "two-fields") {
+      fieldContainer = document.createElement("div");
+      fieldContainer.className = "two fields";
 
-          field.fields.forEach((subField) => {
-              const subFieldContainer = document.createElement("div");
-              subFieldContainer.className = `field ${subField.required ? "required" : ""}`;
+      field.fields.forEach((subField) => {
+        const subFieldContainer = document.createElement("div");
+        subFieldContainer.className = `field ${subField.required ? "required" : ""}`;
 
-              if (subField.label) {
-                  const label = document.createElement("label");
-                  label.textContent = subField.label;
-                  subFieldContainer.appendChild(label);
-              }
+        if (subField.label) {
+          const label = document.createElement("label");
+          label.textContent = subField.label;
+          subFieldContainer.appendChild(label);
+        }
 
-              if (subField.type === "select") {
-                  const select = document.createElement("select");
-                  select.name = subField.name || "";
-                  select.className = subField.className || "ui dropdown";
-                  select.required = subField.required || false;
+        if (subField.type === "select") {
+          const select = document.createElement("select");
+          select.name = subField.name || "";
+          select.className = subField.className || "ui dropdown";
+          select.required = subField.required || false;
 
-                  if (Array.isArray(subField.options)) {
-                      subField.options.forEach((option) => {
-                          const optionElement = document.createElement("option");
-                          optionElement.value = option.value || "";
-                          optionElement.textContent = option.label || "";
-                          if (option.selected) optionElement.selected = true;
-                          select.appendChild(optionElement);
-                      });
-                  }
-
-                  subFieldContainer.appendChild(select);
-              } else {
-                  const input = document.createElement("input");
-                  input.type = subField.type || "text";
-                  input.name = subField.name || "";
-                  input.placeholder = subField.placeHolder || "";
-                  input.required = subField.required || false;
-                  input.className = subField.className || "";
-                  subFieldContainer.appendChild(input);
-              }
-
-              fieldContainer.appendChild(subFieldContainer);
-          });
-      } else {
-          // Para campos individuales
-          fieldContainer = document.createElement("div");
-          fieldContainer.className = `field ${field.required ? "required" : ""}`;
-
-          if (field.label) {
-              const label = document.createElement("label");
-              label.textContent = field.label;
-              fieldContainer.appendChild(label);
+          if (Array.isArray(subField.options)) {
+            subField.options.forEach((option) => {
+              const optionElement = document.createElement("option");
+              optionElement.value = option.value || "";
+              optionElement.textContent = option.label || "";
+              if (option.selected) optionElement.selected = true;
+              select.appendChild(optionElement);
+            });
           }
 
-          if (field.type === "select") {
-              const select = document.createElement("select");
-              select.name = field.name || "";
-              select.className = field.className || "ui dropdown";
-              select.required = field.required || false;
+          subFieldContainer.appendChild(select);
+        } else {
+          const input = document.createElement("input");
+          input.type = subField.type || "text";
+          input.name = subField.name || "";
+          input.placeholder = subField.placeHolder || "";
+          input.required = subField.required || false;
+          input.className = subField.className || "";
+          subFieldContainer.appendChild(input);
+        }
 
-              if (Array.isArray(field.options)) {
-                  field.options.forEach((option) => {
-                      const optionElement = document.createElement("option");
-                      optionElement.value = option.value || "";
-                      optionElement.textContent = option.label || "";
-                      if (option.selected) optionElement.selected = true;
-                      select.appendChild(optionElement);
-                  });
-              }
+        fieldContainer.appendChild(subFieldContainer);
+      });
+    } else {
+      // Para campos individuales
+      fieldContainer = document.createElement("div");
+      fieldContainer.className = `field ${field.required ? "required" : ""}`;
 
-              fieldContainer.appendChild(select);
-          } else {
-              const input = document.createElement("input");
-              input.type = field.type || "text";
-              input.name = field.name || "";
-              input.placeholder = field.placeHolder || "";
-              input.required = field.required || false;
-              input.className = field.className || "";
-              fieldContainer.appendChild(input);
-          }
+      if (field.label) {
+        const label = document.createElement("label");
+        label.textContent = field.label;
+        fieldContainer.appendChild(label);
       }
 
-      form.appendChild(fieldContainer);
+      if (field.type === "select") {
+        const select = document.createElement("select");
+        select.name = field.name || "";
+        select.className = field.className || "ui dropdown";
+        select.required = field.required || false;
+
+        if (Array.isArray(field.options)) {
+          field.options.forEach((option) => {
+            const optionElement = document.createElement("option");
+            optionElement.value = option.value || "";
+            optionElement.textContent = option.label || "";
+            if (option.selected) optionElement.selected = true;
+            select.appendChild(optionElement);
+          });
+        }
+
+        fieldContainer.appendChild(select);
+      } else {
+        const input = document.createElement("input");
+        input.type = field.type || "text";
+        input.name = field.name || "";
+        input.placeholder = field.placeHolder || "";
+        input.required = field.required || false;
+        input.className = field.className || "";
+        fieldContainer.appendChild(input);
+      }
+    }
+
+    form.appendChild(fieldContainer);
   });
 
-  // Agregar botón de envío
-  const submitButton = document.createElement("button");
-  submitButton.type = "button";
-  submitButton.className = "ui right floated button submit negative send-modal-form-btn";
-  submitButton.textContent = submitButtonText || "Submit";
-  form.appendChild(submitButton);
-  const divFieldToAppend = document.createElement("div");
-  divFieldToAppend.className = "field";
-  form.appendChild(divFieldToAppend);
+  // Agregar contenedor de botones
+  const buttonContainer = document.createElement("div");
+  buttonContainer.className = "field margin-field";
+
+  // Agregar los botones al contenedor
+  buttons.forEach((button) => {
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = button.className || "ui button";
+    btn.textContent = button.text || "Button";
+    btn.addEventListener("click", button.onClick || (() => {}));
+    buttonContainer.appendChild(btn);
+  });
+
+  form.appendChild(buttonContainer);
+
   // Agregar mensaje de error
   const errorMessage = document.createElement("div");
   errorMessage.className = "ui error message";
@@ -685,10 +797,12 @@ export function createModal({ headerTitle, formFields, submitButtonText }) {
 
   // Insertar el modal en el DOM
   document.body.appendChild(modal);
-  
-  // Antes del return esucho los botones
-  modal.querySelector('.close_modal_btn')?.addEventListener('click',()=>{
-    $(modal).modal("hide")
-  })
+
+  // Antes del return escuchar los botones de cierre
+  modal.querySelector(".close_modal_btn")?.addEventListener("click", () => {
+    $(modal).modal("hide");
+  });
+
   return modal;
 }
+

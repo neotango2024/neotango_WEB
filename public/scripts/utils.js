@@ -1,5 +1,6 @@
 import { cartExportObj } from "./cart.js";
-import { userLogged } from "./checkForUserLogged.js";
+import { checkForUserLogged, userLogged } from "./checkForUserLogged.js";
+import { createUserSignUpModal } from "./componentRenderer.js";
 import { countriesFromDB } from "./getStaticTypesFromDB.js";
 import { isInSpanish } from "./languageHandler.js";
 
@@ -149,7 +150,7 @@ export function handlePageModal(boolean){
     centered: false
   });
   $(".ui.modal").modal("show");
-  document.body.classList.add("scrolling");
+  // document.body.classList.add("scrolling");
   return
   }
   // Aca lo cierro
@@ -228,14 +229,13 @@ function checkForAllModalRequiredFields(){
 
 //Esto maneja todos los post que se hacen en un modal, para ver los parametros en cart.js se invoca
 export async function handleModalCreation({entityType, buildBodyData, saveGuestEntity, updateElements, postToDatabase }){
-  try {
+  try {    
    const submitButton = document.querySelector('.ui.modal .send-modal-form-btn');
    const form = document.querySelector('.ui.form');
    if (!submitButton || !form) {
     throw new Error(`Form or submit button not found for ${entityType}`);
   }
-   submitButton.addEventListener('click',async ()=>{
-     let formIsOK = handleModalCheckForComplete();
+  let formIsOK = handleModalCheckForComplete();
      if(!formIsOK)return;
      //ACa sigo, pinto loading el boton
      submitButton.classList.add('loading');
@@ -281,12 +281,11 @@ export async function handleModalCreation({entityType, buildBodyData, saveGuestE
      }
      
      return;
-   });
   } catch (error) {
    console.log("FALLE");
    return console.log(error);
   }
- };
+};
 
 //Arma los body data de las entidades
 export function buildPhoneBodyData(form){
@@ -310,6 +309,24 @@ export function buildAddressBodyData(form){
   }
 }
 
+export function buildUserSignUpBodyData(form){
+  return {
+      first_name: form['user-first-name']?.value,
+      last_name: form['user-last-name']?.value,
+      email: form['user-email']?.value,
+      rePassword: form['user-re-password']?.value,
+      password: form['user-password']?.value,
+  }
+}
+export function buildUserLoginBodyData(form){
+  return {
+      email: form['user-email']?.value,
+      password: form['user-password']?.value,
+  }
+}
+
+
+
 //Una vez que se crea la entidad, ahi dependiendo si es en carro o profile tengo que hacer algo
 export async function updateAddressElements(){
   try {
@@ -317,10 +334,10 @@ export async function updateAddressElements(){
       const path = window.location.pathname;
       //Me fijo url y en base a eso veo si estoy en cart o en el perfil del usuario
       // Verificar el final de la URL
-      if (path.endsWith('/cart')) {
+      if (path.endsWith('/carro')) {
           // Lógica específica para la página del carrito
           await cartExportObj.paintCheckoutAddressesSelect();
-      } else if (path.endsWith('/profile')) {
+      } else if (path.endsWith('/perfil')) {
           // Lógica específica para la página del perfil
           // TODO: UpdatePhoneCards
       }
@@ -334,10 +351,10 @@ export async function updatePhoneElements(){
   const path = window.location.pathname;
   //Me fijo url y en base a eso veo si estoy en cart o en el perfil del usuario
   // Verificar el final de la URL
-  if (path.endsWith('/cart')) {
+  if (path.endsWith('/carro')) {
       // Lógica específica para la página del carrito
       await cartExportObj.paintCheckoutPhoneSelect();
-  } else if (path.endsWith('/profile')) {
+  } else if (path.endsWith('/perfil')) {
       // Lógica específica para la página del perfil
       // TODO: UpdatePhoneCards
   }
@@ -372,6 +389,49 @@ export async function handleAddressCreateFetch(bodyData){
     //Aca dio ok, entonces al ser de un usuario actualizo al usuarioLogged.phones
     userLogged.addresses?.push(response.address);
   }
+}
+export async function handleUserLoginFetch(bodyData){
+  let response = await fetch('/api/user/login', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(bodyData),
+  });
+  console.log(response);
+  
+  if(response.ok){
+    response = response.ok ?  await response.json() : null;
+    console.log(response);
+    
+    if(response.ok){
+      //Esta es la respuesta de las credenciales
+      //Aca dio ok, entonces al ser de un usuario actualizo al usuarioLogged.phones
+      showCardMessage(true,isInSpanish ? response.msg.es: response.msg);
+      await checkForUserLogged();
+      return
+    }
+    showCardMessage(false,isInSpanish ? response.msg.es: response.msg);
+    return
+  };
+  let msg = isInSpanish ? "Ha ocuriddo un error inesperado, intente nuevamente": "There was an unexpected error, please try again"
+  showCardMessage(false,msg);
+}
+export async function handleUserSignUpFetch(bodyData){
+  let response = await fetch('/api/user/', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(bodyData),
+  });
+  if(response.ok){
+    response = response.ok ?  await response.json() : null;    
+      //Esta es la respuesta de las credenciales
+      //Aca dio ok, entonces al ser de un usuario actualizo al usuarioLogged.phones
+      showCardMessage(true,isInSpanish ? response.msg.es: response.msg);
+      await checkForUserLogged();
+      return window.location.href = '/'
+      return
+  };
+  let msg = isInSpanish ? "Ha ocuriddo un error inesperado, intente nuevamente": "There was an unexpected error, please try again"
+  showCardMessage(false,msg);
 }
 
 //Pinta la tarjeta de succes/error
@@ -445,4 +505,8 @@ export function getEjsElementAndTranslate(classname, language){
   // agarro el elemento
   // en base al lenguaje saco el dataset-eng dataset-esp
   // seteo el text content
+}
+export function handleUserSignUpClick(){
+  createUserSignUpModal();
+  handlePageModal(true)
 }

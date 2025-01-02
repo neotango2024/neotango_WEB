@@ -261,13 +261,13 @@ const checkForAddToCartBtnClicks = async () => {
 const handleAddProductToCart = async () => {
   const size = document.getElementById('size-id').value;
   const taco = document.getElementById('taco-id').value;
+  const variationFromDB = productFromDB.variations?.find(variation => variation.size?.id == size && variation.taco?.id == taco);
   const cartObject = {
-    productId,
-    sizeId: size,
-    tacoId: taco,
+    variation_id: variationFromDB,
     quantity: 1
   }
   if(userLogged !== null) {
+    cartObject.user_id = userLogged.id
     fetch(`/api/cart/${userLogged.id}`, {
       method: 'POST',
       body: JSON.stringify(cartObject)
