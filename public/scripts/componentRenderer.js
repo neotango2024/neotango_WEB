@@ -7,6 +7,7 @@ const SCREEN_WIDTH = window.screen.width;
 
 export function checkoutCard (props) {
     const productFromDB = props.productFromDB
+    console.log(props)
     const productMainFile = productFromDB.files?.find(file=>file.main_file)
     props.quantity = props.quantity || 1;
     const container = document.createElement("div");

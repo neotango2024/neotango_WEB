@@ -614,6 +614,7 @@ window.addEventListener("DOMContentLoaded", async () => {
       await setProductFromDB(IdsToFetch);
       await setTacos();
       await setSizes();      
+      console.log(cartProducts)
       cartProducts.forEach(cartItem=>{
         cartItem.productFromDB = productsFromDB.find(prodFromDB => prodFromDB.id == cartItem.productId);
         cartItem.tacoFromDB = tacosFromDB.find(tacoFromDB => tacoFromDB.id == cartItem.tacoId);

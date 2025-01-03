@@ -199,7 +199,7 @@ const handleRenderFeatureProducts = async () => {
   container.style.animationDuration = '20s';
 }
 
-export const handleTranslateFeatureProducts = (param) => {
+export const handleTranslateFeatureProducts = () => {
   const container = document.querySelector('.products-carousel');
-  translateProductCards(param, container);
+  translateProductCards(container);
 }
