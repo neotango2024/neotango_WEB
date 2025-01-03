@@ -7,6 +7,14 @@ import { isInSpanish } from "./languageHandler.js";
 export function activateAccordions() {
     $('.ui.accordion').accordion(); // Activa los acordeones
 }
+export function initiateMenuBtn(){
+    // Logica para boton + mobile
+    $(".ui.dropdown.user-menu-btn").dropdown({
+        direction: "upward",
+        keepOnScreen: true,
+        context: window,
+      });
+}
 // Logica para que todos los inputs numericos no acepten letras
 export function checkForNumericInputs() {
   let numericInputs = document.querySelectorAll(".numeric-only-input");
@@ -91,6 +99,7 @@ export async function setProductsFromDB(categoryId, limit, offset) {
       if (limit) queryParams.append('limit', limit);
       if (offset) queryParams.append('offset', offset);
       const url = `${window.location.origin}/api/product?${queryParams.toString()}`;    
+  
       let array = (
         await (await fetch(url)).json()
       ).data || [];
@@ -401,11 +410,9 @@ export async function handleUserLoginFetch(bodyData){
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(bodyData),
   });
-  console.log(response);
   
   if(response.ok){
     response = response.ok ?  await response.json() : null;
-    console.log(response);
     
     if(response.ok){
       //Esta es la respuesta de las credenciales
@@ -504,6 +511,13 @@ export function scrollToTop(){
   return window.scrollTo(0,0);
 }
 
+export function getEjsElementAndTranslate(classname, language){
+  // recibo la clase del elemento
+  // puede ser un titulo, una descripción, cualquier cosa
+  // agarro el elemento
+  // en base al lenguaje saco el dataset-eng dataset-esp
+  // seteo el text content
+}
 export function handleUserSignUpClick(){
   createUserSignUpModal();
   handlePageModal(true)

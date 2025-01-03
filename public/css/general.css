@@ -151,7 +151,6 @@ ul{
 
 .category-title {
     color: var(--red-color);
-    margin-top: 45px!important;
     text-transform: uppercase;
     font-size: 20px;
 }
@@ -179,6 +178,9 @@ ul{
     }
 }
 @media(min-width:1024px){
+    .mobile-only{
+        display: none !important;
+    }
     .card_content{
         padding: 10px;
     }

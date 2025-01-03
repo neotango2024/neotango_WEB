@@ -91,7 +91,7 @@ const controller = {
         secure: true,
         sameSite: "strict",
       });
-
+      console.log(req.cookies.userAccessToken)
       // Le  mando ok con el redirect al email verification view
       return res.status(201).json({
         meta: {
@@ -369,6 +369,7 @@ const controller = {
   handleCheckForUserLogged: async (req, res) => {
     try {
       const token = req.cookies.userAccessToken;
+      console.log(token)
       if(!token){
         return res.status(200).json({
           ok: true,

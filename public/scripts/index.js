@@ -1,7 +1,11 @@
+import {  productCard, checkoutCard } from "./componentRenderer.js";
+import { checkCheckoutButtons, initiateMenuBtn } from "./utils.js";
+//import { LANGUAGES } from "../../src/utils/staticDB/constants.js";
+const SCREEN_WIDTH = window.innerWidth;
 
 import { translations } from "../constants/constants.js";
 import { productCard } from "./componentRenderer.js";
-import { settedLanguage } from "./languageHandler.js";
+import { settedLanguage, translateProductCards } from "./languageHandler.js";
 import { productsFromDB, setProductsFromDB } from "./utils.js";
 const companyInfoTranslations = translations.companyInfo;
 
@@ -153,6 +157,21 @@ window.addEventListener('load', async ()=>{
           clearInterval(carouselInterval)
           clearInterval(dotsInterval)
         }
+       
+    // const addresWrapper = document.querySelector('.main');
+    // addresWrapper.innerHTML = '';
+    // homeLabels.forEach(label => {
+    //     let card = homeLabel({
+    //         name: label.name,
+    //         desc: label.desc,
+    //     });        
+    //     addresWrapper.appendChild(card);
+    // });
+    // activateAccordions();
+   
+    renderProducts();
+    // initiateMenuBtn();
+    //renderCheckoutCard()
       })
     })
   }
@@ -199,16 +218,7 @@ const handleRenderFeatureProducts = async () => {
   container.style.animationDuration = '20s';
 }
 
-export const handleTranslateFeatureProducts = (param) => {
+export const handleTranslateFeatureProducts = () => {
   const container = document.querySelector('.products-carousel');
-  const items = [...container.children];
-  const isSpanish = param === 'esp';
-  items.forEach(item => {
-    const {productId} = item.dataset;
-    const productInDb = productsFromDB.find(prod => prod.id === productId);
-    const productNameElement = item.querySelector('.product-name');
-    const productPriceElement = item.querySelector('.product-price');
-    productNameElement.textContent = isSpanish ? productInDb.es_name : productInDb.eng_name;
-    productPriceElement.textContent = isSpanish ? productInDb.ars_price : productInDb.usd_price;
-  })
+  translateProductCards(container);
 }

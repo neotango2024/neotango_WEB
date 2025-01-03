@@ -20,6 +20,7 @@ window.addEventListener('DOMContentLoaded', () => {
     }
     checkForUserIconClicks();
     renderFormAndButton();
+    paintUserIconOrLetter();
 })
 
 const checkForNavbarClicks = () => {
@@ -64,6 +65,7 @@ const toggleShopDropdown = () => {
 const checkForUserIconClicks = () => {
     const userIcon = document.querySelector('.user-icon');
     userIcon.addEventListener('click', async () => {
+        console.log(userLogged)
         if(!userLogged){
             // toggleLoginModal();
             createUserLoginModal();
@@ -171,4 +173,20 @@ export const translateNavbar = () => {
         }
 
     });
+}
+
+const paintUserIconOrLetter = () => {
+    if(userLogged){
+        const firstNameLetter = userLogged.first_name.split('')[0]
+        const lastNameLetter = userLogged.last_name.split('')[0]
+        const userInitialsContainer = document.querySelector('.user-initials-container');
+        const userInitialsElement = userInitialsContainer.querySelector('span');
+        console.log(userInitialsElement)
+        userInitialsElement.textContent = firstNameLetter + lastNameLetter;
+        console.log(userInitialsElement)
+        userInitialsContainer.classList.toggle('hidden');
+    } else {
+        const userIconElement = document.querySelector('.user-icon');
+        userIconElement.classList.toggle('hidden');
+    }
 }

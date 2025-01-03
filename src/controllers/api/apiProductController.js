@@ -49,9 +49,7 @@ const controller = {
                         data: []
                     })
                 }
-                products = productsFetched;
-                console.log(products);
-                
+                products = productsFetched;           
             }
             return res.status(200).json({
                 ok: true,
