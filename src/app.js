@@ -9,13 +9,18 @@ import cookieParser from 'cookie-parser';
 import methodOverride from 'method-override';
 import mainRouter from './routes/mainRouter.js';
 import apiUserRouter from './routes/api/apiUserRouter.js';
+import apiProductRouter from './routes/api/apiProductRouter.js';
 import apiAddressRouter from './routes/api/apiAddressRouter.js';
-
+import apiPhoneRouter from './routes/api/apiPhoneRouter.js';
+import apiCartRouter from './routes/api/apiCartRouter.js'
+import apiOrderRouter from './routes/api/apiOrderRouter.js';
+import apiTypeRouter from './routes/api/apiTypeRouter.js';
+import { languageMiddleware } from './middlewares/language.js';
+import unverifiedUser from './middlewares/unverifiedUser.js';
 
 // way to replace __dirname in es modules 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-
 
 app.set('view engine','ejs');
 app.set('views',path.resolve(__dirname,'./views'))
@@ -40,15 +45,17 @@ app.use(methodOverride('_method'));
 
 // Rutas
 app.use('/api/user',apiUserRouter);
+app.use('/api/product',apiProductRouter);
 app.use('/api/address',apiAddressRouter);
+app.use('/api/cart', apiCartRouter);
+app.use('/api/phone', apiPhoneRouter);
+app.use('/api/order', apiOrderRouter);
+app.use('/api/type', apiTypeRouter);
+app.use(unverifiedUser); //En todas las consultas de render
 app.use('/',mainRouter);
-
-
-// Correr el servidor
-
 const PORT = process.env.PORT || 3500;
 
 app.listen(PORT,()=>{
-    console.log(" 🚀 Se levanto proyecto en htpp://localhost:"+PORT)
+    console.log(" 🚀 Se levanto proyecto en puerto "+PORT)
 })
 

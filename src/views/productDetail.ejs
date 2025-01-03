@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <%- include('./partials/head.ejs') %>
+    <link rel="stylesheet" href="/css/form.css">
+    <link rel="stylesheet" href="/css/productDetail.css">
+    <link rel="stylesheet" href="/css/productCard.css">
+    <script type="module" src="/scripts/productDetail.js"></script>
+    <title></title>
+</head>
+<body data-page_name="productDetail">
+    <%- include('./partials/header.ejs') %>
+    <main class="main" data-category_id="1" data-product_id="1">
+        <section class="product-images-section">
+            <div class="ui placeholder image-placeholder">
+                <div class="image"></div>
+            </div>
+        </section>
+        <section class="product-detail-section">
+            <div class="ui placeholder text-placeholder">
+                <div class="paragraph">
+                  <div class="line"></div>
+                  <div class="line"></div>
+                  <div class="line"></div>
+                  <div class="line"></div>
+                  <div class="line"></div>
+                </div>
+                <div class="paragraph">
+                  <div class="line"></div>
+                  <div class="line"></div>
+                  <div class="line"></div>
+                </div>
+                <div class="paragraph">
+                  <div class="line"></div>
+                  <div class="line"></div>
+                  <div class="line"></div>
+                </div>
+                <div class="paragraph">
+                  <div class="line"></div>
+                  <div class="line"></div>
+                  <div class="line"></div>
+                </div>
+              </div>
+        </section>
+        <section class="related-products-section">
+            <p class="page-title">Productos Relacionados</p>
+            <div class="product-cards-wrapper products-container"></div>
+        </section>
+    </main>
+  <%- include('./partials/footer.ejs') %>
+  <style>
+    .small-images-container {
+        --image-count: 3; /* Cambia según el número de imágenes */
+    }
+  </style>
+  
+</body>
+</html>

@@ -2,31 +2,37 @@
     <div class="header-container">
         <div class="overlay"></div>
         <div class="logo-container">
-            <img src="/img/logo/logo.jpg" alt="">
+            <a href="/"><img src="/img/logo/logo.jpg" alt=""></a>
         </div>
         <nav>
             <ul class="desktop-pages-links-container">
-                <% navbarLinks.forEach(link => { %>
-                    <% const {name, target} = link %>
-                    <li class="page-link-item">
-                        <a href="<%= target %>"><%= name %></a>
-                    </li>
-                <% }) %>
+                <li class="page-link-item">
+                    <a href="/tienda" data-translation="store">Tienda</a>
+                </li>
+                <li class="page-link-item">
+                    <a href="/nosotros" data-translation="aboutUs">Nosotros</a>
+                </li>
+                <li class="page-link-item">
+                    <a href="/contacto" data-translation="contact">Contacto</a>
+                </li>
+                <li class="page-link-item">
+                    <a href="contacto" data-translation="faq">FAQ</a>
+                </li>
             </ul>
             <ul class="user-actions-container">
                 <li class="user-action-item cart-icon">
-                    <i class='bx bx-cart'></i>
+                    <a href="/carro"><i class='bx bx-cart'></i></a>
                 </li>
-                <li class="user-action-item user-icon">
+                <li class="user-action-item user-initials-container hidden">
+                    <span class="user-initials"></span>
+                </li>
+                <li class="user-action-item user-icon hidden">
                     <i class='bx bx-user'></i>
                     <aside class="no-logged-user-modal modal">
                         <div class="close-menu-container">
                             <i class='bx bx-x close-sign-in-modal'></i>
                         </div>
                         <div class="triangle"></div>
-                        <div class="form-container">
-                            
-                        </div>
                     </aside> 
                 </li>
                 <li class="user-action-item menu-container">
@@ -34,37 +40,42 @@
                     <i class='bx bx-menu-alt-left menu-icon hidden' ></i>
                 </li>
                 <li class="user-action-item active-flag-container">
-                    <img class="active-flag" src="" alt="">
+                    <img class="active-flag" src="img/flags/spain_flag.png" alt="">
                 </li>
                 <li class="user-action-item"></li>
             </ul>
         </nav>
+        %>
         <aside class="mobile-navbar">
             <div class="close-menu-container">
                 <i class='bx bx-x close-navbar'></i>
             </div>
             <ul class="mobile-navbar-ul">
-                <% navbarLinks.forEach(link => { %>
-                    <% const {name, target} = link %>
-                    <% const isShopItem = name === 'Tienda' %>
-                    <li class="page-link-item">
-                        <a href="<%= target %>" class="mobile-anchor">
-                            <span><%= name %></span>
-                            <% if(isShopItem) { %>
-                                <i class='bx bx-chevron-down shop-arrow'></i>
-                            <% } %>    
-                        </a>
-                        <% if(isShopItem) { %>
-                            <ul class="shop-dropdown">
-                                <% shopCategories.forEach(cat => { %>
-                                    <li class="shop-category-item">
-                                        <a href="<%= cat.target %>"> <%= cat.name %></a>
-                                    </li>
-                                <% }) %>
-                            </ul>
-                        <% } %>
-                    </li>
-                <% }) %>
+                <li class="page-link-item shop-dropdown-trigger">
+                        <span class="shop-mobile-span" data-translation="store">Tienda</span>
+                        <i class='bx bx-chevron-down shop-arrow'></i>
+                        <ul class="shop-dropdown">
+                            <li class="shop-category-item">
+                                <a data-translation="menShoes" href="/categoria/1"> 
+                                    Zapatos de caballero
+                                </a>
+                            </li>
+                            <li class="shop-category-item">
+                                <a data-translation="womenShoes" href="/categoria/2"> 
+                                    Zapatos de dama
+                                </a>
+                            </li>
+                        </ul>
+                </li>
+                <li class="page-link-item">
+                    <a href="/nosotros" data-translation="aboutUs">Nosotros</a>
+                </li>
+                <li class="page-link-item">
+                    <a data-translation="contact" href="/contacto">Contacto</a>
+                </li>
+                <li class="page-link-item">
+                    <a data-translation="faq" href="/faq">FAQ</a>
+                </li>
             </ul>
             
         </aside>
@@ -78,19 +89,29 @@
             </div>
             <div class="line"></div>
             <div class="languages-container">
-                <% languages.forEach(lang => { %>
-                    <% const {name,src} = lang %>
-                    <div class="language-container">
-                        <div class="modal-flag-container">
-                            <img src="<%= src %>" alt="<%= name %>-flag" id="<%= name %>">
-                        </div>
-                        <p><%= name %></p>
+               <div class="language-container">
+                    <div class="modal-flag-container"">
+                        <img src="/img/flags/spain_flag.png" id="esp" alt="">                    
+                    </div>    
+                    <p>Español</p>
+               </div>
+               <div class="language-container">
+                    <div class="modal-flag-container"">
+                        <img src="/img/flags/usa_flag.png" id="eng" alt="">                
                     </div>
-        
-                <% })%>
+                    <p>English</p>
+               </div>
             </div>
             
         </aside>
         
     </div>
 </header>
+<div class="view_message_container">
+    <div class="ui positive huge message hidden">
+      <div class="header"></div>
+    </div>
+    <div class="ui negative huge message hidden">
+      <div class="header"></div>
+    </div>
+</div>

@@ -8,11 +8,12 @@ export default (sequelize, dataTypes) => {
             primaryKey: true,
             allowNull: false,
         },
-        name: { type: dataTypes.STRING(200) },
+        eng_name: {type: dataTypes.STRING(255)},
+        es_name: { type: dataTypes.STRING(255) },
         english_description: { type: dataTypes.TEXT },
         spanish_description: { type: dataTypes.TEXT },
-        ars_price: { type: dataTypes.INTEGER },
-        usd_price: { type: dataTypes.INTEGER },
+        ars_price: { type: dataTypes.DECIMAL(10,2) },
+        usd_price: { type: dataTypes.DECIMAL(10,2) },
         sku: { type: dataTypes.STRING(200) },
         category_id: { type: dataTypes.INTEGER },
     }
@@ -27,13 +28,13 @@ export default (sequelize, dataTypes) => {
     const Product = sequelize.define(alias, cols, config);
 
     Product.associate = (models) => {
-        const {ProductFile, ProductSizeTacoQuantity} = models;
-        Product.hasMany(ProductFile, {
+        const {File, Variation} = models;
+        Product.hasMany(File, {
             as: 'files',
             foreignKey: 'product_id'
         })
-        Product.hasMany(ProductSizeTacoQuantity, {
-            as: 'sizeTacoQuantity',
+        Product.hasMany(Variation, {
+            as: 'variations',
             foreignKey: 'product_id'
         })
     };

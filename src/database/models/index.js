@@ -1,4 +1,3 @@
-'use strict';
 
 import fs from 'fs';
 import path from 'path';
@@ -8,7 +7,6 @@ import { fileURLToPath, pathToFileURL } from 'url';
 
 const env = process.env.NODE_ENV || 'development';
 const config = configData[env];
-
 
 // Reemplazo de __dirname en ES modules
 const __filename = fileURLToPath(import.meta.url);
@@ -23,6 +21,9 @@ if (config.use_env_variable) {
 } else {
   sequelize = new Sequelize(config.database, config.username, config.password, config);
 }
+sequelize.authenticate()
+  .then(() => console.log('Conexión exitosa a la base de datos.'))
+  .catch((err) => console.error('Error de conexión a la base de datos:', err));
 
 // Leer los modelos y cargarlos dinámicamente
 const files = fs.readdirSync(__dirname).filter(file => {

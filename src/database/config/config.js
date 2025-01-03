@@ -2,10 +2,9 @@
 const config = {
   "development": {
     "username": process.env.DEV_USER,
-    "password": process.env.DEV_PASSWORD || null,
-    "database": process.env.DEV_DB,
-    "host": process.env.DEV_HOST,
-    "port": process.env.DEV_PORT,
+    "password": process.env.DEV_PASSWORD,
+    "database": process.env.DEV_DATABASE,
+    "host": '127.0.0.1',
     "dialect": "mysql"
   },
   "test": {
@@ -18,12 +17,11 @@ const config = {
   "production": {
     "username": process.env.DEV_USER,
     "password": process.env.DEV_PASSWORD || null,
-    "database": process.env.DEV_DB,
+    "database": process.env.DEV_DATABASE,
     "host": process.env.DEV_HOST,
     "port": process.env.DEV_PORT,
     "dialect": "mysql"
   }
 }
-
 
 export default config;

@@ -1,19 +1,26 @@
-import {form, button} from './componentRenderer.js';
-import {setItem, getItem} from './localStorage.js';
+import {form, button, createUserLoginModal} from './componentRenderer.js';
+import { checkForUserLogged, userLogged } from './checkForUserLogged.js';
+import { translations } from '../constants/constants.js';
+import { getLocalStorageItem } from './localStorage.js';
+import { languages } from '../constants/constants.js';
+import { handleModalCreation, handlePageModal, isInDesktop, scrollToTop, showCardMessage, toggleBodyScrollableBehavior, toggleOverlay } from './utils.js';
+import { isInSpanish, settedLanguage } from './languageHandler.js';
+const {english, spanish} = languages;
+const headerTranslations  = translations['header'];
+const categoriesTranslations = translations['categories'];
+const formTranslations = translations['userForm'];
 
 const SCREEN_WIDTH = window.innerWidth;
-const LANGUAGE = getItem('language');
 
 window.addEventListener('DOMContentLoaded', () => {
+    scrollToTop()
     if(SCREEN_WIDTH < 720){
         checkForNavbarClicks();
         checkForShopDropdownClicks();
     }
-    decideLanguageInsertion();
-    checkForLanguageClick();
-    checkForLanguageSelection();
     checkForUserIconClicks();
     renderFormAndButton();
+    paintUserIconOrLetter();
 })
 
 const checkForNavbarClicks = () => {
@@ -38,53 +45,11 @@ const toggleNavbarMenu = () => {
     navbar.classList.toggle('mobile-navbar-active');
 };
 
-const decideLanguageInsertion = () => {
-    const selectedLanguage = getItem('language');
-    if(!selectedLanguage){
-        toggleLanguagesModal();
-        toggleOverlay();
-        toggleBodyScrollableBehavior();
-    }
-    changeLanguageFlag(selectedLanguage ?? 'Español');
-};
-
-const checkForLanguageSelection = () => {
-    const modalImgs = document.querySelectorAll('.language-container');
-    modalImgs.forEach(imgContainer => imgContainer.addEventListener('click', () => {
-        const imgElement = imgContainer.querySelector('img');
-        const idSelector = imgElement.getAttribute('id');
-        changeLanguageFlag(idSelector)
-        setItem('language', idSelector)
-        toggleLanguagesModal();
-        toggleOverlay();
-        toggleBodyScrollableBehavior();
-    }));
-    
-}
-
-const changeLanguageFlag = (selectedLanguage) => {
-    const modalImgs = document.querySelectorAll('.modal-flag-container img');
-    modalImgs.forEach(img => {
-        const idSelector = img.getAttribute('id');
-        if(idSelector === selectedLanguage){
-            const imgSrc = img.getAttribute('src');
-            const activeImg = document.querySelector('.active-flag');
-            activeImg.src = imgSrc
-        }
-    })
-}
 
 const checkForShopDropdownClicks = () => {
-    const mobileAnchors = document.querySelectorAll('.mobile-anchor');
-    mobileAnchors.forEach(anchor => {
-        anchor.addEventListener('click', (e) => {
-            const span = anchor.querySelector('span');
-            const isShopAnchor = span.textContent === 'Tienda' || span.textContent === 'Shop';
-            if(isShopAnchor){
-                e.preventDefault();
-                toggleShopDropdown();
-            }
-        })
+    const mobileShopDropdownTrigger = document.querySelector('.shop-dropdown-trigger');
+    mobileShopDropdownTrigger.addEventListener('click', (e) => {
+        toggleShopDropdown();
     })
 }
 
@@ -95,104 +60,133 @@ const toggleShopDropdown = () => {
     arrow.classList.toggle('arrow-active');
 }
 
-const toggleLanguagesModal = () => {
-    const modal = document.querySelector('.languages-modal');
-    modal.classList.toggle('languages-modal-active');
-}
 
-const checkForLanguageClick = () => {
-    const activeFlag = document.querySelector('.active-flag-container');
-    activeFlag.addEventListener('click', () => {
-        toggleLanguagesModal();
-        toggleOverlay();
-        toggleBodyScrollableBehavior();
-    })
-    const closeButton = document.querySelector('.close-language-modal');
-    closeButton.addEventListener('click', () => {
-        toggleLanguagesModal();
-        toggleOverlay();
-        toggleBodyScrollableBehavior();
-    })
-}
-
-const toggleOverlay = () => {
-    const overlay = document.querySelector('.overlay');
-    overlay.classList.toggle('overlay-active')
-}
 
 const checkForUserIconClicks = () => {
     const userIcon = document.querySelector('.user-icon');
-    userIcon.addEventListener('click', () => {
-        const isUserLogged = checkUserLogged();
-        if(!isUserLogged){
-            toggleLoginModal();
+    userIcon.addEventListener('click', async () => {
+        console.log(userLogged)
+        if(!userLogged){
+            // toggleLoginModal();
+            createUserLoginModal();
+            // Abro el modal
+            handlePageModal(true);
+
         } else {
             // TODO - REDIRECT TO USER PROFILE
+            window.location.href = '/perfil'
         }
     })
-    let userLogged = false;
 }
 
-const checkUserLogged = () => {
-    // TODO - CHECK FOR USER LOGIN
-    return false;
-}
 
 const checkForLoginModalCloseClicks = () => {
     const closeBtn = document.querySelector('.close-sign-in-modal');
     closeBtn.addEventListener('click', () => {
-        console.log('click')
         toggleLoginModal();
     })
 }
 
 const toggleLoginModal = () => {
     const modal = document.querySelector('.no-logged-user-modal');
-    console.log(modal)
     modal.classList.toggle('no-logged-user-modal-active');
-    console.log(modal)
     if(SCREEN_WIDTH < 1024){
         toggleBodyScrollableBehavior();
         toggleOverlay();
     }
 }
 
-const toggleBodyScrollableBehavior = () => {
-    const body = document.querySelector('body');
-    body.classList.toggle('non-scrollable');
-}
-
 const renderFormAndButton = () => {
-    const isEnglishLanguage = LANGUAGE === 'English';
+    const localStorageItem = getLocalStorageItem('language');
+    const settedLanguage = userLogged && userLogged.language ? userLogged.language : localStorageItem ? localStorageItem : null;
+
     const inputProps = [
         {
             placeholder: 'Email',
             name: 'email',
             required: true,
-            width: 75
+            width: 75,
         },
         {
-            placeholder: isEnglishLanguage ? 'Password' : 'Contraseña',
+            placeholder: settedLanguage === english  ? 'Password' : 'Contraseña',
             name: 'password',
             type: 'password',
             className: 'pasword-input',
             required: true,
-            width: 75
+            width: 75,
+            datasetObject: {
+                dataKey: 'translation',
+                dataValue: 'password'
+            }
         }
     ];
-    const formTitle = isEnglishLanguage ? 'Sign in' : 'Iniciar sesión';
+    const formTitleObject = {
+        title: settedLanguage === english  ? 'Sign in' : 'Iniciar sesión',
+        datasetObject: {
+            dataKey: 'translation',
+            dataValue: 'title'
+        }
+    }
     const formAction = '/user/login';
     const formProps = {
         inputProps,
-        formTitle,
-        formAction
+        formTitleObject,
+        formAction,
     }
-    form(formProps);
+    const formContainerCreated = form(formProps);
+    const modal = document.querySelector('.no-logged-user-modal');
+    modal.appendChild(formContainerCreated);
 
     const buttonProps = {
-        text: isEnglishLanguage ? 'Sign in' : 'Iniciar sesión',
+        text: settedLanguage === english ? 'Sign in' : 'Iniciar sesión',
         width: 75,
         fontSize: 100,
+        container: 'custom-form',
+        datasetObject: {
+            dataKey: 'translation',
+            dataValue: 'signIn'
+        }
     }
-    button(buttonProps);
+    const buttonCreated = button(buttonProps);
+    formContainerCreated.append(buttonCreated);
+}
+
+export const translateNavbar = () => {
+    const linksContent = document.querySelectorAll('.page-link-item');
+    linksContent.forEach((link) => {
+        const isMobileShopItem = link.querySelector('.shop-mobile-span');
+        if(isMobileShopItem){
+            const mobileShopSpan = isMobileShopItem;
+            const linkDataset = mobileShopSpan.dataset.translation;
+            const translation = headerTranslations[linkDataset]?.[settedLanguage];
+            mobileShopSpan.textContent = translation;
+            const shopItems = document.querySelectorAll('.shop-category-item a');
+            const menDataset = shopItems[0].dataset.translation;
+            const womenDataset = shopItems[1].dataset.translation;
+            shopItems[0].textContent = translations.categories[menDataset]?.[settedLanguage];
+            shopItems[1].textContent = translations.categories[womenDataset]?.[settedLanguage];
+        } else {
+            const itemAnchor = link.querySelector('a');
+            const linkDataset = itemAnchor.dataset.translation;
+            const translation = headerTranslations[linkDataset]?.[settedLanguage];
+            itemAnchor.textContent = translation;
+        }
+
+    });
+}
+
+const paintUserIconOrLetter = () => {
+    if(userLogged){
+        const firstNameLetter = userLogged.first_name.split('')[0]
+        const lastNameLetter = userLogged.last_name.split('')[0]
+        const userInitialsContainer = document.querySelector('.user-initials-container');
+        const userInitialsElement = userInitialsContainer.querySelector('span');
+        console.log(userInitialsElement)
+        userInitialsElement.textContent = firstNameLetter + lastNameLetter;
+        console.log(userInitialsElement)
+        userInitialsContainer.classList.toggle('hidden');
+    } else {
+        const userIconElement = document.querySelector('.user-icon');
+        userIconElement.classList.toggle('hidden');
+    }
 }

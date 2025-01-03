@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <%- include('./partials/head.ejs') %>
+    <link rel="stylesheet" href="/css/productCard.css">
+    <link rel="stylesheet" href="/css/productList.css">
+    <script type="module" src="/scripts/productList.js"></script>
+    <title>List</title>
+</head>
+
+<body data-page_name="category">
+    <%- include('./partials/header.ejs') %>
+    <main>
+        <div class="category-title-filters-container">
+            <h2 class="category-title"></h2>
+            <select class="ui dropdown hidden">
+                <option class="dropdown-option" value="newest" data-esp_translation="Más nuevo" data-eng_translation="Newest"></option>
+                <option class="dropdown-option" value="oldest" data-esp_translation="Más viejo" data-eng_translation="Oldest"></option>
+                <option class="dropdown-option" value="lowToHigh" data-esp_translation="Precio: mayor a menor" data-eng_translation="Price: high to low"></option>
+                <option class="dropdown-option" value="highToLow" data-esp_translation="Precio: menor a mayor" data-eng_translation="Price: low to high"></option>
+              </select>
+        </div>
+        <div class="placeholders-container">
+            <div class="ui placeholder image-placeholder">
+                <div class="image"></div>
+            </div>
+            <div class="ui placeholder image-placeholder">
+                <div class="image"></div>
+            </div>
+            <div class="ui placeholder image-placeholder">
+                <div class="image"></div>
+            </div>
+            <div class="ui placeholder image-placeholder">
+                <div class="image"></div>
+            </div>
+            <div class="ui placeholder image-placeholder">
+                <div class="image"></div>
+            </div>
+        </div>
+        <div class="products-container">
+            
+        </div>
+    </main>
+</body>
+</html>

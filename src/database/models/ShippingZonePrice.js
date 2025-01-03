@@ -10,8 +10,8 @@ export default (sequelize, dataTypes) => {
             autoIncrement: true
         },
         zone: { type: dataTypes.STRING(100) },
-        ars_price: { type: dataTypes.INTEGER },
-        usd_price: { type: dataTypes.INTEGER }
+        ars_price: { type: dataTypes.DECIMAL(10,2) },
+        usd_price: { type: dataTypes.DECIMAL(10,2) }
     }
 
     let config = {

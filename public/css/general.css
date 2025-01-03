@@ -3,6 +3,8 @@
     padding: 0;
     box-sizing: border-box;
     font-family: "Raleway", sans-serif;
+    scroll-behavior: smooth;
+    color: #000;
 }
 
 /* TODO - DIFFERENT RED TONES*/ 
@@ -29,20 +31,15 @@ body{
 }
 .main{
     display: flex;
-    flex-direction: column;
-    justify-content: flex-start;
-    align-items: center;
-    padding-top: 5vh;
-    gap: 1vh;
     overflow-x: hidden;
-    padding-bottom: 5vh;
+    position: relative;
 }
 /* CARDS */
 .card{
     position: relative;
     display: flex;
     box-shadow: 2px 5px 3px var(--box-shadow-color); /* Ajusta los valores según tus preferencias */
-    border-radius: 2rem;
+    border-radius: 1rem;
     height: auto;
     background-color: #fff;
     overflow: hidden;
@@ -76,7 +73,7 @@ body{
     margin-bottom: 2.5px;
     height: fit-content;
 }
-.card_header,.card_price{
+.card-header,.card_price{
     color: #000;
     font-size: clamp(1.15rem, 2vw + .2rem, 1.5rem);
     font-weight: 600;
@@ -97,6 +94,12 @@ body{
     opacity: .4;
     pointer-events: none;
 }
+.margin-field{
+    margin: 10px;
+}
+a{
+    color: unset;
+}
 ul{
     list-style-type: none;
 }
@@ -113,6 +116,67 @@ ul{
     border-radius: 5px;
 }
 
+.page-title{
+    font-size: clamp(1.75rem, 3vw + .3rem, 2.2rem);
+    font-weight: 600;
+    width: 100%;
+}
+.ui.modal .header{
+    position: relative;
+}
+.close_modal_btn {
+    position: absolute;
+    top: 50%;
+    right: 15px;
+    font-size: 2rem;
+    transform: translateY(-50%);
+}
+.tablet-only{
+    display: none;
+}
+.ui.breadcrumb a.section{
+    color: #000;
+}
+.breadcrumb .section.active{
+    color: var(--red-color);
+  }
+
+.content-container {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    margin: 0 auto;
+}
+
+.category-title {
+    color: var(--red-color);
+    text-transform: uppercase;
+    font-size: 20px;
+}
+
+.view_message_container{
+    position: absolute;
+    bottom: 10px;
+    right: 0;
+    font-size: .8rem;
+}
+@media(min-width:768px){
+    .mobile-only{
+        display: none !important;
+    };
+    .tablet-only{
+        display: inital;
+    }
+
+    .content-container {
+        width: 90%;
+    }
+
+    .category-title {
+        font-size: 22px;
+    }
+}
 @media(min-width:1024px){
     .mobile-only{
         display: none !important;
@@ -123,7 +187,7 @@ ul{
     .card_price{
         position: absolute;
         top: 50%;
-        right: 5px;
+        right: 5%;
         transform: translateY(-50%);
     }
     .number_button{
@@ -136,4 +200,15 @@ ul{
     .modal {
         border-radius: 8px;
     }
+}
+
+@media(min-width: 1200px){
+    .content-container {
+        width: 85%;
+    }
+
+    .category-title {
+        font-size: 24px;
+    }
+    
 }

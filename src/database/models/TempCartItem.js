@@ -8,12 +8,10 @@ export default (sequelize, dataTypes) => {
             primaryKey: true,
             allowNull: false,
         },
-        product_id: { type: dataTypes.STRING(36) },
+        variation_id: { type: dataTypes.STRING(36) },
+        user_id: { type: dataTypes.STRING(36) },
         quantity: { type: dataTypes.INTEGER },
-        taco_id: { type: dataTypes.INTEGER },
-        size_id: { type: dataTypes.INTEGER },
-        category_id: { type: dataTypes.INTEGER },
-        created_at: { type: dataTypes.DATE }
+        created_at: { type: dataTypes.DATE },
     }
 
     let config = {
@@ -24,10 +22,14 @@ export default (sequelize, dataTypes) => {
     const TempCartItem = sequelize.define(alias, cols, config);
 
     TempCartItem.associate = (models) => {
-        const {Product} = models;
-        TempCartItem.belongsTo(Product, {
-            as: 'product',
-            foreignKey: 'product_id'
+        const {Variation, User} = models;
+        TempCartItem.belongsTo(Variation, {
+            as: 'variation',
+            foreignKey: 'variation_id'
+        })
+        TempCartItem.belongsTo(User, {
+            as: 'user',
+            foreignKey: 'user_id'
         })
     };
 

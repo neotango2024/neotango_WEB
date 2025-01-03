@@ -1,0 +1,12 @@
+
+
+.category-title {
+    margin-bottom: 0!important;
+}
+.category-title-filters-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin: 35px 0;
+    padding: 0 15px;
+}

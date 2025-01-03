@@ -56,10 +56,12 @@ nav {
 
 .user-action-item {
     margin-left: 20px;
+    display: flex;
+    align-items: center;
 }
 
 .user-action-item i {
-    font-size: 18px;
+    font-size: 22px;
 }
 
 .hidden {
@@ -79,11 +81,11 @@ nav {
 }
 
 .overlay {
-    z-index: 3;
+    z-index: 11;
 }
 
 .mobile-navbar, .languages-modal, .no-logged-user-modal {
-    z-index: 4;
+    z-index: 12;
 }
 
 .mobile-navbar-active, .languages-modal-active, .overlay-active, .no-logged-user-modal-active {
@@ -100,19 +102,39 @@ nav {
 }
 
 .page-link-item {
-    margin-bottom: 20px;
     transition: color 0.3s;
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    margin-bottom: 8%;
 }
 
-.page-link-item a {
+
+.page-link-item a, .shop-mobile-span {
     color: black;
     font-size: 20px;
     transition: color 0.3s;
+    text-transform: uppercase;
+}
+
+.shop-mobile-span {
+    font-size: 20px;
+}
+
+.user-initials {
+    font-size: 16px;
+    font-weight: 700;
+    margin-top: 1px;
+    padding: 5px;
+    background-color: var(--red-color);
+    border-radius: 50%;
+    color: white;
 }
 
 .page-link-item i {
     font-size: 22px;
     margin-left: 3%;
+    margin-bottom: 2px;
     transition: transform 0.3s;
 }
 
@@ -120,11 +142,14 @@ nav {
     transform: rotate(180deg);
 }
 
+
 .shop-dropdown {
     max-height: 0px;
     transition: max-height 0.3s, margin-top 0.3s;
     overflow: hidden;
+    width: 100%;
 }
+
 
 .shop-dropdown-active {
     margin-top: 2%;
@@ -182,6 +207,7 @@ nav {
     object-fit: contain;
 }
 
+
 .shop-category-item {
     margin-top: 3%;
     margin-left: 3%;
@@ -210,6 +236,10 @@ nav {
 .sign-intro-container {
     width: 100%;
 
+}
+
+.language-container {
+    cursor: pointer;
 }
 
 @media(min-width:720px){
@@ -299,7 +329,7 @@ nav {
     }
 
     .page-link-item a {
-        font-size: 17px;
+        font-size: 14px;
     }
 
     .active-flag-container {
@@ -342,7 +372,7 @@ nav {
         transform: translate(-90%, 20%);
         pointer-events: none;
         box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-        z-index: 3;
+        z-index: 12;
         padding: 15px;
         opacity: 0;
         transition: opacity 0.3s;
@@ -376,7 +406,7 @@ nav {
         border-left: 25px solid transparent; 
         border-right: 25px solid transparent; 
         border-bottom: 40px solid var(--grey-color);
-        z-index: 4;
+        z-index: 12;
         top: -40px;
         right: 10px;
     }
@@ -408,6 +438,9 @@ nav {
         font-size: 16px;
     }
 
+    .page-link-item {
+        margin-bottom: 0;
+    }
 
 }
 
@@ -419,7 +452,7 @@ nav {
 
 
     .page-link-item a {
-        font-size: 19px;
+        font-size: 16px;
     }
 
     .languages-modal {
