@@ -1,0 +1,25 @@
+.ui.dropdown.user-menu-btn{
+    position: fixed;
+    bottom: 2.5vh;
+    right: 2.5vw;
+    border-radius: 50%;
+    background-color: var(--red-color);
+    color: #fff;
+    z-index: 100;
+    padding: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.ui.dropdown.user-menu-btn>i{
+    width: fit-content;
+    height:fit-content;
+    margin: 0;
+    font-size: 1.6rem;
+}
+.ui.dropdown.user-menu-btn .item.logo-active{
+    background-color: var(--red-color);
+}
+.ui.dropdown.user-menu-btn .item.logo-active *{
+    color: #fff;
+}

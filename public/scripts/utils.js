@@ -35,3 +35,11 @@ export function checkCheckoutButtons(){
 export function activateAccordions() {
     $('.ui.accordion').accordion(); // Activa los acordeones
 }
+export function initiateMenuBtn(){
+    // Logica para boton + mobile
+    $(".ui.dropdown.user-menu-btn").dropdown({
+        direction: "upward",
+        keepOnScreen: true,
+        context: window,
+      });
+}

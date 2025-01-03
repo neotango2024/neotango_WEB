@@ -7,15 +7,41 @@
     <link rel="stylesheet" href="/css/productCard.css">
     <link rel="stylesheet" href="/css/form.css">
     <link rel="stylesheet" href="/css/checkoutCard.css">
+    <link rel="stylesheet" href="/css/userMenuBtn.css">
     
     <script type="module" src="/scripts/index.js"></script>
+    <script type="module" src="/scripts/userMenuBtn.js"></script>
     <script type="module" src="/scripts/header.js"></script>
     <title>Index</title>
 </head>
 <body>
   <%- include('./partials/header.ejs') %>
+  <!-- <div class="ui icon top right pointing dropdown user-menu-btn mobile-only">
+    <i class='bars icon' ></i>
+    <div class="menu">
+      <div class="header">Navigate</div>
+        <a class="item logo_active" href="#">
+          <i class='bx bx-user-circle'></i>
+          <span class="tooltip">Editar Perfil</span>
+        </a>
+        <a class="item client_logo active-menu-btn" href="#">
+          <i class='bx bx-map'></i>
+          <span class="tooltip">Direcciones</span>
+        </a>
+        <a class="item quote_logo" href="#">
+          <i class='bx bx-spreadsheet'></i>
+          <span class="tooltip">Historial de Compras</span>
+        </a>
+      <div class="ui divider"></div>
+      <div class="header">USUARIO</div>
+      <a href="/logout" class="item">
+        <i class='bx bx-door-open'></i>
+        <span class="tooltip">Cerrar Sesion</span>
+      </a>
+    </div>
+  </div> -->
   <main class="main">
-
+    
     <div class="products-container"></div>
   </main>
   <%- include('./partials/footer.ejs') %>

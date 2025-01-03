@@ -1,5 +1,5 @@
 import {  productCard, checkoutCard } from "./componentRenderer.js";
-import { checkCheckoutButtons } from "./utils.js";
+import { checkCheckoutButtons, initiateMenuBtn } from "./utils.js";
 //import { LANGUAGES } from "../../src/utils/staticDB/constants.js";
 const SCREEN_WIDTH = window.innerWidth;
 
@@ -153,6 +153,7 @@ window.addEventListener('load',()=>{
     // activateAccordions();
    
     renderProducts();
+    // initiateMenuBtn();
     //renderCheckoutCard()
 });
 

@@ -114,6 +114,9 @@ ul{
 }
 
 @media(min-width:1024px){
+    .mobile-only{
+        display: none !important;
+    }
     .card_content{
         padding: 10px;
     }

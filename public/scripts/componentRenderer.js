@@ -257,7 +257,7 @@ export function button(props) {
     }
 
     const formContainer = document.querySelector(props.container);
-    formContainer.appendChild(button);
+    formContainer?.appendChild(button);
 }
 
 export function productCard (prod, infoFontSize) {
@@ -296,4 +296,90 @@ export function productCard (prod, infoFontSize) {
 
   productInfoContainer.appendChild(productName);
   productInfoContainer.appendChild(productPrice);
+}
+
+export function createUserMenuBtn(props) {
+  // Obtener la URL actual
+  const currentUrl = window.location.pathname;
+
+  // Crear el contenedor principal
+  const container = document.createElement('div');
+  container.className = 'ui icon top right pointing dropdown user-menu-btn mobile-only';
+
+  // Agregar el ícono de menú
+  const barsIcon = document.createElement('i');
+  barsIcon.className = 'bars icon';
+  container.appendChild(barsIcon);
+
+  // Crear el menú
+  const menu = document.createElement('div');
+  menu.className = 'menu';
+
+  // Agregar encabezado según el tipo
+  const header = document.createElement('div');
+  header.className = 'header';
+  header.textContent = props.type === 1 ? 'Navigate' : 'Opciones';
+  menu.appendChild(header);
+
+  // Crear los elementos del menú
+  props.items.forEach((item,i) => {
+    const itemLink = document.createElement('a');
+    itemLink.className = `item`;
+    console.log(currentUrl);
+    
+    // Agregar clases adicionales si el tipo coincide con la URL actual
+    if (
+      (currentUrl.endsWith('/profile') && item.itemType === 'profile') ||
+      (currentUrl.endsWith('/address') && item.itemType === 'address') ||
+      (currentUrl.endsWith('/orderHistory') && item.itemType === 'orderHistory')
+    ) {
+      itemLink.classList.add('logo-active');
+    }
+
+    // Establecer el logo e ícono
+    const icon = document.createElement('i');
+    icon.className = item.itemLogo;
+    itemLink.appendChild(icon);
+
+    // Agregar el tooltip
+    const tooltip = document.createElement('span');
+    tooltip.className = 'tooltip';
+    tooltip.textContent = item.itemLabel;
+    itemLink.appendChild(tooltip);
+
+    // Agregar el enlace al menú
+    menu.appendChild(itemLink);
+  });
+
+  // Agregar un divisor y encabezado de usuario
+  const divider = document.createElement('div');
+  divider.className = 'ui divider';
+  menu.appendChild(divider);
+
+  const userHeader = document.createElement('div');
+  userHeader.className = 'header';
+  userHeader.textContent = 'USUARIO';
+  menu.appendChild(userHeader);
+
+  // Agregar el enlace de cierre de sesión
+  const logoutLink = document.createElement('a');
+  logoutLink.href = '/logout';
+  logoutLink.className = 'item';
+
+  const logoutIcon = document.createElement('i');
+  logoutIcon.className = 'bx bx-door-open';
+  logoutLink.appendChild(logoutIcon);
+
+  const logoutTooltip = document.createElement('span');
+  logoutTooltip.className = 'tooltip';
+  logoutTooltip.textContent = 'Cerrar Sesion';
+  logoutLink.appendChild(logoutTooltip);
+
+  menu.appendChild(logoutLink);
+
+  // Agregar el menú al contenedor
+  container.appendChild(menu);
+
+  // Insertar el contenedor en el DOM
+  document.body.appendChild(container);
 }
