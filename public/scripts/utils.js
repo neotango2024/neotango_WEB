@@ -222,7 +222,12 @@ function checkForAllModalRequiredFields(){
   const modalRequiredFields = document.querySelectorAll('.ui.modal input[required], .ui.modal select[required], .ui.modal textarea[required]');
   let flag = true;
   modalRequiredFields.forEach(element => {
-    if(!element.value)flag = false;
+    let field = element.closest('.field')
+    field.classList.remove('error');
+    if(!element.value){
+      flag = false;
+      field.classList.add('error');
+    }
   });
   return flag;
 };
