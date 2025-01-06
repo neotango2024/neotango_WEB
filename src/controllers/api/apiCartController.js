@@ -1,10 +1,9 @@
 import db from '../../database/models/index.js';
 import { populateSize, populateTaco } from '../../utils/helpers/populateStaticDb.js';
 import { findProductsInDb } from './apiProductController.js';
-import variationsController from '../variationsController.js';
+import { findVariationsById } from '../api/apiVariationsController.js';
 import { v4 as UUIDV4 } from 'uuid';
 const { TempCartItem } = db;
-const {findVariationsInDb} = variationsController;
 
 const controller = {
     handleGetCartItems: async (req, res) => {
@@ -65,7 +64,7 @@ const controller = {
                 data: null
             })
         }
-        const variationExists = await findVariationsInDb(variation_id);
+        const variationExists = await findVariationsById(variation_id);
         if(!variationExists){
             console.log('variation not found')
             return res.status(500).json({
