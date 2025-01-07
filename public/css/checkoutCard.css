@@ -7,13 +7,13 @@
     box-shadow: none;
     border: 1px solid rgb(0 0 0 / 37%);
 }
-.checkout-card .card_image{
+.checkout-card .card-image{
     width: 35%;
     max-width: 110px;
     padding: 0;
     margin-right: 10px;
 }
-.checkout-card .card_image img{
+.checkout-card .card-image img{
     object-fit: cover;
 }
 .checkout-card .card-header{
@@ -55,7 +55,7 @@
     .checkout-card{
         height: 35vh;
     }
-    .checkout-card .card_image{
+    .checkout-card .card-image{
         width: 30%;
     }
     .card_amount_container{

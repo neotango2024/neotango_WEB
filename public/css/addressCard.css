@@ -9,9 +9,7 @@
     justify-content: space-between;
 }
 
-.address_card .card_top_content{
-    justify-content: space-between;
-}
+
 
 @media(min-width:768px){
     .address_card.card_empty{
@@ -20,7 +18,7 @@
 }
 @media(min-width:1024px){
     
-    .address_card .card_content{
+    .address_card .card-content{
         margin-bottom: 0;
     }
 }

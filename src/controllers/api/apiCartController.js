@@ -46,6 +46,7 @@ const controller = {
     handleCreateCartItem: async (req, res) => { 
         try {
         const userId = req.params.userId;
+        
         if(!userId){
             return res.status(400).json({
                 ok: false,
@@ -55,6 +56,7 @@ const controller = {
         }
         const {body} = req;
         const {productId, variation_id} = body;
+       
         const [productExists, product] = await findProductsInDb(productId);
         if(!productExists || !product){
             console.log('failed to fetched product')
@@ -63,7 +65,9 @@ const controller = {
                 msg: 'Internal server error',
                 data: null
             })
-        }
+        };
+    
+        
         const variationExists = await findVariationsById(variation_id);
         if(!variationExists){
             console.log('variation not found')
@@ -155,7 +159,8 @@ async function createCartItemInDb(payload, userId){
             id: UUIDV4(),
             variation_id,
             user_id: userId,
-            quantity
+            quantity,
+            created_at: new Date()
         }
         await TempCartItem.create(objectToCreate);
         return true;

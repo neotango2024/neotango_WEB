@@ -88,7 +88,8 @@ const controller = {
 
 export default controller;
 
-export const findVariationsById = async (variationId) => {
+//TODO: Unificar lo que se hace desspues de obtener las variations
+export const findVariationsById = async (variationId) => { 
     try {
         if(typeof variationId === 'string'){
             const sanitizedVariationId = variationId.trim();

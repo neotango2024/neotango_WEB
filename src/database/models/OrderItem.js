@@ -8,9 +8,12 @@ export default (sequelize, dataTypes) => {
         },
         order_id: { type: dataTypes.STRING(36) },
         product_id: { type: dataTypes.STRING(36) },
-        name: {type: dataTypes.STRING(255)},
+        eng_name: {type: dataTypes.STRING(255)},
+        es_name: {type: dataTypes.STRING(255)},
         price: { type: dataTypes.DECIMAL(10,2) },
         quantity: {type: dataTypes.INTEGER},
+        taco: {type: dataTypes.STRING(20)},
+        size: {type: dataTypes.STRING(20)},
         discount: { type: dataTypes.TINYINT },
     }
 

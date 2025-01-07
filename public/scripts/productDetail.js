@@ -240,6 +240,37 @@ window.addEventListener("load", async () => {
           });
       });
   }
+    async function handleAddProductToCart(){
+      const size = document.getElementById('size-id').value;
+      const taco = document.getElementById('taco-id').value;
+      
+      const variationFromDB = productFromDB.variations?.find(variation => variation.size?.id == size && variation.taco?.id == taco);
+      
+      const cartObject = {
+        variation_id: variationFromDB.id,
+        quantity: 1
+      }
+      if(userLogged !== null) {
+        cartObject.user_id = userLogged.id
+        await fetch(`/api/cart/${userLogged.id}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(cartObject)
+        })
+      } else {
+        //Aca seteo un cartItemID para aca
+        cartObject.id = generateRandomString(10)
+        setLocalStorageItem('cartItems', cartObject, true);
+      }
+    }
+    async function checkForAddToCartBtnClicks(){
+      const addToCartBtn = document.querySelector('.add-to-cart-btn');
+      addToCartBtn.addEventListener('click', async () => {
+        addToCartBtn.classList.add('loading');
+        await handleAddProductToCart(addToCartBtn);
+        addToCartBtn.classList.remove('loading');
+      })
+    }
 }   
    catch (error) {
     console.log("falle");
@@ -249,34 +280,8 @@ window.addEventListener("load", async () => {
 
 
 
-const checkForAddToCartBtnClicks = async () => {
-  const addToCartBtn = document.querySelector('.add-to-cart-btn');
-  addToCartBtn.addEventListener('click', async () => {
-    addToCartBtn.classList.add('loading');
-    await handleAddProductToCart(addToCartBtn);
-    addToCartBtn.classList.remove('loading');
-  })
-}
 
-const handleAddProductToCart = async () => {
-  const size = document.getElementById('size-id').value;
-  const taco = document.getElementById('taco-id').value;
-  const variationFromDB = productFromDB.variations?.find(variation => variation.size?.id == size && variation.taco?.id == taco);
-  const cartObject = {
-    variation_id: variationFromDB.id,
-    quantity: 1
-  }
-  if(userLogged !== null) {
-    cartObject.user_id = userLogged.id
-    fetch(`/api/cart/${userLogged.id}`, {
-      method: 'POST',
-      body: JSON.stringify(cartObject)
-    })
-  } else {
-    //Aca seteo un cartItemID para aca
-    cartObject.id = generateRandomString(10)
-    setLocalStorageItem('cartItems', cartObject, true);
-  }
-}
+
+
 
 export {productDetailExportObj};

@@ -6,8 +6,7 @@ import { activateDropdown, generateRandomString, getProductImageSizeUrl, getProd
 const SCREEN_WIDTH = window.screen.width;
 
 export function checkoutCard (props) {
-    const productFromDB = props.productFromDB
-    console.log(props)
+    const productFromDB = props
     const productMainFile = productFromDB.files?.find(file=>file.main_file)
     props.quantity = props.quantity || 1;
     const container = document.createElement("div");
@@ -16,7 +15,7 @@ export function checkoutCard (props) {
     const productPrice = isInSpanish ? productFromDB.ars_price : productFromDB.usd_price;
     // Image section
     const imageDiv = document.createElement("div");
-    imageDiv.className = "card_image";
+    imageDiv.className = "card-image";
 
     const img = document.createElement("img");
 
@@ -38,7 +37,7 @@ export function checkoutCard (props) {
   
     // Content section
     const contentDiv = document.createElement("div");
-    contentDiv.className = "card_content";
+    contentDiv.className = "card-content";
   
     // Header
     const header = document.createElement("a");
@@ -50,20 +49,20 @@ export function checkoutCard (props) {
     const metaCategoryDiv = document.createElement("div");
     metaCategoryDiv.className = "meta";
     let categorySpan = document.createElement("span");
-    categorySpan.className = "card_desc";
+    categorySpan.className = "card-desc";
     categorySpan.textContent = isInSpanish ? productFromDB.category?.name.es : productFromDB.category?.name.en;
     metaCategoryDiv.appendChild(categorySpan);
 
     const metaVariationDiv = document.createElement("div");
     metaVariationDiv.className = "meta";
     categorySpan = document.createElement("span");
-    categorySpan.className = "card_desc";
+    categorySpan.className = "card-desc";
     categorySpan.textContent = `Taco: ${props.tacoFromDB?.name} || ${isInSpanish ? 'Talle:' : `Size:`} ${props.sizeFromDB?.size}`;
     metaVariationDiv.appendChild(categorySpan);
   
     // Price
     const priceSpan = document.createElement("span");
-    priceSpan.className = "card_price";
+    priceSpan.className = "card-price";
     priceSpan.textContent = `$${parseInt(props.quantity)*parseFloat(productPrice)}`;
   
     // Amount container
@@ -134,7 +133,7 @@ export function addressCard(props) {
     }
     // Crear la sección superior de la tarjeta
     const cardTopContent = document.createElement('div');
-    cardTopContent.className = 'card_top_content';
+    cardTopContent.className = 'card-top-content';
 
     const cardHeader = document.createElement('p');
     cardHeader.className = 'card-header address_name';
@@ -148,7 +147,7 @@ export function addressCard(props) {
 
     // Crear la sección de contenido de la tarjeta
     const cardContent = document.createElement('div');
-    cardContent.className = 'card_content';
+    cardContent.className = 'card-content';
 
     const street = document.createElement('p');
     street.className = 'card_text address_street';
@@ -231,7 +230,7 @@ export function phoneCard(props) {
 
   // Crear la sección de contenido de la tarjeta
   const cardContent = document.createElement('div');
-  cardContent.className = 'card_content';
+  cardContent.className = 'card-content';
 
   const phoneNumber = document.createElement('p');
   phoneNumber.className = 'card_text phone_number';
@@ -266,6 +265,112 @@ export function phoneCard(props) {
   card.appendChild(cardBottomContainer);
 
   return card;
+}
+
+export function orderCard(order) {
+  const container = document.createElement("div");
+  container.className = "card order-card";
+  container.dataset.db_id = order.id || '';
+
+  // Top content: Fecha y estado de la orden
+  const topContentDiv = document.createElement("div");
+  topContentDiv.className = "card-top-content";
+
+  const dateParagraph = document.createElement("p");
+  dateParagraph.className = "card-date";
+  const orderDate = new Date(order.createdAt); // Asume que tienes la fecha de creación
+  const locale = isInSpanish ? 'es-ES' : 'en-US'; // Seleccionar el idioma basado en isInSpanish
+  const options = { day: 'numeric', month: 'long', year: 'numeric' };
+  dateParagraph.textContent = orderDate.toLocaleDateString(locale, options);
+
+  const statusParagraph = document.createElement("p");
+  statusParagraph.className = `card-status ${order.orderStatus.class}`;
+  statusParagraph.textContent = isInSpanish ? order.orderStatus?.status?.es : order.orderStatus?.status?.en; // Función para convertir el ID de estado en texto
+
+  topContentDiv.appendChild(dateParagraph);
+  topContentDiv.appendChild(statusParagraph);
+
+  // Items de la orden
+  const itemsContainer = document.createElement("div");
+  itemsContainer.className = "card-items-container";
+
+  order.orderItems?.forEach((orderItem,i) => {
+      const itemContainer = document.createElement("div");
+      itemContainer.className = "card-order-item-container";
+
+      // Imagen del producto
+      const imageDiv = document.createElement("div");
+      imageDiv.className = "card-image";
+
+      const img = document.createElement("img");
+      const imgSrc = orderItem.product?.files[0]?.file_urls[0].url
+      if (imgSrc) {
+          img.src = imgSrc;
+          img.alt = orderItem.name || `Producto-${i}`;
+          img.loading = "lazy";
+      } else {
+          img.src = "/img/product/default.png";
+          img.alt = "Default product image";
+      }
+      imageDiv.appendChild(img);
+
+      // Contenido del producto
+      const contentDiv = document.createElement("div");
+      contentDiv.className = "card-content";
+
+      const header = document.createElement("p");
+      header.className = "card-header";
+      header.textContent = `${isInSpanish ? orderItem.es_name : orderItem.eng_name || "Producto sin nombre"} (${orderItem.quantity})`;
+
+      const metaCategoryDiv = document.createElement("div");
+      metaCategoryDiv.className = "meta";
+      const categorySpan = document.createElement("span");
+      categorySpan.className = "card-desc";
+      const categoryName = isInSpanish ? orderItem?.product?.category?.name?.es : orderItem?.product?.category?.name?.en;
+      categorySpan.textContent = categoryName || isInSpanish ? "Zapato de tango" : "Tango Shoe";
+      metaCategoryDiv.appendChild(categorySpan);
+
+      const metaVariationDiv = document.createElement("div");
+      metaVariationDiv.className = "meta";
+      const variationSpan = document.createElement("span");
+      variationSpan.className = "card-desc";
+      variationSpan.textContent = `Taco: ${orderItem.taco || "N/A"} || Talle: ${orderItem.size || "N/A"}`;
+      metaVariationDiv.appendChild(variationSpan);
+
+      const priceSpan = document.createElement("span");
+      priceSpan.className = "card-price";
+      priceSpan.textContent = `$${(orderItem.quantity * orderItem.price).toFixed(2)}`;
+
+      // Agregar todos los elementos al contenedor de contenido
+      contentDiv.appendChild(header);
+      contentDiv.appendChild(metaCategoryDiv);
+      contentDiv.appendChild(metaVariationDiv);
+      contentDiv.appendChild(priceSpan);
+
+      // Agregar imagen y contenido al contenedor del ítem
+      itemContainer.appendChild(imageDiv);
+      itemContainer.appendChild(contentDiv);
+
+      // Agregar el ítem al contenedor principal de ítems
+      itemsContainer.appendChild(itemContainer);
+  });
+
+  // Agregar todo al contenedor principal
+  container.appendChild(topContentDiv);
+  container.appendChild(itemsContainer);
+
+  return container;
+}
+
+// Función auxiliar para convertir el ID de estado en texto
+function getStatus(statusId) {
+  switch (statusId) {
+      case 1: return "Pendiente";
+      case 2: return "En proceso";
+      case 3: return "Enviado";
+      case 4: return "Entregado";
+      default: return "Desconocido";
+  }
 }
 
 export function homeLabel(props)  {
@@ -546,7 +651,7 @@ export function createUserMenuBtn(props) {
 
   // Agregar el enlace de cierre de sesión
   const logoutLink = document.createElement('a');
-  logoutLink.href = '/logout';
+  logoutLink.href = '/user/logout';
   logoutLink.className = 'item';
 
   const logoutIcon = document.createElement('i');
@@ -875,7 +980,7 @@ export function createModal({ headerTitle, formFields, buttons, id }) {
 
   const header = document.createElement("div");
   header.className = "header";
-  header.innerHTML = `${headerTitle} <i class='bx bx-x close_modal_btn mobile-only'></i>`;
+  header.innerHTML = `${headerTitle} <i class='bx bx-x close-modal-btn'></i>`;
   modal.appendChild(header);
 
   const content = document.createElement("div");
@@ -923,7 +1028,7 @@ export function createModal({ headerTitle, formFields, buttons, id }) {
   modal.appendChild(content);
   document.body.appendChild(modal);
 
-  modal.querySelector(".close_modal_btn")?.addEventListener("click", () => {
+  modal.querySelector(".close-modal-btn")?.addEventListener("click", () => {
     $(modal).modal("hide");
   });
 

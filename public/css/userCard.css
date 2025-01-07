@@ -1,7 +1,7 @@
 .card .card-header{
     font-size: clamp(1rem, 2vw + .2rem, 1.25rem);
 }
-.card .card_content{
+.card .card-content{
     width: 100%;
     height: fit-content;
     justify-content: flex-start;

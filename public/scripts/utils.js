@@ -90,7 +90,7 @@ export function generateRandomString(length){
 }
 
 export let productsFromDB = [];
-export async function setProductsFromDB({categoryId, limit, offset, id}) {
+export async function setProductsFromDB({ categoryId = undefined, limit = undefined, offset = undefined, id = undefined}) {
   try {
       const queryParams = new URLSearchParams();
       if (categoryId) queryParams.append('categoryId', categoryId);
@@ -124,7 +124,7 @@ export async function setVariationsFromDB(id) {
       } else if (id) {
         queryParams.append('variationId', id);
       }
-      const url = `${window.location.origin}/api/variation?${queryParams.toString()}`;//TODO: 
+      const url = `${window.location.origin}/api/variation?${queryParams.toString()}`;
   
       let array = (
         await (await fetch(url)).json()
@@ -264,18 +264,20 @@ export async function handleModalCreation({entityType, buildBodyData, saveGuestE
       bodyData.id = modal.dataset.db_id;
     }
     if(entityType == 'user'){
+      let modalResponse = true; //Esto es para no cerrar el modal si da incorrecto
       //Aca es para los forms de user
       if (postToDatabase) {
         try {
-          await postToDatabase(bodyData, method);
+          modalResponse = await postToDatabase(bodyData, method);
         } catch (error) {
           console.error(`Error posting ${entityType} to database`, error);
           submitButton.classList.remove('loading');
           return;
         }
-      }
+      };
+      submitButton.classList.remove('loading');
       // Cierro el modal
-      handlePageModal(false);
+      if(modalResponse)handlePageModal(false);
       return
     }
     if(userLogged){//Aca esta loggeado, lo creo en db
@@ -423,7 +425,9 @@ export async function handlePhoneFetch(bodyData, method){
     };
     let responseMsg = isInSpanish ? response.msg.es : response.msg.en
     showCardMessage(true, responseMsg);
-  }
+    return true
+  };
+  return false
 };
 export async function handleAddressFetch(bodyData, method){
   let response = await fetch('/api/address', {
@@ -445,8 +449,10 @@ export async function handleAddressFetch(bodyData, method){
       userLogged.addresses[addressToChangeIndex] = bodyData;
     };
     let responseMsg = isInSpanish ? response.msg.es : response.msg.en
-    showCardMessage(true, responseMsg)
+    showCardMessage(true, responseMsg);
+    return true;
   }
+  return false
 };
 
 export async function handleUserLoginFetch(bodyData){
@@ -464,13 +470,14 @@ export async function handleUserLoginFetch(bodyData){
       //Aca dio ok, entonces al ser de un usuario actualizo al usuarioLogged.phones
       showCardMessage(true,isInSpanish ? response.msg.es: response.msg);
       await checkForUserLogged();
-      return
+      return true;
     }
     showCardMessage(false,isInSpanish ? response.msg.es: response.msg);
-    return
+    return false
   };
   let msg = isInSpanish ? "Ha ocuriddo un error inesperado, intente nuevamente": "There was an unexpected error, please try again"
   showCardMessage(false,msg);
+  return false
 }
 export async function handleUserSignUpFetch(bodyData){
   let response = await fetch('/api/user/', {
@@ -489,6 +496,7 @@ export async function handleUserSignUpFetch(bodyData){
   };
   let msg = isInSpanish ? "Ha ocuriddo un error inesperado, intente nuevamente": "There was an unexpected error, please try again"
   showCardMessage(false,msg);
+  return false
 }
 
 //Pinta la tarjeta de succes/error

@@ -8,6 +8,7 @@ import session from 'express-session';
 import cookieParser from 'cookie-parser';
 import methodOverride from 'method-override';
 import mainRouter from './routes/mainRouter.js';
+import userRouter from './routes/userRouter.js';
 import apiUserRouter from './routes/api/apiUserRouter.js';
 import apiProductRouter from './routes/api/apiProductRouter.js';
 import apiAddressRouter from './routes/api/apiAddressRouter.js';
@@ -55,6 +56,7 @@ app.use('/api/type', apiTypeRouter);
 app.use('/api/variation', apiVariationsRouter);
 app.use(unverifiedUser); //En todas las consultas de render
 app.use('/',mainRouter);
+app.use('/user',userRouter);
 const PORT = process.env.PORT || 3500;
 
 app.listen(PORT,()=>{

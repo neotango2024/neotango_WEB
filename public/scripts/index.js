@@ -1,4 +1,4 @@
-import {  productCard, checkoutCard } from "./componentRenderer.js";
+import {  productCard } from "./componentRenderer.js";
 //import { LANGUAGES } from "../../src/utils/staticDB/constants.js";
 const SCREEN_WIDTH = window.innerWidth;
 
@@ -169,7 +169,6 @@ window.addEventListener('load', async ()=>{
    
     renderProducts();
     // initiateMenuBtn();
-    //renderCheckoutCard()
       })
     })
   }

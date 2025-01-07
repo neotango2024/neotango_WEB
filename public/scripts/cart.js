@@ -22,6 +22,7 @@ import {
   handlePhoneFetch,
   isInDesktop,
   productsFromDB,
+  setVariationsFromDB,
   variationsFromDB,
 } from "./utils.js";
 let cartExportObj = {
@@ -86,7 +87,7 @@ window.addEventListener("DOMContentLoaded", async () => {
       formWrapper.innerHTML = "";//Esto es porque si pinto las checkout cards entonces se que estoy en la primer seccion
       if (cartProducts?.length) {
         cartProducts.forEach((cartItem) => {
-          const checkoutCardElement = checkoutCard(cartItem);
+          const checkoutCardElement = checkoutCard(cartItem.productFromDB);
           cartProductsWrapper.appendChild(checkoutCardElement);
         });
         //Ahora escucho los botones
@@ -162,7 +163,7 @@ window.addEventListener("DOMContentLoaded", async () => {
         const addBtn = card.querySelector(".add_more_product");
         const minusBtn = card.querySelector(".remove_more_product");
         const removeBtn = card.querySelector(".remove_card_btn");
-        const cardPrice = card.querySelector(".card_price");
+        const cardPrice = card.querySelector(".card-price");
         let cardVariationID = card.dataset.variation_id;
         let cartProductFromDB = cartProducts.find(cartItem=>cartItem.variation_id == cardVariationID)
         const productPrice = isInSpanish ? parseFloat(cartProductFromDB.productFromDB?.ars_price) : parseFloat(cartProductFromDB.productFromDB?.usd_price);   
@@ -594,7 +595,12 @@ window.addEventListener("DOMContentLoaded", async () => {
     //Define los cart product dependiendo si esta loggeado o no
     async function setCartProducts(){
       if(userLogged){
-        cartProducts = userLogged.cartItems;
+        let variationIdsToFetch = userLogged.tempCartItems?.map(item=>item.variation_id); //Dejo el array de ids
+        await setVariationsFromDB(variationIdsToFetch); //Dejo seteado el array de variation
+        console.log(variationsFromDB); //TODO:
+        
+        cartProducts = [];
+
         return
       };
       //aca es un guest
@@ -602,7 +608,7 @@ window.addEventListener("DOMContentLoaded", async () => {
       if(!cartProducts.length) return
       let IdsToFetch = cartProducts?.map(cartItem=>cartItem.variation_id);
       //Tengo que pegarle el producto a cada cartItem para poder renderizarlo con precio/imagen/etc
-      //await setVariationsFromDB(IdsToFetch); //TODO: Este controlador traiga con la variacion, la relacion producto/taco/size 
+      await setVariationsFromDB(IdsToFetch); 
       cartProducts.forEach(cartItem => {
         cartItem.variationFromDB = variationsFromDB?.find(variation=>variation.id == cartItem.variation_id)
       });

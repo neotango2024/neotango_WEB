@@ -44,12 +44,15 @@ body{
     background-color: #fff;
     overflow: hidden;
 }
-.card_image{
+.card .card-top-content{
+    justify-content: space-between;
+}
+.card-image{
     width: 35%;
     height: 100%;
     padding: 15px;
 }
-.card_top_content{
+.card-top-content{
     width: 100%;
     height: 20%;
     border-bottom: 2px solid var(--black-transparent-color);
@@ -60,7 +63,7 @@ body{
     display: flex;
     width: 100%;
 }
-.card_content{
+.card-content{
     width: 60%;
     height: 100%;
     padding: 5px 10px;
@@ -73,13 +76,13 @@ body{
     margin-bottom: 2.5px;
     height: fit-content;
 }
-.card-header,.card_price{
+.card-header,.card-price{
     color: #000;
     font-size: clamp(1.15rem, 2vw + .2rem, 1.5rem);
     font-weight: 600;
     margin: 0;
 }
-.card_desc{
+.card-desc{
     color: #aaa;
 }
 /*  */
@@ -124,12 +127,13 @@ ul{
 .ui.modal .header{
     position: relative;
 }
-.close_modal_btn {
+.close-modal-btn {
     position: absolute;
     top: 50%;
     right: 15px;
     font-size: 2rem;
     transform: translateY(-50%);
+    cursor: pointer;
 }
 .tablet-only{
     display: none;
@@ -168,6 +172,15 @@ label{
 .ui.icon.input>i.icon{
     cursor: pointer;
 }
+.yellow{
+    color: #bcbc16 !important;
+}
+.red{
+    color: var(--red-color) !important;
+}
+.green{
+    color: #0c970c !important;
+}
 @media(min-width:768px){
     .mobile-only{
         display: none !important;
@@ -188,10 +201,10 @@ label{
     .mobile-only{
         display: none !important;
     }
-    .card_content{
+    .card-content{
         padding: 10px;
     }
-    .card_price{
+    .card-price{
         position: absolute;
         top: 50%;
         right: 5%;

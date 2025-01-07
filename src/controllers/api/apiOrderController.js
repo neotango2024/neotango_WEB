@@ -173,19 +173,23 @@ const controller = {
         //Aca paso el chequeo de stock ==> lo resto al stock que tenia
         variationFromDB.quantity -= quantityRequested; //Le resto el stock
         //Hago el snapshot del  precio y nombre
-        let orderItemName = variationFromDB.product?.name;
-        let orderItemPrice =
-          variationFromDB.product?.price &&
-          parseFloat(variationFromDB.product.price);
+        let orderItemEnName = variationFromDB.product?.eng_name;
+        let orderItemEsName = variationFromDB.product?.es_name;
+        //Si pago en mp entonces es precio pesos, sino precio usd
+        let orderItemPrice = orderDataToDB.payment_types_id == 1 ? variationFromDB.product?.ars_price : variationFromDB.product?.usd_price;
+        orderItemPrice = orderItemPrice && parseFloat(orderItemPrice);
         let orderItemQuantity = parseInt(quantityRequested);
         // Voy armando el array de orderItems para hacer un bulkcreate
         let orderItemData = {
           id: uuidv4(),
           order_id: orderDataToDB.id,
           product_id: variationFromDB.product_id,
-          name: orderItemName,
+          eng_name: orderItemEnName,
+          es_name: orderItemEsName,
           price: orderItemPrice,
           quantity: orderItemQuantity,
+          taco: variationFromDB.taco?.name,
+          size: variationFromDB.size?.size,
           discount: 0, //Si hace el upgrade va a poder setear esto
         };
         orderItemsToDB.push(orderItemData);
@@ -308,44 +312,55 @@ const controller = {
 
 export default controller;
 
-let orderIncludeArray = ["user", "orderItems"];
+let orderIncludeArray = [
+  "user", 
+  {
+    association: "orderItems",
+    include: ['product']
+  }
+];
 
 export async function getOrdersFromDB({ id, limit, offset, user_id }) {
   try {
     let orderToReturn, ordersToReturn;
     if (typeof id === "string") {
-      orderToReturn = await db.AddrOrderess.findByPk(id, {
+      orderToReturn = await db.Order.findByPk(id, {
         include: orderIncludeArray,
       });
       if (!orderToReturn) return null;
       orderToReturn = orderToReturn && getDeepCopy(orderToReturn);
+      setOrderKeysToReturn(orderToReturn);
       return orderToReturn;
     }
     // Condición si id es un array
     else if (Array.isArray(id)) {
-      ordersToReturn = await db.Address.findAll({
+      ordersToReturn = await db.Order.findAll({
         where: {
           id: id, // id es un array, se hace un WHERE id IN (id)
         },
-        include: addressIncludeArray,
+        include: orderIncludeArray,
       });
     }
     // Condición si id es undefined
     else if (id === undefined) {
-      ordersToReturn = await db.Address.findAll({
-        include: addressIncludeArray,
+      ordersToReturn = await db.Order.findAll({
+        include: orderIncludeArray,
       });
     } else if (user_id) {
       //Aca busco por ordenes de un user
-      ordersToReturn = await db.Address.findAll({
+      ordersToReturn = await db.Order.findAll({
         where: {
           user_id,
         },
-        include: addressIncludeArray,
+        include: orderIncludeArray,
       });
     }
+    
+    
     if (!ordersToReturn || !ordersToReturn.length) return [];
     ordersToReturn = getDeepCopy(ordersToReturn);
+    ordersToReturn?.forEach(orderToReturn=> setOrderKeysToReturn(orderToReturn));
+
     return ordersToReturn;
   } catch (error) {
     console.log(`Falle en getOrders`);
@@ -390,4 +405,8 @@ function createOrderEntitiesSnapshot(obj) {
   delete obj.billingAddress;
   delete obj.shippingAddress;
   delete obj.phoneObj;
+}
+
+function setOrderKeysToReturn(order){
+  order.orderStatus = ordersStatuses.find(status=>status.id == order.order_status_id)
 }

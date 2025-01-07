@@ -26,6 +26,8 @@ import getFileType from "../../utils/helpers/getFileType.js";
 import { destroyFilesFromAWS, getFilesFromAWS, uploadFilesToAWS } from "../../utils/helpers/awsHandler.js";
 import { ENGLISH, SPANISH } from "../../utils/staticDB/languages.js";
 import { getMappedErrors } from "../../utils/helpers/getMappedErrors.js";
+import { getOrdersFromDB } from "./apiOrderController.js";
+import { findProductsInDb } from "./apiProductController.js";
 
 const { verify } = jwt;
 
@@ -134,8 +136,6 @@ const controller = {
 
       // Datos del body
       let { user_id, first_name, last_name, gender_id } = req.body;
-      console.log("USUARIO");
-      console.log(user_id);
       
       let userFromDB = await getUsersFromDB(user_id);
       if (!userFromDB)
@@ -199,89 +199,22 @@ const controller = {
   },
   getUserOrders: async (req, res) => {
     try {
-      let { userLoggedId } = req.session;
-      let userOrders = await db.Order.findAll({
-        where: {
-          user_id: userLoggedId,
-        },
-        include: [
-          "shippingAddress",
-          "billingAddress",
-          {
-            association: "orderItems",
-            include: [
-              {
-                association: "product",
-                include: ["files"],
-                paranoid: false,
-              },
-            ],
-          },
-        ],
-        order: [
-          [
-            Sequelize.literal(
-              "cast(substring_index(tra_id, '-', 1) as unsigned)"
-            ),
-            "DESC",
-          ],
-        ],
-        // paranoid: false;
-      });
-      userOrders = getDeepCopy(userOrders);
+      let { userLoggedId } = req.query;
+      let userOrders = await getOrdersFromDB({user_id: userLoggedId})
       // return res.send(ordersToPaint);
-      // Voy por cada una
-      for (let i = 0; i < userOrders.length; i++) {
-        const order = userOrders[i];
-        // Esto es para traer el estado de la venta
-        let orderStatus = ordersStatuses.find(
-          (stat) => stat.id == order.order_status_id
-        );
-        let statusColor;
-        switch (orderStatus.id) {
-          case 1: //confirmada
-            statusColor = "#0f0";
-            break;
-          case 5: //Anulada
-            statusColor = "#f00";
-            break;
-          case 7: //Anulada
-            statusColor = "#f00";
-            break;
-
-          default: //Pendiente
-            statusColor = "#ffd100";
-            break;
-        }
-        order.status = {
-          status: orderStatus.status,
-          color_code: statusColor,
-        };
-        // Esto es para ver si tiene direccion de entrega
-
-        // Esto es para: traer el url de cada producto TODO:
-        for (let j = 0; j < order.orderItems.length; j++) {
-          const item = order.orderItems[j];
-          // Busco en los files del item la mainImage, o la primer foto
-          let fileToGetURL;
-          fileToGetURL = item.product?.files?.find((file) => file.main_image);
-          // Si no encontro main, busco la primer foto
-          !fileToGetURL
-            ? (fileToGetURL = item.product.files.find(
-                (file) => file.file_types_id == 1
-              ))
-            : null;
-          if (fileToGetURL) {
-            const getObjectParams = {
-              Bucket: bucketName,
-              Key: `product/${fileToGetURL.filename}`,
-            };
-            const command = new GetObjectCommand(getObjectParams);
-            url = await getSignedUrl(s3, command, { expiresIn: 1800 }); //30 min
-            item.file_url = url;
-          }
-        }
-      }
+      //Una vez tengo todas las ordenes, obtengo todos los productos que quiero mostrar, y por cada uno hago el setKeysToReturn
+      let idsToLook = [];
+      userOrders.forEach(order=>{
+        order.orderItems?.forEach(orderItem=>!idsToLook.includes(orderItem.product_id) && idsToLook.push(orderItem.product_id))
+      });
+      //Una vez obtenido, agarro los productos de DB para agarrar sus fotos
+      let productsFromDB = await findProductsInDb(idsToLook,null,true)
+      userOrders.forEach(order=>{
+        order.orderItems?.forEach(orderItem=>{
+          let productFromDB = productsFromDB.find(prod=>prod.id == orderItem.product_id);
+          orderItem.product = productFromDB
+      })
+      });
 
       return res.status(200).json({
         meta: {
@@ -290,7 +223,7 @@ const controller = {
           method: "GET",
         },
         ok: true,
-        orders: userOrders,
+        data: userOrders,
       });
     } catch (error) {
       console.log(`Falle en apiUserController.getUserOrders`);
@@ -371,7 +304,6 @@ const controller = {
   handleCheckForUserLogged: async (req, res) => {
     try {
       const token = req.cookies.userAccessToken;
-      console.log(token)
       if(!token){
         return res.status(200).json({
           ok: true,
@@ -533,7 +465,7 @@ const controller = {
         msg: 'Internal server error'
       })
     }
-  }
+  },
 };
 
 export default controller;
