@@ -34,6 +34,29 @@ const controller = {
             })
         }
     },
+    handleUpdateVariation: async (req, res) => {
+        try {
+            const { variationId } = req.params;
+            const { quantity } = req.body;
+            const successfulUpdating = await updateVariationInDb(variationId, quantity);
+            if(successfulUpdating){
+                return res.status(500).json({
+                    ok: false,
+                    msg: 'Internal server error'
+                })
+            }
+            return res.status(200).json({
+                ok: true,
+                msg: 'Successfully updated variation'
+            })
+        } catch (error) {
+            console.log(`error in update variation: ${error}`);
+            return res.status(200).json({
+                ok: false,
+                msg: 'Internal server error'
+            })
+        }
+    },
     handleDeleteVariation: async (req, res) => {
         try {
             const {variationId} = req.query;
@@ -254,5 +277,21 @@ export const findProductVariations = async (productId) => {
     } catch (error) {
         console.log(`Error in findProductVariations: ${error}`);
         return null;
+    }
+}
+
+export const updateVariationInDb = async (variationId, quantity) => {
+    try {
+        const affectedRows = await Variation.update({
+            quantity
+        }, {
+            where: {
+                id: variationId
+            }
+        })
+        return affectedRows > 0;
+    } catch (error) {
+        console.log('error updating variation in db' + error);
+        return false;
     }
 }
