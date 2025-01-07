@@ -4,7 +4,7 @@ import { validationResult } from 'express-validator';
 import systemMessages from '../../utils/staticDB/systemMessages.js';
 import { v4 as UUIDV4 } from 'uuid';
 import fileController, { insertFilesInDb, findFilesInDb, deleteFileInDb} from '../fileController.js';
-import variationsController from '../variationsController.js';
+import { findProductVariations, insertVariationsInDb, getVariationsToDelete, getVariationsToAdd, deleteVariationInDb, populateVariations } from '../api/apiVariationsController.js';
 import { getMappedErrors } from '../../utils/helpers/getMappedErrors.js';
 import getFileType from '../../utils/helpers/getFileType.js';
 import { destroyFilesFromAWS, getFilesFromAWS, uploadFilesToAWS } from '../../utils/helpers/awsHandler.js';
@@ -15,7 +15,6 @@ import {categories} from '../../utils/staticDB/categories.js';
 
 const {productMsg} = systemMessages;
 const { fetchFailed, notFound, fetchSuccessfull, createFailed, updateFailed, deleteSuccess, createSuccessfull, deleteFailed } = productMsg;
-const { insertVariationsInDb, findVariationsInDb, getVariationsToDelete, deleteVariationInDb, getVariationsToAdd, populateVariations} = variationsController;
 const PRODUCTS_FOLDER_NAME = 'products';
 
 const controller = {
@@ -154,7 +153,7 @@ const controller = {
                 msg: updateFailed.en
             })
         }
-        const variationsInDb = await findVariationsInDb(productId);
+        const variationsInDb = await findProductVariations(productId);
         const { variations } = req.body;
         const variationsToDelete = getVariationsToDelete(variations, variationsInDb, productId);
         const deleteVariationsPromises = variationsToDelete.map(async variationToDelete => {
