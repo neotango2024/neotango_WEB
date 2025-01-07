@@ -3,7 +3,11 @@ import { v4 as UUIDV4 } from 'uuid';
 import { normalizeToString } from '../../utils/helpers/normalizeData.js';
 import { populateSize, populateTaco } from '../../utils/helpers/populateStaticDb.js';
 import { getFilesFromAWS } from '../../utils/helpers/awsHandler.js';
-const {Variation, Product} = db;
+import sizes from '../../utils/staticDB/sizes.js';
+import tacos from '../../utils/staticDB/tacos.js';
+import { findProductsInDb } from './apiProductController.js';
+import getDeepCopy from '../../utils/helpers/getDeepCopy.js';
+const {Variation } = db;
 
 const controller = {
     handleGetVariation: async (req, res) => {
@@ -28,6 +32,36 @@ const controller = {
             })
         } catch (error) {
             console.log(`Error in handleGetVariations: ${error}`);
+            return res.status(500).json({
+                ok: false,
+                msg: 'Internal server error'
+            })
+        }
+    },
+    handleCreateVariation: async (req, res) => {
+        try {
+            const {productId} = req.params;
+            const productExists = await findProductsInDb(productId);
+            if(!productExists){
+                return res.status(404).json({
+                    ok: false,
+                    msg: 'Product was not found'
+                })
+            }
+            const {variations} = req.body;
+            const isSuccessfulInsertingVariation = insertVariationsInDb(variations, productId);
+            if(!isSuccessfulInsertingVariation){
+                return res.status(500).json({
+                    ok: false,
+                    msg: 'Internal server error'
+                })
+            }
+            return res.status(200).json({
+                ok: true,
+                msg: 'Successfully created the variations'
+            })
+        } catch (error) {
+            console.log(`error in handleCreateVariation: ${error}`);
             return res.status(500).json({
                 ok: false,
                 msg: 'Internal server error'
@@ -106,7 +140,7 @@ export const findVariationsById = async (variationId) => {
             variationArray.push(variation);
             const [variationTacoSizePopulated] = populateVariations(variationArray);
             const {taco, size} = variationTacoSizePopulated;
-            const productVariation = variationArray[0].product;
+            const productVariation = getDeepCopy(variationArray[0].product);
             const variationProdFiles = productVariation.files;
             await getFilesFromAWS({
                 folderName: 'products',
@@ -139,7 +173,7 @@ export const findVariationsById = async (variationId) => {
                 const variationToPopulate = [variation];
                 const [variationTacoSizePopulated] = populateVariations(variationToPopulate);
                 const {taco, size} = variationTacoSizePopulated;
-                const productVariation = variationToPopulate[0].product;
+                const productVariation = getDeepCopy(variationToPopulate[0].product);
                 const variationProdFiles = productVariation.files;
                 await getFilesFromAWS({
                     folderName: 'products',
@@ -172,7 +206,9 @@ export const insertVariationsInDb = async (variations, productId) => {
             mappedVariationsWithId.push({
                 id: newVariationId,
                 product_id: productId,
-                ...variation
+                quantity: variation.quantity,
+                size_id: variation.sizeId,
+                taco_id: variation.tacoId
             });
         });
         // //Ahora recorro el array de fileObjects y junto por color_id
@@ -189,11 +225,11 @@ export const insertVariationsInDb = async (variations, productId) => {
         //     }));
         //      variationFileArray = [... variationFileArray,...array]; //Lo pusheo al array
         // })
-        Variation.bulkCreate(mappedVariationsWithId);
+        await Variation.bulkCreate(mappedVariationsWithId);
         return true;
     } catch (error) {
         console.log(`Error inserting variations in db: ${error}`);
-        return [false,null];
+        return false;
     }
 };
 
