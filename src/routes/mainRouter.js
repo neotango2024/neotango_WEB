@@ -7,6 +7,7 @@ router.get('/carro',mainController.cart);
 router.get('/verificar',mainController.userVerification);
 router.get('/categoria/:categoryId',mainController.productList);
 router.get('/producto/:id',mainController.productDetail);
+router.get('/perfil',mainController.userProfile);
 
 
 export default router;

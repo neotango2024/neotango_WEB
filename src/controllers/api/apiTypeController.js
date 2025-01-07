@@ -7,6 +7,7 @@ import { shippingTypes } from '../../utils/staticDB/shippingTypes.js';
 import countries from '../../utils/staticDB/countries.js';
 import tacos from '../../utils/staticDB/tacos.js';
 import sizes from '../../utils/staticDB/sizes.js';
+import genders from '../../utils/staticDB/genders.js';
 
 
 
@@ -89,6 +90,22 @@ const controller = {
             return res.status(500).json({
                 ok: false,
                 msg: fetchFailed.en
+            })
+        }
+    },
+    getGenders: async (req, res) => {
+        try {
+            
+            return res.status(200).json({
+                ok: true,
+                data: genders
+            })
+        } catch (error) {
+            console.log(`error in getGenders:`);
+            console.log(error);
+            return res.status(500).json({
+                ok: false,
+                msg: fetchFailed
             })
         }
     },

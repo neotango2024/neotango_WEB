@@ -9,7 +9,7 @@ export default (sequelize, dataTypes) => {
             allowNull: false,
             autoIncrement: true
         },
-        zone: { type: dataTypes.STRING(100) },
+        zone_id: { type: dataTypes.INTEGER },
         ars_price: { type: dataTypes.DECIMAL(10,2) },
         usd_price: { type: dataTypes.DECIMAL(10,2) }
     }

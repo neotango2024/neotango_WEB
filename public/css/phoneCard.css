@@ -1,0 +1,21 @@
+.phone-card{
+    width: 80%;
+    max-width: 300px;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-around;
+    max-height: 100px;
+    border: 1px solid var(--black-transparent-color);
+}
+.default_phone_marker {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+}
+.phone-card .card_content{
+    text-align: center;
+}
+.phone_number{
+    font-size: clamp(1rem, 2vw + .2rem, 1.25rem);
+    font-weight: 600;
+}

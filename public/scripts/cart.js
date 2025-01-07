@@ -16,11 +16,13 @@ import { isInSpanish, settedLanguage } from "./languageHandler.js";
 import { deleteLocalStorageItem, getLocalStorageItem, setLocalStorageItem } from "./localStorage.js";
 import {
   activateContainerLoader,
+  handleNewAddressButtonClick,
+  handleNewPhoneButtonClick,
   handlePageModal,
-  handlePhoneCreateFetch,
+  handlePhoneFetch,
   isInDesktop,
   productsFromDB,
-  setProductFromDB,
+  variationsFromDB,
 } from "./utils.js";
 let cartExportObj = {
   pageConstructor: null, 
@@ -39,6 +41,8 @@ window.addEventListener("DOMContentLoaded", async () => {
     //seteo los productos
     let cartProducts = [];
     await setCartProducts();
+    console.log(cartProducts);
+    
     cartExportObj.pageConstructor = async function (){
      try {
       //Agaro el titulo "carro de compras" y dependiendo que idioma lo pinto
@@ -405,20 +409,7 @@ window.addEventListener("DOMContentLoaded", async () => {
             // Si no se encuentra input, lo añade al final como fallback
             container.appendChild(button);
         }
-    }
-    //Estas funciones pintan y activan el modal de telefonos/direcciones
-    const handleNewPhoneButtonClick = async ()=>{
-        await createPhoneModal();
-        // Abro el modal
-        handlePageModal(true);
-        // await listenToPhoneCreateBtn()//hago el fetch para crear ese telefono
-        
-    }
-    const handleNewAddressButtonClick = async ()=>{
-        await createAddressModal();
-        // Abro el modal
-        handlePageModal(true);
-    };    
+    }   
     //Pinta el select de los telefonos & addresses
     cartExportObj.paintCheckoutPhoneSelect =  async function(){
       if(!countriesFromDB?.length) await setCountries();
@@ -607,20 +598,14 @@ window.addEventListener("DOMContentLoaded", async () => {
         return
       };
       //aca es un guest
-      cartProducts = getLocalStorageItem('cartItems') ||[];
+      cartProducts = getLocalStorageItem('cartItems') || [];
       if(!cartProducts.length) return
-      let IdsToFetch = cartProducts?.map(cartItem=>cartItem.productId);
+      let IdsToFetch = cartProducts?.map(cartItem=>cartItem.variation_id);
       //Tengo que pegarle el producto a cada cartItem para poder renderizarlo con precio/imagen/etc
-      await setProductFromDB(IdsToFetch);
-      await setTacos();
-      await setSizes();      
-      console.log(cartProducts)
-      cartProducts.forEach(cartItem=>{
-        cartItem.productFromDB = productsFromDB.find(prodFromDB => prodFromDB.id == cartItem.productId);
-        cartItem.tacoFromDB = tacosFromDB.find(tacoFromDB => tacoFromDB.id == cartItem.tacoId);
-        cartItem.sizeFromDB = sizesFromDB.find(sizeFromDB => sizeFromDB.id == cartItem.sizeId);
+      //await setVariationsFromDB(IdsToFetch); //TODO: Este controlador traiga con la variacion, la relacion producto/taco/size 
+      cartProducts.forEach(cartItem => {
+        cartItem.variationFromDB = variationsFromDB?.find(variation=>variation.id == cartItem.variation_id)
       });
-      
       return
     }
   } catch (error) {

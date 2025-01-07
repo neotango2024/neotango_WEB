@@ -1,10 +1,8 @@
 import {  productCard, checkoutCard } from "./componentRenderer.js";
-import { checkCheckoutButtons, initiateMenuBtn } from "./utils.js";
 //import { LANGUAGES } from "../../src/utils/staticDB/constants.js";
 const SCREEN_WIDTH = window.innerWidth;
 
 import { translations } from "../constants/constants.js";
-import { productCard } from "./componentRenderer.js";
 import { settedLanguage, translateProductCards } from "./languageHandler.js";
 import { productsFromDB, setProductsFromDB } from "./utils.js";
 const companyInfoTranslations = translations.companyInfo;
@@ -193,7 +191,7 @@ export const translateCompanyInfo = () => {
 
 const handleRenderFeatureProducts = async () => {
   if(productsFromDB.length === 0){
-    await setProductsFromDB(1, 5);
+    await setProductsFromDB({categoryId : 1, limit : 5});
   }
   const skeletons = document.querySelectorAll('.skeleton-product');
   const container = document.querySelector('.products-carousel');

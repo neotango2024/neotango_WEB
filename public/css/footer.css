@@ -11,6 +11,8 @@
         "footer_copyright_container";
     gap: 1rem; /* Espaciado entre elementos */
     padding: 1rem;
+    position: relative;
+    z-index: 1000;
 }
 .footer_logo_container {
     grid-area: footer_logo_container;

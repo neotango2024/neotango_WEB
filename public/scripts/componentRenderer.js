@@ -1,8 +1,8 @@
 import { userLogged } from "./checkForUserLogged.js";
 import { countriesFromDB, setCountries } from "./getStaticTypesFromDB.js";
 import { isInSpanish, settedLanguage } from "./languageHandler.js";
-import { handleAddressCreateModal, handlePhoneCreateModal, handleUserLoginModal, handleUserSignUpModal } from "./modalHandlers.js";
-import { activateDropdown, generateRandomString, getProductImageSizeUrl, getProductMainImage, handleUserSignUpClick } from "./utils.js";
+import { handleAddressModalActions, handlePhoneModalActions, handleUserLoginModal, handleUserSignUpModal } from "./modalHandlers.js";
+import { activateDropdown, generateRandomString, getProductImageSizeUrl, getProductMainImage, handleNewAddressButtonClick, handleNewPhoneButtonClick, handleUserSignUpClick, toggleInputPasswordType } from "./utils.js";
 const SCREEN_WIDTH = window.screen.width;
 
 export function checkoutCard (props) {
@@ -112,15 +112,33 @@ export function addressCard(props) {
     // Crear el contenedor principal con clases y data-id
     const card = document.createElement('div');
     card.className = 'card address_card';
-    card.setAttribute('data-id', props.id);
+    card.setAttribute('data-id', props?.id);
 
+    // Si props es undefined, pintar el "+" y texto centrado
+    if (!props) {
+      card.classList.add('card_empty'); // Agregar clase opcional para estilos específicos
+
+      // Crear el contenido centrado
+      const addIcon = document.createElement('div');
+      addIcon.className = 'add_icon';
+      addIcon.textContent = '+';
+
+      const addText = document.createElement('p');
+      addText.className = 'add_text';
+      addText.textContent = isInSpanish ? 'Agregar' : 'Add'; // Basado en la variable global
+
+      card.appendChild(addIcon);
+      card.appendChild(addText);
+
+      return card; // Retornar la tarjeta con contenido centrado
+    }
     // Crear la sección superior de la tarjeta
     const cardTopContent = document.createElement('div');
     cardTopContent.className = 'card_top_content';
 
     const cardHeader = document.createElement('p');
     cardHeader.className = 'card-header address_name';
-    cardHeader.textContent = props.name || 'Casa';
+    cardHeader.textContent = props.label;
 
     const defaultAddressMarker = document.createElement('div');
     defaultAddressMarker.className = `default_address_marker ${props.default ? "default_address_marker_active" : ""}`;
@@ -142,7 +160,7 @@ export function addressCard(props) {
 
     const zip = document.createElement('p');
     zip.className = 'card_text';
-    zip.innerHTML = `CP: <span class="address_zip">${props.zip}</span>`;
+    zip.innerHTML = `CP: <span class="address_zip">${props.zip_code}</span>`;
 
     const city = document.createElement('p');
     city.className = 'card_text address_city';
@@ -162,15 +180,14 @@ export function addressCard(props) {
     const cardBottomContainer = document.createElement('div');
     cardBottomContainer.className = 'card_botton_container';
 
-    const editLink = document.createElement('a');
-    editLink.href = '#';
-    editLink.className = 'card_link';
-    editLink.textContent = 'Editar';
+    const editLink = document.createElement('p');
+    editLink.className = 'card_link edit_address_card_btn';
+    editLink.textContent = isInSpanish ? 'Editar' : "Edit";
+    editLink.addEventListener('click',async ()=> await handleNewAddressButtonClick(props))
 
-    const deleteLink = document.createElement('a');
-    deleteLink.href = '#';
-    deleteLink.className = 'card_link';
-    deleteLink.textContent = 'Eliminar';
+    const deleteLink = document.createElement('p');
+    deleteLink.className = 'card_link destroy_address_card_btn';
+    deleteLink.textContent = isInSpanish ? 'Eliminar' : "Remove";
 
     cardBottomContainer.appendChild(editLink);
     cardBottomContainer.appendChild(deleteLink);
@@ -181,6 +198,74 @@ export function addressCard(props) {
     card.appendChild(cardBottomContainer);
 
     return card;
+}
+
+export function phoneCard(props) {
+  // Crear el contenedor principal con clases y data-id
+  const card = document.createElement('div');
+  card.className = 'card phone-card';
+  card.setAttribute('data-id', props?.id);
+
+  // Si props es undefined, pintar el "+" y texto centrado
+  if (!props) {
+      card.classList.add('card_empty'); // Agregar clase opcional para estilos específicos
+
+      // Crear el contenido centrado
+      const addIcon = document.createElement('div');
+      addIcon.className = 'add_icon';
+      addIcon.textContent = '+';
+
+      const addText = document.createElement('p');
+      addText.className = 'add_text';
+      addText.textContent = isInSpanish ? 'Agregar' : 'Add'; // Basado en la variable global
+
+      card.appendChild(addIcon);
+      card.appendChild(addText);
+
+      return card; // Retornar la tarjeta con contenido centrado
+  }
+
+  // Crear el marcador de teléfono predeterminado
+  const defaultPhoneMarker = document.createElement('div');
+  defaultPhoneMarker.className = `default_phone_marker default_marker ${props.default ? "default_phone_marker_active" : ""}`;
+
+  // Crear la sección de contenido de la tarjeta
+  const cardContent = document.createElement('div');
+  cardContent.className = 'card_content';
+
+  const phoneNumber = document.createElement('p');
+  phoneNumber.className = 'card_text phone_number';
+  phoneNumber.textContent = `(+${props.country?.code}) ${props.phone_number}`;
+
+  const phoneCountry = document.createElement('p');
+  phoneCountry.className = 'card_text phone_country';
+  phoneCountry.textContent = props?.country?.name;
+
+  cardContent.appendChild(phoneNumber);
+  cardContent.appendChild(phoneCountry);
+
+  // Crear la sección inferior de la tarjeta
+  const cardBottomContainer = document.createElement('div');
+  cardBottomContainer.className = 'card_botton_container';
+
+  const editLink = document.createElement('p');
+  editLink.className = 'card_link edit_phone_card_btn';
+  editLink.textContent = isInSpanish ? 'Editar' : 'Edit';
+  editLink.addEventListener('click', async () => await handleNewPhoneButtonClick(props));
+
+  const deleteLink = document.createElement('p');
+  deleteLink.className = 'card_link destroy_phone_card_btn';
+  deleteLink.textContent = isInSpanish ? 'Eliminar' : 'Remove';
+
+  cardBottomContainer.appendChild(editLink);
+  cardBottomContainer.appendChild(deleteLink);
+
+  // Ensamblar la tarjeta
+  card.appendChild(defaultPhoneMarker);
+  card.appendChild(cardContent);
+  card.appendChild(cardBottomContainer);
+
+  return card;
 }
 
 export function homeLabel(props)  {
@@ -231,9 +316,9 @@ export function homeLabel(props)  {
 
 export function form (props) {
     
-    const { inputProps, formTitleObject, formAction, method } = props;
+    const { formClasses, inputProps, formTitleObject, formAction, method, buttonProps } = props;
     const container = document.createElement('div')
-    container.className = 'form-container'; //TODO: ver en caso que hayan 2 forms en la misma pagina
+    container.className = 'form-container';
   
   
     const h3Element = document.createElement("h3");
@@ -248,7 +333,7 @@ export function form (props) {
     const form = document.createElement("form");
     form.action = formAction;
     form.method = method || 'POST';
-    form.className = "custom-form";
+    form.className = `custom-form ${formClasses}`;
     container.appendChild(form);
 
     inputProps.forEach((input) => {
@@ -271,6 +356,7 @@ export function form (props) {
               const optionElement = document.createElement("option");
               optionElement.value = option.value || "";
               optionElement.textContent = option.label || "";
+              optionElement.selected = option.selected;
               inputElement.appendChild(optionElement);
           });
       } else {
@@ -315,6 +401,24 @@ export function form (props) {
       
       form.appendChild(inputContainer);
       });
+       // Crear botones
+      if (Array.isArray(buttonProps)) {
+        const buttonContainer = document.createElement("div");
+        buttonContainer.className = "button-container";
+
+        buttonProps.forEach((button) => {
+          const btn = document.createElement("button");
+          btn.type = button.type || "button";
+          btn.className = `ui button ${button.className || ""}`;
+          btn.textContent = button.text || "Button";
+          if (button.onClick && typeof button.onClick === "function") {
+            btn.addEventListener("click", button.onClick);
+          }
+          buttonContainer.appendChild(btn);
+        });
+
+      form.appendChild(buttonContainer);
+  }
       return container
 }
 
@@ -393,11 +497,11 @@ export function createUserMenuBtn(props) {
 
   // Crear el contenedor principal
   const container = document.createElement('div');
-  container.className = 'ui icon top right pointing dropdown user-menu-btn mobile-only';
+  container.className = 'ui icon top right pointing dropdown user-menu-btn';
 
   // Agregar el ícono de menú
   const barsIcon = document.createElement('i');
-  barsIcon.className = 'bars icon';
+  barsIcon.className = props.items[0].itemLogo;
   container.appendChild(barsIcon);
 
   // Crear el menú
@@ -407,23 +511,23 @@ export function createUserMenuBtn(props) {
   // Agregar encabezado según el tipo
   const header = document.createElement('div');
   header.className = 'header';
-  header.textContent = props.type === 1 ? 'Navigate' : 'Opciones';
+  if(props.type == 1){
+    //user
+    header.textContent = isInSpanish ? 'Configuracion' : 'Settings';
+  } else {
+    //admin
+    header.textContent = "Dashboard"
+  }
+  
   menu.appendChild(header);
 
   // Crear los elementos del menú
   props.items.forEach((item,i) => {
     const itemLink = document.createElement('a');
     itemLink.className = `item`;
-    console.log(currentUrl);
-    
+    itemLink.dataset.index = i;
     // Agregar clases adicionales si el tipo coincide con la URL actual
-    if (
-      (currentUrl.endsWith('/profile') && item.itemType === 'profile') ||
-      (currentUrl.endsWith('/address') && item.itemType === 'address') ||
-      (currentUrl.endsWith('/orderHistory') && item.itemType === 'orderHistory')
-    ) {
-      itemLink.classList.add('logo-active');
-    }
+    if (props.actualIndexSelected == i) itemLink.classList.add('active','selected');
 
     // Establecer el logo e ícono
     const icon = document.createElement('i');
@@ -440,16 +544,6 @@ export function createUserMenuBtn(props) {
     menu.appendChild(itemLink);
   });
 
-  // Agregar un divisor y encabezado de usuario
-  const divider = document.createElement('div');
-  divider.className = 'ui divider';
-  menu.appendChild(divider);
-
-  const userHeader = document.createElement('div');
-  userHeader.className = 'header';
-  userHeader.textContent = 'USUARIO';
-  menu.appendChild(userHeader);
-
   // Agregar el enlace de cierre de sesión
   const logoutLink = document.createElement('a');
   logoutLink.href = '/logout';
@@ -461,21 +555,30 @@ export function createUserMenuBtn(props) {
 
   const logoutTooltip = document.createElement('span');
   logoutTooltip.className = 'tooltip';
-  logoutTooltip.textContent = 'Cerrar Sesion';
+  logoutTooltip.textContent = isInSpanish ? 'Cerrar Sesion' : "Logout";
   logoutLink.appendChild(logoutTooltip);
 
   menu.appendChild(logoutLink);
 
   // Agregar el menú al contenedor
   container.appendChild(menu);
-
+  
   // Insertar el contenedor en el DOM
-  document.body.appendChild(container);
+  return container
 }
-export async function createPhoneModal() {
+
+export async function createPhoneModal(phone) {
   try {
+    let buttonText,headerText;
+    if(phone){
+      buttonText = isInSpanish ? "Actualizar" : "Update";
+      headerText = isInSpanish ? "Actualizar Telefono" : "Update Phone";
+    } else {
+      buttonText = isInSpanish ? "Crear" : "Create";
+      headerText = isInSpanish ? "Agregar Telefono" : "Add Phone";
+    }
     createModal({
-      headerTitle: isInSpanish ? "Agregar Telefono" : "Add Phone",
+      headerTitle: headerText,
       formFields: [
         {
             type: "two-fields",
@@ -486,6 +589,7 @@ export async function createPhoneModal() {
                     name: "phone_country_id",
                     className:
                       "ui search dropdown country_code_search_input form_search_dropdown",
+                    value: phone ? phone.country_id : '',
                     required: true,
                   },
                   {
@@ -493,6 +597,7 @@ export async function createPhoneModal() {
                     type: "text",
                     className: "numeric-only-input",
                     name: "phone_number",
+                    value: phone ? phone.phone_number : '',
                     required: true,
                   },
             ]
@@ -501,11 +606,12 @@ export async function createPhoneModal() {
       ],
       buttons: [
         {
-          text: isInSpanish ? "Crear" : "Create",
+          text: buttonText,
           className: "ui button submit negative send-modal-form-btn",
-          onClick: async() => await handlePhoneCreateModal()
+          onClick: async() => await handlePhoneModalActions(phone)
         },
       ],
+      id: phone ? phone.id : undefined
     });
     //Una vez creado el modal, activo con los paises
     if (!countriesFromDB.length) {
@@ -518,7 +624,12 @@ export async function createPhoneModal() {
     }))
     
     // Ahora activo el select
-    activateDropdown(classNameToActivate, arrayToActivateInDropdown, isInSpanish ? "Codigo de area": "Country Code");
+    activateDropdown({
+      className: classNameToActivate, 
+      array: arrayToActivateInDropdown, 
+      placeHolder: isInSpanish ? "Codigo de area": "Country Code",
+      values: phone ? phone?.country?.id : []
+    });
     
   } catch (error) {
     console.log("falle");
@@ -526,10 +637,18 @@ export async function createPhoneModal() {
   }
 };
 
-export async function createAddressModal() {
+export async function createAddressModal(address = undefined) {
   try {
+    let buttonText,headerText;
+    if(address){
+      buttonText = isInSpanish ? "Actualizar" : "Update";
+      headerText = isInSpanish ? "Actualizar Direccion" : "Update Address";
+    } else {
+      buttonText = isInSpanish ? "Crear" : "Create";
+      headerText = isInSpanish ? "Agregar Direccion" : "Add Address";
+    }
     createModal({
-      headerTitle: isInSpanish ? "Agregar Direccion" : "Add Address",
+      headerTitle: headerText,
       formFields: [
         {
             label: isInSpanish ? "Etiqueta" : "Label",
@@ -537,6 +656,7 @@ export async function createAddressModal() {
             name: "address-label",
             className:"",
             required: true,
+            value: address ? address.label : '',
             placeHolder: isInSpanish ? "Etiqueta (ej: Casa)" : "Enter a label (e.g., Home)"
         },
         {
@@ -545,6 +665,7 @@ export async function createAddressModal() {
             name: "address-street",
             className:"",
             required: true,
+            value: address ? address.street : '',
             placeHolder: isInSpanish ? "Direccion completa" : "Enter full street name"
         },
         {
@@ -553,6 +674,7 @@ export async function createAddressModal() {
             name: "address-detail",
             className:"",
             required: false,
+            value: address ? address.detail || '' : '',
             placeHolder: isInSpanish ? "Detalle (ej: 2b, apt 300)" : "Additional details (e.g., Apt, Floor)"
         },
         {
@@ -561,6 +683,7 @@ export async function createAddressModal() {
             name: "address-zip",
             className:"short-input",
             required: true,
+            value: address ? address.zip_code : '',
             placeHolder: isInSpanish ? "Codigo postal" :"ZIP code"
         },
         {
@@ -569,6 +692,7 @@ export async function createAddressModal() {
             name: "address-city",
             className:"",
             required: true,
+            value: address ? address.city : '',
             placeHolder: isInSpanish ? "Ciudad" :"Enter the city"
         },
         {
@@ -577,6 +701,7 @@ export async function createAddressModal() {
             name: "address-province",
             className:"",
             required: true,
+            value: address ? address.province : '',
             placeHolder: isInSpanish ? "Provincia" :"Enter the province"
         },
         {
@@ -586,16 +711,19 @@ export async function createAddressModal() {
             className:
               "ui search dropdown country_search_input form_search_dropdown",
             required: true,
+            value: address ? address.country_id : '',
             placeHolder: isInSpanish ? "Elegi un pais" : "Select a country"
           },
       ],
+     
       buttons: [
         {
-          text: isInSpanish ? "Crear" : "Create",
+          text: buttonText,
           className: "ui button submit negative send-modal-form-btn",
-          onClick: async() => await handleAddressCreateModal(),
+          onClick: async() => await handleAddressModalActions(address) ,
         },
       ],
+      id: address ? address.id : undefined
     });
     //Una vez creado el modal, activo con los paises
     if (!countriesFromDB.length) {
@@ -608,7 +736,12 @@ export async function createAddressModal() {
     }))
     let classToActivate = '.ui.search.dropdown.country_search_input.form_search_dropdown'
     // Ahora activo el select
-    activateDropdown(classToActivate,arrayToActivateInDropdown, isInSpanish ? "Elegi un pais" : "Select Country");
+    activateDropdown({
+      className: classToActivate, 
+      array: arrayToActivateInDropdown, 
+      placeHolder : isInSpanish ? "Elegi un pais" : "Select Country",
+      values: address ? [address.country_id] : []
+  });
     
   } catch (error) {
     console.log("falle");
@@ -634,6 +767,8 @@ export async function createUserLoginModal(){
           name: "user-password",
           required: true,
           placeHolder: "Password",
+          icon: "eye link", // Icono de ojo
+          iconCallback: toggleInputPasswordType
         },
       ],
       buttons: [
@@ -649,19 +784,6 @@ export async function createUserLoginModal(){
         },
       ],
     });
-    //Una vez creado el modal, activo con los paises
-    if (!countriesFromDB.length) {
-      await setCountries();
-    }
-    //Aca los paises van solo nombre
-    let arrayToActivateInDropdown = countriesFromDB.map(country=>({
-        id: country.id,
-        name: country.name,
-    }))
-    let classToActivate = '.ui.search.dropdown.country_search_input.form_search_dropdown'
-    // Ahora activo el select
-    activateDropdown(classToActivate,arrayToActivateInDropdown, "Select Country");
-    
   } catch (error) {
     console.log("falle");
     return console.log(error);
@@ -705,6 +827,17 @@ export async function createUserSignUpModal(){
           name: "user-password",
           required: true,
           placeHolder: "Password",
+          icon: "eye link", // Icono de ojo
+          iconCallback: toggleInputPasswordType
+   
+        },
+        {
+          type: "message-container",
+          header: isInSpanish ? "Requisitos":"Requiriments",
+          list: [
+            isInSpanish ? "Longitud Minima: 8 Caracteres" : "Minimum Length: 8 Characters",
+            isInSpanish ? "Al menos 1 mayuscula" : "At least 1 uppercase",
+          ],
         },
         {
           label: isInSpanish ? "Confirmar contraseña" :"Confirm password",
@@ -712,6 +845,8 @@ export async function createUserSignUpModal(){
           name: "user-re-password",
           required: true,
           placeHolder: "Password",
+          icon: "eye link", // Icono de ojo
+          iconCallback: toggleInputPasswordType
         },
       ],
       buttons: [
@@ -722,145 +857,53 @@ export async function createUserSignUpModal(){
         },
       ],
     });
-    //Una vez creado el modal, activo con los paises
-    if (!countriesFromDB.length) {
-      await setCountries();
-    }
-    //Aca los paises van solo nombre
-    let arrayToActivateInDropdown = countriesFromDB.map(country=>({
-        id: country.id,
-        name: country.name,
-    }))
-    let classToActivate = '.ui.search.dropdown.country_search_input.form_search_dropdown'
-    // Ahora activo el select
-    activateDropdown(classToActivate,arrayToActivateInDropdown, "Select Country");
-    
   } catch (error) {
     console.log("falle");
     return console.log(error);
   }
 }
 
-export function createModal({ headerTitle, formFields, buttons }) {
-  // Eliminar cualquier modal existente antes de crear uno nuevo
+export function createModal({ headerTitle, formFields, buttons, id }) {
   const existingModal = document.querySelector(".ui.modal");
   if (existingModal) {
     existingModal.remove();
   }
 
-  // Crear el contenedor del modal
   const modal = document.createElement("div");
   modal.className = "ui small modal";
+  if (id) modal.dataset.db_id = id;
 
-  // Crear el header del modal
   const header = document.createElement("div");
   header.className = "header";
   header.innerHTML = `${headerTitle} <i class='bx bx-x close_modal_btn mobile-only'></i>`;
   modal.appendChild(header);
 
-  // Crear el contenedor de contenido
   const content = document.createElement("div");
   content.className = "content";
 
-  // Crear el formulario
   const form = document.createElement("form");
   form.className = "ui form";
 
-  // Recorrer los campos y añadirlos al formulario
   formFields.forEach((field) => {
-    let fieldContainer;
-
-    // Si es un contenedor "two fields"
     if (field.type === "two-fields") {
-      fieldContainer = document.createElement("div");
+      const fieldContainer = document.createElement("div");
       fieldContainer.className = "two fields";
 
       field.fields.forEach((subField) => {
-        const subFieldContainer = document.createElement("div");
-        subFieldContainer.className = `field ${subField.required ? "required" : ""}`;
-
-        if (subField.label) {
-          const label = document.createElement("label");
-          label.textContent = subField.label;
-          subFieldContainer.appendChild(label);
-        }
-
-        if (subField.type === "select") {
-          const select = document.createElement("select");
-          select.name = subField.name || "";
-          select.className = subField.className || "ui dropdown";
-          select.required = subField.required || false;
-
-          if (Array.isArray(subField.options)) {
-            subField.options.forEach((option) => {
-              const optionElement = document.createElement("option");
-              optionElement.value = option.value || "";
-              optionElement.textContent = option.label || "";
-              if (option.selected) optionElement.selected = true;
-              select.appendChild(optionElement);
-            });
-          }
-
-          subFieldContainer.appendChild(select);
-        } else {
-          const input = document.createElement("input");
-          input.type = subField.type || "text";
-          input.name = subField.name || "";
-          input.placeholder = subField.placeHolder || "";
-          input.required = subField.required || false;
-          input.className = subField.className || "";
-          subFieldContainer.appendChild(input);
-        }
-
+        const subFieldContainer = createField(subField);
         fieldContainer.appendChild(subFieldContainer);
       });
+
+      form.appendChild(fieldContainer);
     } else {
-      // Para campos individuales
-      fieldContainer = document.createElement("div");
-      fieldContainer.className = `field ${field.required ? "required" : ""}`;
-
-      if (field.label) {
-        const label = document.createElement("label");
-        label.textContent = field.label;
-        fieldContainer.appendChild(label);
-      }
-
-      if (field.type === "select") {
-        const select = document.createElement("select");
-        select.name = field.name || "";
-        select.className = field.className || "ui dropdown";
-        select.required = field.required || false;
-
-        if (Array.isArray(field.options)) {
-          field.options.forEach((option) => {
-            const optionElement = document.createElement("option");
-            optionElement.value = option.value || "";
-            optionElement.textContent = option.label || "";
-            if (option.selected) optionElement.selected = true;
-            select.appendChild(optionElement);
-          });
-        }
-
-        fieldContainer.appendChild(select);
-      } else {
-        const input = document.createElement("input");
-        input.type = field.type || "text";
-        input.name = field.name || "";
-        input.placeholder = field.placeHolder || "";
-        input.required = field.required || false;
-        input.className = field.className || "";
-        fieldContainer.appendChild(input);
-      }
+      const fieldContainer = createField(field);
+      form.appendChild(fieldContainer);
     }
-
-    form.appendChild(fieldContainer);
   });
 
-  // Agregar contenedor de botones
   const buttonContainer = document.createElement("div");
   buttonContainer.className = "field margin-field";
 
-  // Agregar los botones al contenedor
   buttons.forEach((button) => {
     const btn = document.createElement("button");
     btn.type = "button";
@@ -872,25 +915,120 @@ export function createModal({ headerTitle, formFields, buttons }) {
 
   form.appendChild(buttonContainer);
 
-  // Agregar mensaje de error
   const errorMessage = document.createElement("div");
   errorMessage.className = "ui error message";
   form.appendChild(errorMessage);
 
-  // Agregar el formulario al contenido
   content.appendChild(form);
-
-  // Agregar el contenido al modal
   modal.appendChild(content);
-
-  // Insertar el modal en el DOM
   document.body.appendChild(modal);
 
-  // Antes del return escuchar los botones de cierre
   modal.querySelector(".close_modal_btn")?.addEventListener("click", () => {
     $(modal).modal("hide");
   });
 
   return modal;
 }
+
+function createField(field) {
+  const fieldContainer = document.createElement("div");
+  fieldContainer.className = `field ${field.required ? "required" : ""}`;
+
+  if (field.label) {
+    const label = document.createElement("label");
+    label.textContent = field.label;
+    fieldContainer.appendChild(label);
+  }
+
+  if (field.icon) {
+    const iconInputContainer = document.createElement("div");
+    iconInputContainer.className = "ui icon input";
+
+    const input = document.createElement("input");
+    input.type = field.type || "text";
+    input.name = field.name || "";
+    input.placeholder = field.placeHolder || "";
+    input.required = field.required || false;
+    input.className = field.className || "";
+
+    const icon = document.createElement("i");
+    icon.className = `${field.icon} icon`;
+
+    if (field.iconCallback && typeof field.iconCallback === "function") {
+      icon.addEventListener("click", (event) => field.iconCallback(event, input));
+    }
+
+    iconInputContainer.appendChild(input);
+    iconInputContainer.appendChild(icon);
+    fieldContainer.appendChild(iconInputContainer);
+  } else if (field.type === "select") {
+    const select = document.createElement("select");
+    select.name = field.name || "";
+    select.className = field.className || "ui dropdown";
+    select.required = field.required || false;
+
+    if (Array.isArray(field.options)) {
+      field.options.forEach((option) => {
+        const optionElement = document.createElement("option");
+        optionElement.value = option.value || "";
+        optionElement.textContent = option.label || "";
+        if (option.selected || option.value == field.value) optionElement.selected = true;
+        select.appendChild(optionElement);
+      });
+    }
+
+    fieldContainer.appendChild(select);
+  } else {
+    const input = document.createElement("input");
+    input.type = field.type || "text";
+    input.name = field.name || "";
+    input.value = field.value || "";
+    input.placeholder = field.placeHolder || "";
+    input.required = field.required || false;
+    input.className = field.className || "";
+    fieldContainer.appendChild(input);
+  }
+
+  return fieldContainer;
+}
+
+
+export function userInfoComponent(props) {
+  const { first_name, last_name, email } = props;
+
+  // Crear el contenedor principal
+  const container = document.createElement('div');
+  container.className = 'user-info-container';
+
+  // Crear el círculo con las iniciales del usuario
+  const initials = `${(first_name?.charAt(0) || '').toUpperCase()}${(last_name?.charAt(0) || '').toUpperCase()}`;
+  const initialsCircle = document.createElement('p');
+  initialsCircle.className = 'user-initials-circle';
+  initialsCircle.textContent = initials || 'N/A'; // Muestra 'N/A' si no hay iniciales
+
+  // Crear el campo de email
+  const emailField = document.createElement('div');
+  emailField.className = 'user-email-field';
+
+  const emailLabel = document.createElement('label');
+  emailLabel.textContent = 'Email';
+
+  const emailText = document.createElement('p');
+  emailText.className = 'user-email';
+  emailText.textContent = email; // Muestra un mensaje si no hay email
+
+  // Ensamblar el campo de email
+  emailField.appendChild(emailLabel);
+  emailField.appendChild(emailText);
+
+  // Ensamblar el contenedor principal
+  container.appendChild(initialsCircle);
+  container.appendChild(emailField);
+
+  return container;
+}
+
+
+
+
 

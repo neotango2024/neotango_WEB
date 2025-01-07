@@ -196,15 +196,18 @@
         width: 100%;
         padding-left: 0;
         padding-right: 0;
+        
     }
     .related-products-section .product-cards-wrapper{
         overflow: hidden;
         scroll-snap-type: none;
         padding: 0;
+        justify-content: space-between;
     }
     .related-products-section .product-cards-wrapper .product-card{
         flex: 1 1 calc(47.5% - 20px);
-        max-width: calc(33% - 20px);
+        max-width: 250px;
+    max-height: 300px;
     }
 }
 @media(min-width: 1024px){

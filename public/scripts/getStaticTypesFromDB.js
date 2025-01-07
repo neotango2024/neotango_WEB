@@ -62,3 +62,16 @@ export async function setSizes(){
         return console.log(error);        
     }
 }
+
+export let gendersFromDB = [];
+export async function setGenders(){
+    try {
+        let array = (
+            await (await fetch(`${window.location.origin}/api/type/gender`)).json()
+          ).data || [];
+          gendersFromDB = array;
+    } catch (error) {
+        console.log("Falle");
+        return console.log(error);        
+    }
+}

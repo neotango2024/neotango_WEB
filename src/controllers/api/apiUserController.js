@@ -134,12 +134,14 @@ const controller = {
 
       // Datos del body
       let { user_id, first_name, last_name, gender_id } = req.body;
-
+      console.log("USUARIO");
+      console.log(user_id);
+      
       let userFromDB = await getUsersFromDB(user_id);
       if (!userFromDB)
         return res
           .status(404)
-          .json({ ok: false, msg: systemMessages.userMsg.updateFailed.es });
+          .json({ ok: false, msg: systemMessages.userMsg.updateFailed });
       //Nombres y apellidos van capitalziados
       first_name = capitalizeFirstLetterOfEachWord(first_name, true);
       last_name = capitalizeFirstLetterOfEachWord(last_name, true);
@@ -159,7 +161,7 @@ const controller = {
           method: "PUT",
         },
         ok: true,
-        msg: systemMessages.userMsg.updateSuccesfull.es, //TODO: ver tema idioma
+        msg: systemMessages.userMsg.updateSuccesfull,
       });
     } catch (error) {
       console.log(`Falle en apiUserController.updateUser`);
@@ -573,17 +575,18 @@ export async function generateAndInstertEmailCode(user) {
   }
 }
 
-let userIncludeObj = ['tempCartItems','orders',"phones","addresses"];
+let userIncludeArray = ['tempCartItems','orders',"phones","addresses"];
 export async function getUsersFromDB(id) {
   try {
     let usersToReturn, userToReturn
     // Condición si id es un string
     if (typeof id === "string") {
       userToReturn = await db.User.findByPk(id,{
-        include: userIncludeObj
+        include: userIncludeArray
       });
       if(!userToReturn)return null
       userToReturn = userToReturn && getDeepCopy(userToReturn);
+      setUserKeysToReturn(userToReturn);
       return userToReturn;
     }
 
@@ -593,16 +596,17 @@ export async function getUsersFromDB(id) {
         where: {
           id: id, // id es un array, se hace un WHERE id IN (id)
         },
-        include: userIncludeObj
+        include: userIncludeArray
       });
       if(!usersToReturn || !usersToReturn.length)return null
       usersToReturn = getDeepCopy(usersToReturn);
+      usersToReturn.forEach(user => setUserKeysToReturn(user));
       return usersToReturn;
     }
     // Condición si id es undefined
     if (id === undefined) {
       usersToReturn = await db.User.findAll({
-        include: userIncludeObj
+        include: userIncludeArray
       });
       if(!usersToReturn || !usersToReturn.length)return null
       usersToReturn = getDeepCopy(usersToReturn);
@@ -652,3 +656,8 @@ export async function insertUserToDB(obj) {
   }
 }
 
+function setUserKeysToReturn(user){
+  user.phones?.forEach(phone => {
+    phone.country = countries.find(country=>country.id == phone.country_id)
+  });
+}

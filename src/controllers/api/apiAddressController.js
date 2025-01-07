@@ -88,15 +88,9 @@ const controller = {
         });
       }
       // Datos del body
-      let { address_id, street, label, detail, zip_code, city, province, country_id, first_name, last_name } = req.body;
-
-      //Nombres y apellidos van capitalziados
-      first_name = capitalizeFirstLetterOfEachWord(first_name, true);
-      last_name = capitalizeFirstLetterOfEachWord(last_name, true);
+      let { id, street, label, detail, zip_code, city, province, country_id,} = req.body;
       
       let keysToUpdate = {
-        first_name,
-        last_name,
         street,
         label,
         detail,
@@ -106,7 +100,7 @@ const controller = {
         country_id,
       };
       
-      await updateAddressFromDB(keysToUpdate,address_id)
+      await updateAddressFromDB(keysToUpdate,id)
 
       // Le  mando ok con el redirect al email verification view
       return res.status(200).json({
@@ -117,7 +111,7 @@ const controller = {
           redirect: "/user/address"
         },
         ok: true,
-        msg: systemMessages.addressMsg.updateSuccesfull.es, //TODO: ver tema idioma
+        msg: systemMessages.addressMsg.updateSuccesfull,
       });
     } catch (error) {
       console.log(`Falle en apiUserController.updateAddress`);

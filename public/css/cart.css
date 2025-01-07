@@ -83,13 +83,7 @@
     padding: 15px;
     margin-top: 5px;
 }
-.form-container .custom-form select{
-    padding: 7.5px;
-    outline: none;
-    border: none;
-    border-radius: 5px;
-    margin-top: 5px;
-}
+
 .form-container .input-container{
     margin: 10px 0;
     display: flex;

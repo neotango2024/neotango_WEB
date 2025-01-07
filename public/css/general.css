@@ -154,12 +154,19 @@ ul{
     text-transform: uppercase;
     font-size: 20px;
 }
-
+label{
+    font-weight: 600;
+    font-size: 1.25rem;
+}
 .view_message_container{
     position: absolute;
     bottom: 10px;
     right: 0;
     font-size: .8rem;
+    z-index: 100000;
+}
+.ui.icon.input>i.icon{
+    cursor: pointer;
 }
 @media(min-width:768px){
     .mobile-only{

@@ -87,14 +87,14 @@ const controller = {
           });
       }
       // Datos del body
-      let { country_id, phone_number, phone_id } = req.body;
-
+      let { country_id, phone_number, id } = req.body;
+            
       let keysToUpdate = {
         phone_number,
         country_id,
       };
       
-      await updatePhoneFromDB(keysToUpdate,phone_id)
+      await updatePhoneFromDB(keysToUpdate,id)
 
       // Le  mando ok con el redirect al email verification view
       return res.status(200).json({
@@ -105,7 +105,7 @@ const controller = {
           redirect: "/user/phone"
         },
         ok: true,
-        msg: systemMessages.phoneMsg.updateSuccesfull.es, //TODO: ver tema idioma
+        msg: systemMessages.phoneMsg.updateSuccesfull,
       });
     } catch (error) {
       console.log(`Falle en apiPhoneController.updatePhone`);

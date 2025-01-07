@@ -1,0 +1,104 @@
+.main{
+    min-height: 70vh;
+    padding: 0 5vw;
+}
+.main-content-wrapper{
+    display: flex;
+    width: 100%;
+    gap: 20px;
+    flex-wrap: wrap;
+    justify-content: center;
+    padding: 5vh 0;
+}
+.user-info-wrapper{
+    max-width: 300px;
+    margin: 0 auto;
+}
+.user-info-container{
+    width: 100%;
+    justify-content: space-around;
+    
+}
+.user-email-field,
+.user-info-container,
+.gender-container{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+.user-initials-circle{
+    padding: 20px;
+    border-radius: 50%;
+    background: var(--box-shadow-color);
+    font-weight: 600;
+    font-size: 1.5rem;
+}
+.user-info-wrapper .form-container form{
+flex-direction: row;
+flex-wrap: wrap;
+justify-content: space-between;
+}  
+.ui.placeholder.menu-placeholder,
+.ui.placeholder.image-placeholder{
+    height: 55vh;
+}
+.ui.placeholder.menu-placeholder{
+    margin-top: 9.5vh;
+    display: none;
+}
+.user-info-placeholder{
+    width: 60%;
+    height: 55vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+.user-info-placeholder >* {
+    width: 100%;
+}
+.ui.placeholder.image-placeholder{
+    max-height: 65px;
+    max-width: 65px;
+}
+.ui.placeholder.image-placeholder .image{
+max-width: 100px;
+}
+@media(min-width: 768px){
+    .main{
+        padding: 0;
+        padding-left: 5vw;
+    }
+    .main .user-menu-btn{
+        width: 40%;
+    }
+    .main .main-content-wrapper{
+        width: 60%;
+        padding: 2.5vh 0;
+    }
+    .main >div{
+        margin: 6.5vh 0px;
+    }
+    .main>.main-content-wrapper{
+        margin: 6.5vh auto;
+    }
+    .main-content-wrapper.address-wrapper{
+        padding: 0;
+        justify-content: flex-start;
+        margin-left: 2.5vw;
+    }
+    .ui.placeholder.menu-placeholder{
+        display: block;
+        width: 40%;
+    }
+}
+@media(min-width: 1024px){
+    .ui.placeholder.menu-placeholder{
+        width: 30%;
+    }
+    .main .user-menu-btn{
+        width: 30%;
+    }
+    .main .main-content-wrapper{
+        width: 70%;
+    }
+}

@@ -7,7 +7,7 @@ let products;
 window.addEventListener('DOMContentLoaded', async () => {
     const isCategoryView = pathname.includes('/categoria/1') || pathname.includes('/categoria/2');
     if (!isCategoryView) return;
-    await setProductsFromDB(1);
+    await setProductsFromDB({categoryId: 1});
     products = productsFromDB;
     handleRenderProductList(products);
     translateCategoryTitle();

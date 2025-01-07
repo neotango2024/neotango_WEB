@@ -1,8 +1,9 @@
 import { cartExportObj } from "./cart.js";
 import { checkForUserLogged, userLogged } from "./checkForUserLogged.js";
-import { createUserSignUpModal } from "./componentRenderer.js";
+import { createAddressModal, createPhoneModal, createUserSignUpModal } from "./componentRenderer.js";
 import { countriesFromDB } from "./getStaticTypesFromDB.js";
 import { isInSpanish } from "./languageHandler.js";
+import { userProfileExportObj } from "./userProfile.js";
 
 export function activateAccordions() {
     $('.ui.accordion').accordion(); // Activa los acordeones
@@ -89,15 +90,18 @@ export function generateRandomString(length){
 }
 
 export let productsFromDB = [];
-
-//TODO: Unificar juntos
-export async function setProductsFromDB(categoryId, limit, offset) {
+export async function setProductsFromDB({categoryId, limit, offset, id}) {
   try {
       const queryParams = new URLSearchParams();
-
       if (categoryId) queryParams.append('categoryId', categoryId);
       if (limit) queryParams.append('limit', limit);
       if (offset) queryParams.append('offset', offset);
+      // Agregar los valores del array `id` a los parámetros de la query
+      if (Array.isArray(id)) {
+        id.forEach((value) => queryParams.append('productId', value));
+      } else if (id) {
+        queryParams.append('productId', id);
+      }
       const url = `${window.location.origin}/api/product?${queryParams.toString()}`;    
   
       let array = (
@@ -109,36 +113,25 @@ export async function setProductsFromDB(categoryId, limit, offset) {
       console.log(`Falle en setProductsFromDB: ${error}`);
   }
 }
-export let productFromDB = null;
-export async function setProductFromDB(ids) {
+
+export let variationsFromDB = [];
+export async function setVariationsFromDB(id) {
   try {
-      // Construir la query string dependiendo de si es un único id o un array de ids
-      let query;
-      if (Array.isArray(ids)) {
-          query = ids.map(id => `productId[]=${encodeURIComponent(id)}`).join("&");
-      } else {
-          query = `productId=${encodeURIComponent(ids)}`;
+      const queryParams = new URLSearchParams();
+      // Agregar los valores del array `id` a los parámetros de la query
+      if (Array.isArray(id)) {
+        id.forEach((value) => queryParams.append('variationId', value));
+      } else if (id) {
+        queryParams.append('variationId', id);
       }
-
-      // Construir la URL con la query
-      const url = `${window.location.origin}/api/product?${query}`;
-      
-      // Hacer la petición
-      const response = await fetch(url);
-      const result = await response.json();
-
-      // Validar y asignar datos
-      const array = result.data || [];
-      if (!array.length) return null;
-      if (Array.isArray(ids)) {
-        productsFromDB = array;
-        return
-      };
-      productFromDB = array[0];
-      return
+      const url = `${window.location.origin}/api/variation?${queryParams.toString()}`;//TODO: 
+  
+      let array = (
+        await (await fetch(url)).json()
+      ).data || [];
+      variationsFromDB = array;
   } catch (error) {
-      console.log(`Falle en setProductFromDB: ${error}`);
-      return null;
+      console.log(`Falle en setVariationsFromDB: ${error}`);
   }
 }
 //busca y pinta el primer loader de un contenedor
@@ -167,7 +160,7 @@ export function handlePageModal(boolean){
   return;
 }
 
-export function activateDropdown(className, array, placeHolder){
+export function activateDropdown({className, array, placeHolder,values}){
   $(className)?.each(function () {
     let search = $(this);
     if (!search?.find("option")?.length && countriesFromDB?.length) {
@@ -195,7 +188,7 @@ export function activateDropdown(className, array, placeHolder){
         elem.append(option);
       });
       // Hacer algo si hay más de una opción
-      elem.dropdown({
+      elem.dropdown("set selected", values).dropdown({
         fullTextSearch: "exact",
         clearable: true,
         forceSelection: false,
@@ -236,31 +229,45 @@ function checkForAllModalRequiredFields(){
     if(!element.value){
       flag = false;
       field.classList.add('error');
+    };
+    //De paso le agrego si no tiene el listened un event change para sacarle la clase
+    if(!element.dataset.listened){
+      element.dataset.listened = true;
+      element.addEventListener('input',(e)=>{
+        let field = element.closest('.field')
+        e.target.value ? field.classList.remove('error') : field.classList.add('error');
+      })
     }
   });
   return flag;
 };
 
 //Esto maneja todos los post que se hacen en un modal, para ver los parametros en cart.js se invoca
-export async function handleModalCreation({entityType, buildBodyData, saveGuestEntity, updateElements, postToDatabase }){
-  try {    
+export async function handleModalCreation({entityType, buildBodyData, saveGuestEntity, updateElements, postToDatabase, validateFormFunction, method }){
+  try {  
+  const modal = document.querySelector('.ui.modal')  
    const submitButton = document.querySelector('.ui.modal .send-modal-form-btn');
    const form = document.querySelector('.ui.form');
    if (!submitButton || !form) {
     throw new Error(`Form or submit button not found for ${entityType}`);
   }
   let formIsOK = handleModalCheckForComplete();
-     if(!formIsOK)return;
+  if(!formIsOK)return;
+  if(validateFormFunction) formIsOK = validateFormFunction(form);
+  if(!formIsOK)return;
      //ACa sigo, pinto loading el boton
      submitButton.classList.add('loading');
     // Armo el bodyData con lo que viene de parametro
     // Construir el bodyData con la función personalizada
     const bodyData = buildBodyData(form);
+    if(method == "PUT"){
+      bodyData.id = modal.dataset.db_id;
+    }
     if(entityType == 'user'){
       //Aca es para los forms de user
       if (postToDatabase) {
         try {
-          await postToDatabase(bodyData);
+          await postToDatabase(bodyData, method);
         } catch (error) {
           console.error(`Error posting ${entityType} to database`, error);
           submitButton.classList.remove('loading');
@@ -275,7 +282,7 @@ export async function handleModalCreation({entityType, buildBodyData, saveGuestE
        bodyData.user_id = userLogged.id;
        if (postToDatabase) {
         try {
-          await postToDatabase(bodyData);
+          await postToDatabase(bodyData,method);
         } catch (error) {
           console.error(`Error posting ${entityType} to database`, error);
           submitButton.classList.remove('loading');
@@ -339,6 +346,21 @@ export function buildUserLoginBodyData(form){
   }
 }
 
+export function toggleInputPasswordType(event){
+  if(!event)return
+  const input = event.target?.closest('.icon.input')?.querySelector('input');
+  if(!event.target?.classList?.contains('slash')){
+    //Aca muestro la contrasena
+    input.type = 'text';
+    event.target?.classList.add('slash');
+    return
+  };
+  //Aca ocultto la contrasena
+  input.type = 'password';
+  event.target?.classList?.remove('slash');
+  return
+}
+
 
 
 //Una vez que se crea la entidad, ahi dependiendo si es en carro o profile tengo que hacer algo
@@ -351,9 +373,9 @@ export async function updateAddressElements(){
       if (path.endsWith('/carro')) {
           // Lógica específica para la página del carrito
           await cartExportObj.paintCheckoutAddressesSelect();
-      } else if (path.endsWith('/perfil')) {
+      } else if (path.includes('/perfil')) {
           // Lógica específica para la página del perfil
-          // TODO: UpdatePhoneCards
+          await userProfileExportObj.pageConstructor();
       }
   } catch (error) {
     return console.log(error);
@@ -370,7 +392,8 @@ export async function updatePhoneElements(){
       await cartExportObj.paintCheckoutPhoneSelect();
   } else if (path.endsWith('/perfil')) {
       // Lógica específica para la página del perfil
-      // TODO: UpdatePhoneCards
+      // Lógica específica para la página del perfil
+      await userProfileExportObj.pageConstructor();
   }
   } catch (error) {
     return console.log(error);
@@ -378,9 +401,9 @@ export async function updatePhoneElements(){
 };
 
 //Crea y actualiza los valores de phone & address del usuario loggeado (se supone que solo creamos phone & address de los usuarios)
-export async function handlePhoneCreateFetch(bodyData){
+export async function handlePhoneFetch(bodyData, method){
   let response = await fetch('/api/phone', {
-    method: 'POST',
+    method: method,
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(bodyData),
   });
@@ -388,12 +411,23 @@ export async function handlePhoneCreateFetch(bodyData){
   if(response.ok){
     response = response.ok &&  await response.json();
     //Aca dio ok, entonces al ser de un usuario actualizo al usuarioLogged.phones
-    userLogged.phones?.push(response.phone)
+    if(method == "POST"){
+      //Aca agrego
+      userLogged.phones?.push(response.phone)
+    } else if(method == "PUT"){
+      //Aca modifico, tengo que modificar en el array de userlogged
+      let phoneToChangeIndex = userLogged.phones?.findIndex(phoneFromDB => phoneFromDB.id ==  bodyData.id);
+      if(phoneToChangeIndex < 0) return;
+      bodyData.country = countriesFromDB.find(counFromDB => counFromDB.id == bodyData.country_id);// Esto es para que me lleve la entidad y poder pintar el nombre del pais   
+      userLogged.phones[phoneToChangeIndex] = bodyData;
+    };
+    let responseMsg = isInSpanish ? response.msg.es : response.msg.en
+    showCardMessage(true, responseMsg);
   }
 };
-export async function handleAddressCreateFetch(bodyData){
+export async function handleAddressFetch(bodyData, method){
   let response = await fetch('/api/address', {
-    method: 'POST',
+    method: method,
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(bodyData),
   });
@@ -401,9 +435,20 @@ export async function handleAddressCreateFetch(bodyData){
   if(response.ok){
     response = response.ok &&  await response.json();
     //Aca dio ok, entonces al ser de un usuario actualizo al usuarioLogged.phones
-    userLogged.addresses?.push(response.address);
+    if(method == "POST"){
+      //Aca agrego
+      userLogged.addresses?.push(response.address)
+    } else if(method == "PUT"){
+      //Aca modifico, tengo que modificar en el array de userlogged
+      let addressToChangeIndex = userLogged.addresses?.findIndex(addressFromDB => addressFromDB.id ==  bodyData.id);
+      if(addressToChangeIndex<0)return       
+      userLogged.addresses[addressToChangeIndex] = bodyData;
+    };
+    let responseMsg = isInSpanish ? response.msg.es : response.msg.en
+    showCardMessage(true, responseMsg)
   }
-}
+};
+
 export async function handleUserLoginFetch(bodyData){
   let response = await fetch('/api/user/login', {
     method: 'POST',
@@ -522,3 +567,18 @@ export function handleUserSignUpClick(){
   createUserSignUpModal();
   handlePageModal(true)
 }
+
+
+//Estas funciones pintan y activan el modal de telefonos/direcciones
+    export const handleNewPhoneButtonClick = async (phone = undefined)=>{
+        await createPhoneModal(phone);
+        // Abro el modal
+        handlePageModal(true);
+        // await listenToPhoneCreateBtn()//hago el fetch para crear ese telefono
+        
+    }
+    export const handleNewAddressButtonClick = async (address = undefined)=>{      
+        await createAddressModal(address);
+        // Abro el modal
+        handlePageModal(true);
+    }; 

@@ -16,3 +16,17 @@
     border: 1px solid var(--grey-color);
     border-radius: 5px;
 }
+
+.form-container select{
+    padding: 7.5px;
+    outline: none;
+    border: none;
+    border-radius: 5px;
+    margin-top: 5px;
+}
+.form-container .button-container{
+    margin-top: 2.5vh;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+}

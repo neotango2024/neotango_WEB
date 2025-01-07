@@ -6,39 +6,17 @@
     padding: 10px 20px;
     border-radius: 1.2rem;
     border: 1px solid var(--black-transparent-color);
-    
+    justify-content: space-between;
 }
+
 .address_card .card_top_content{
     justify-content: space-between;
 }
-.address_card .card-header{
-    font-size: clamp(1rem, 2vw + .2rem, 1.25rem);
-}
-.address_card .card_content{
-    width: 100%;
-    height: fit-content;
-    justify-content: flex-start;
-    padding-left: 0;
-    margin-bottom: 5px;
-}
-.address_card .card_link{
-    color: var(--red-color);;
-}
-.address_card .card_link:first-child{
-    border-right: 2.5px solid var(--red-color);
-    padding-right: 8.5px;
-}
-.address_card .card_link:nth-child(2){
-    margin-left: 8.5px;
-}
-.default_address_marker{
-    border: 1px solid;
-    border-radius: 3.5px;
-    width: 15px;
-    height: 15px;
-}
-.default_address_marker_active{
-    background-color: var(--red-color);
+
+@media(min-width:768px){
+    .address_card.card_empty{
+        padding: 0;
+    }
 }
 @media(min-width:1024px){
     

@@ -2,10 +2,11 @@ import { translateNavbar } from "./header.js";
 import { handleTranslateFeatureProducts, translateCompanyInfo } from "./index.js";
 import {setLocalStorageItem, getLocalStorageItem} from './localStorage.js';
 import { userLogged } from "./checkForUserLogged.js";
-import { productFromDB, productsFromDB, toggleBodyScrollableBehavior, toggleOverlay } from './utils.js';
+import { productsFromDB, toggleBodyScrollableBehavior, toggleOverlay } from './utils.js';
 import { cartExportObj } from "./cart.js";
 import { productDetailExportObj } from "./productDetail.js";
 import { handleTranslateCategoryProducts, translateCategoryTitle, translateFilters } from "./productList.js";
+import { userProfileExportObj } from "./userProfile.js";
 
 export let settedLanguage = null;
 export let isInSpanish = true;
@@ -86,13 +87,17 @@ const handleChangeLanguage = async(param) => { //param es esp/eng
             cartExportObj.pageConstructor && await cartExportObj.pageConstructor();
             break;
         case 'productDetail': //Aca repinto el detalle
-            productFromDB && productDetailExportObj.createProductDetailsSection(productFromDB);
+            productsFromDB.length && productDetailExportObj.createProductDetailsSection(productsFromDB[0]);
             productDetailExportObj.paintRelatedProductCards && productsFromDB && productDetailExportObj.paintRelatedProductCards();
             break;
         case 'category':
             translateCategoryTitle();
             translateFilters();
             handleTranslateCategoryProducts();
+            break
+        case 'profile':
+            userProfileExportObj.pageConstructor && userProfileExportObj.pageConstructor();
+           break
         default:
             break;
     }

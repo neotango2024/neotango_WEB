@@ -19,7 +19,7 @@ window.addEventListener('DOMContentLoaded', () => {
         checkForShopDropdownClicks();
     }
     checkForUserIconClicks();
-    renderFormAndButton();
+    // renderFormAndButton();
     paintUserIconOrLetter();
 })
 
@@ -96,60 +96,60 @@ const toggleLoginModal = () => {
     }
 }
 
-const renderFormAndButton = () => {
-    const localStorageItem = getLocalStorageItem('language');
-    const settedLanguage = userLogged && userLogged.language ? userLogged.language : localStorageItem ? localStorageItem : null;
+// const renderFormAndButton = () => {
+//     const localStorageItem = getLocalStorageItem('language');
+//     const settedLanguage = userLogged && userLogged.language ? userLogged.language : localStorageItem ? localStorageItem : null;
 
-    const inputProps = [
-        {
-            placeholder: 'Email',
-            name: 'email',
-            required: true,
-            width: 75,
-        },
-        {
-            placeholder: settedLanguage === english  ? 'Password' : 'Contraseña',
-            name: 'password',
-            type: 'password',
-            className: 'pasword-input',
-            required: true,
-            width: 75,
-            datasetObject: {
-                dataKey: 'translation',
-                dataValue: 'password'
-            }
-        }
-    ];
-    const formTitleObject = {
-        title: settedLanguage === english  ? 'Sign in' : 'Iniciar sesión',
-        datasetObject: {
-            dataKey: 'translation',
-            dataValue: 'title'
-        }
-    }
-    const formAction = '/user/login';
-    const formProps = {
-        inputProps,
-        formTitleObject,
-        formAction,
-    }
-    const formContainerCreated = form(formProps);
-    const modal = document.querySelector('.no-logged-user-modal');
-    modal.appendChild(formContainerCreated);
+//     const inputProps = [
+//         {
+//             placeholder: 'Email',
+//             name: 'email',
+//             required: true,
+//             width: 75,
+//         },
+//         {
+//             placeholder: settedLanguage === english  ? 'Password' : 'Contraseña',
+//             name: 'password',
+//             type: 'password',
+//             className: 'pasword-input',
+//             required: true,
+//             width: 75,
+//             datasetObject: {
+//                 dataKey: 'translation',
+//                 dataValue: 'password'
+//             }
+//         }
+//     ];
+//     const formTitleObject = {
+//         title: settedLanguage === english  ? 'Sign in' : 'Iniciar sesión',
+//         datasetObject: {
+//             dataKey: 'translation',
+//             dataValue: 'title'
+//         }
+//     }
+//     const formAction = '/user/login';
+//     const formProps = {
+//         inputProps,
+//         formTitleObject,
+//         formAction,
+//     }
+//     const formContainerCreated = form(formProps);
+//     const modal = document.querySelector('.no-logged-user-modal');
+//     modal.appendChild(formContainerCreated);
 
-    const buttonProps = {
-        text: settedLanguage === english ? 'Sign in' : 'Iniciar sesión',
-        width: 75,
-        fontSize: 100,
-        container: 'custom-form',
-        datasetObject: {
-            dataKey: 'translation',
-            dataValue: 'signIn'
-        }
-    }
-    const buttonCreated = button(buttonProps);
-    formContainerCreated.append(buttonCreated);
-}
+//     const buttonProps = {
+//         text: settedLanguage === english ? 'Sign in' : 'Iniciar sesión',
+//         width: 75,
+//         fontSize: 100,
+//         container: 'custom-form',
+//         datasetObject: {
+//             dataKey: 'translation',
+//             dataValue: 'signIn'
+//         }
+//     }
+//     const buttonCreated = button(buttonProps);
+//     formContainerCreated.append(buttonCreated);
+// }
 
 export const translateNavbar = () => {
     const linksContent = document.querySelectorAll('.page-link-item');

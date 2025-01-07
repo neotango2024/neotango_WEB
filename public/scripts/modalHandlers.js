@@ -1,14 +1,16 @@
+import { validateUserSignUpForm } from "./formValidators.js";
 import { setLocalStorageItem } from "./localStorage.js";
-import { buildAddressBodyData, buildPhoneBodyData, buildUserLoginBodyData, buildUserSignUpBodyData, handleAddressCreateFetch, handleModalCreation, handlePhoneCreateFetch, handleUserLoginFetch, handleUserSignUpFetch, updateAddressElements, updatePhoneElements } from "./utils.js";
+import { buildAddressBodyData, buildPhoneBodyData, buildUserLoginBodyData, buildUserSignUpBodyData, handleAddressFetch, handleModalCreation, handlePhoneFetch, handleUserLoginFetch, handleUserSignUpFetch, updateAddressElements, updatePhoneElements } from "./utils.js";
 
-export async function handlePhoneCreateModal(){
+export async function handlePhoneModalActions(phone = undefined){
 try {
     await handleModalCreation({
         entityType: 'phone',
+        method: phone ? "PUT" : "POST",
         buildBodyData: buildPhoneBodyData,
         saveGuestEntity: (bodyData) => setLocalStorageItem("guestPhones", bodyData,  true), //El true es porque es array
         updateElements: updatePhoneElements, // Funcion que actualiza el select de phones,
-        postToDatabase: handlePhoneCreateFetch
+        postToDatabase: handlePhoneFetch
       })//hago el fetch para crear ese telefono
 } catch (error) {
     return console.log(error);
@@ -19,6 +21,7 @@ export async function handleUserLoginModal(){
 try {
     await handleModalCreation({
         entityType: 'user',
+        method: "POST",
         buildBodyData: buildUserLoginBodyData,
         postToDatabase: handleUserLoginFetch
       })//hago el fetch para crear ese telefono
@@ -30,22 +33,25 @@ export async function handleUserSignUpModal(){
 try {
     await handleModalCreation({
         entityType: 'user',
+        method: "POST",
         buildBodyData: buildUserSignUpBodyData,
-        postToDatabase: handleUserSignUpFetch
+        postToDatabase: handleUserSignUpFetch,
+        validateFormFunction: validateUserSignUpForm
       })//hago el fetch para crear ese telefono
 } catch (error) {
     return console.log(error);
 }
 }
 
-export async function handleAddressCreateModal(){
+export async function handleAddressModalActions(address = undefined){
 try {
     await handleModalCreation({
         entityType: 'address',
+        method: address ? "PUT" : "POST",
         buildBodyData: buildAddressBodyData,
         saveGuestEntity: (bodyData) => setLocalStorageItem("guestAddresses", bodyData, true), //El true es porque es array
         updateElements: updateAddressElements, // Funcion que actualiza el select de phones
-        postToDatabase: handleAddressCreateFetch
+        postToDatabase: handleAddressFetch
       })//hago el fetch para crear esa address
 } catch (error) {
     return console.log(error);

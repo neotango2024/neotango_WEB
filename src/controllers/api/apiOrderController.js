@@ -19,12 +19,29 @@ import getDeepCopy from "../../utils/helpers/getDeepCopy.js";
 import countries from "../../utils/staticDB/countries.js";
 import sendVerificationCodeMail from "../../utils/helpers/sendverificationCodeMail.js";
 import ordersStatuses from "../../utils/staticDB/ordersStatuses.js";
-import { generateAddressObject, getAddresesFromDB, getUserAddressesFromDB, insertAddressToDB } from "./apiAddressController.js";
+import {
+  generateAddressObject,
+  getAddresesFromDB,
+  getUserAddressesFromDB,
+  insertAddressToDB,
+} from "./apiAddressController.js";
 import getFileType from "../../utils/helpers/getFileType.js";
-import { destroyFilesFromAWS, getFilesFromAWS, uploadFilesToAWS } from "../../utils/helpers/awsHandler.js";
-import { findProductsInDb, getVariationsFromDB } from "./apiProductController.js";
+import {
+  destroyFilesFromAWS,
+  getFilesFromAWS,
+  uploadFilesToAWS,
+} from "../../utils/helpers/awsHandler.js";
+import {
+  findProductsInDb,
+  getVariationsFromDB,
+} from "./apiProductController.js";
 import generateRandomNumber from "../../utils/helpers/generateRandomNumber.js";
-import { generatePhoneObject, getPhonesFromDB, getUserPhonesFromDB, insertPhoneToDB } from "./apiPhoneController.js";
+import {
+  generatePhoneObject,
+  getPhonesFromDB,
+  getUserPhonesFromDB,
+  insertPhoneToDB,
+} from "./apiPhoneController.js";
 import { getMappedErrors } from "../../utils/helpers/getMappedErrors.js";
 
 // ENV
@@ -33,13 +50,16 @@ const webTokenSecret = process.env.JSONWEBTOKEN_SECRET;
 const controller = {
   getOrders: async (req, res) => {
     try {
-      let {limit, offset} = req.query
-      limit = limit && parseInt(limit) || undefined;
-      offset = limit && parseInt(req.query.offset) || 0;
+      let { limit, offset, order_id, user_id } = req.query;
+      limit = (limit && parseInt(limit)) || undefined;
+      offset = (limit && parseInt(req.query.offset)) || 0;
+      order_id = order_id || undefined;
+      user_id = user_id || undefined;
       let ordersFromDB = await getOrdersFromDB({
-        orderIncludeArray,
-        limit, 
-        offset
+        id: order_id,
+        limit,
+        offset,
+        user_id
       });
 
       // Mando la respuesta
@@ -47,7 +67,7 @@ const controller = {
         meta: {
           status: 201,
           path: "/api/order/",
-          method: "GET"
+          method: "GET",
         },
         ok: true,
         orders: ordersFromDB,
@@ -65,19 +85,19 @@ const controller = {
       if (!errors.isEmpty()) {
         //Si hay errores en el back...
         //Para saber los parametros que llegaron..
-        let {errorsParams,errorsMapped} = getMappedErrors(errors);
+        let { errorsParams, errorsMapped } = getMappedErrors(errors);
         return res.status(422).json({
-            meta: {
-                status: 422,
-                url: '/api/order',
-                method: "POST"
-            },
-            ok: false,
-            errors: errorsMapped,
-            params: errorsParams,
-            msg: systemMessages.formMsg.validationError.es
+          meta: {
+            status: 422,
+            url: "/api/order",
+            method: "POST",
+          },
+          ok: false,
+          errors: errorsMapped,
+          params: errorsParams,
+          msg: systemMessages.formMsg.validationError.es,
         });
-      };
+      }
       let {
         variations,
         user_id,
@@ -91,37 +111,36 @@ const controller = {
         payment_types_id,
         shipping_types_id,
         variationsFromDB, //Del middleware
-        language //TODO: Cambiar modelos y setear dependiendo lo que llegue
-        } = req.body
+        language, //TODO: Cambiar modelos y setear dependiendo lo que llegue
+      } = req.body;
       // Si esta logueado y no tenia los nros y direcciones armadas...
-      if(!billingAddress.id && user_id){ 
-          let billingAddressObjToDB = generateAddressObject(billingAddress);    
-          billingAddressObjToDB.user_id = user_id; //Si hay usuario loggeado lo agrego a esta
-          let createdAddress = await insertAddressToDB(billingAddressObjToDB);
-          if(!createdAddress) return res.status(502).json();
-          billingAddress.id = billingAddressObjToDB.id; //lo dejo seteado asi despues puedo acceder
-      } else if(billingAddress?.id){
+      if (!billingAddress.id && user_id) {
+        let billingAddressObjToDB = generateAddressObject(billingAddress);
+        billingAddressObjToDB.user_id = user_id; //Si hay usuario loggeado lo agrego a esta
+        let createdAddress = await insertAddressToDB(billingAddressObjToDB);
+        if (!createdAddress) return res.status(502).json();
+        billingAddress.id = billingAddressObjToDB.id; //lo dejo seteado asi despues puedo acceder
+      } else if (billingAddress?.id) {
         //Si vino el id, busco la address y la dejo desde db porlas
-        billingAddress = await getAddresesFromDB(billingAddress.id)
+        billingAddress = await getAddresesFromDB(billingAddress.id);
       }
-      if(!shippingAddress.id && user_id){ 
-          let shippingAddressObjToDB = generateAddressObject(shippingAddress);
-          shippingAddressObjToDB.user_id = user_id; //Si hay usuario lo agrego a esta
-          let createdAddress = await insertAddressToDB(shippingAddressObjToDB);
-          if(!createdAddress) return res.status(502).json();
-          shippingAddress.id = shippingAddressObjToDB.id; //lo dejo seteado asi despues puedo acceder     
-      } else if(shippingAddress?.id){
+      if (!shippingAddress.id && user_id) {
+        let shippingAddressObjToDB = generateAddressObject(shippingAddress);
+        shippingAddressObjToDB.user_id = user_id; //Si hay usuario lo agrego a esta
+        let createdAddress = await insertAddressToDB(shippingAddressObjToDB);
+        if (!createdAddress) return res.status(502).json();
+        shippingAddress.id = shippingAddressObjToDB.id; //lo dejo seteado asi despues puedo acceder
+      } else if (shippingAddress?.id) {
         //Si vino el id, busco la address y la dejo desde db porlas
-        shippingAddress = await getAddresesFromDB(shippingAddress.id)
+        shippingAddress = await getAddresesFromDB(shippingAddress.id);
       }
-      if(!phoneObj?.id && user_id){
-        let phoneObjToDB = generatePhoneObject({...phoneObj, user_id});
+      if (!phoneObj?.id && user_id) {
+        let phoneObjToDB = generatePhoneObject({ ...phoneObj, user_id });
         let createdPhone = await insertPhoneToDB(phoneObjToDB);
-        if(!createdPhone) return res.status(502).json(); 
-        if(user_id) phoneObjToDB.user_id = user_id; //Si hay usuario lo agrego a esta
-
-      } else if(phoneObj?.id){
-        phoneObj = getPhonesFromDB(phoneObj.id)
+        if (!createdPhone) return res.status(502).json();
+        if (user_id) phoneObjToDB.user_id = user_id; //Si hay usuario lo agrego a esta
+      } else if (phoneObj?.id) {
+        phoneObj = getPhonesFromDB(phoneObj.id);
       }
       // Armo el objeto del pedido
       const randomString = generateRandomNumber(10);
@@ -136,7 +155,7 @@ const controller = {
         phoneObj, //{}
         billingAddress,
         shippingAddress,
-        order_status_id: shipping_types_id == 1 ? 2 : 3,//Si es con shipping una vez la compran queda "pendiente de envio", sino queda pendiente de recoleccion
+        order_status_id: shipping_types_id == 1 ? 2 : 3, //Si es con shipping una vez la compran queda "pendiente de envio", sino queda pendiente de recoleccion
         shipping_types_id,
         payment_types_id,
       };
@@ -145,7 +164,9 @@ const controller = {
       let orderItemsToDB = [];
       variations.forEach((variation) => {
         // Agarro el producto de DB
-        let variationFromDBIndex = variationsFromDB.findIndex(variationFromDB=> variationFromDB.id == variation.id);
+        let variationFromDBIndex = variationsFromDB.findIndex(
+          (variationFromDB) => variationFromDB.id == variation.id
+        );
         let variationFromDB = variationsFromDB[variationFromDBIndex];
         let { quantityRequested } = variation; //Tengo que chequear con esa variacion
         quantityRequested = parseInt(quantityRequested); //Lo parseo
@@ -153,27 +174,28 @@ const controller = {
         variationFromDB.quantity -= quantityRequested; //Le resto el stock
         //Hago el snapshot del  precio y nombre
         let orderItemName = variationFromDB.product?.name;
-        let orderItemPrice = variationFromDB.product?.price && parseFloat(variationFromDB.product.price);
+        let orderItemPrice =
+          variationFromDB.product?.price &&
+          parseFloat(variationFromDB.product.price);
         let orderItemQuantity = parseInt(quantityRequested);
         // Voy armando el array de orderItems para hacer un bulkcreate
         let orderItemData = {
-            id: uuidv4(),
-            order_id: orderDataToDB.id,
-            product_id: variationFromDB.product_id,
-            name: orderItemName,
-            price: orderItemPrice,
-            quantity: orderItemQuantity,
-            discount: 0, //Si hace el upgrade va a poder setear esto
-        }
+          id: uuidv4(),
+          order_id: orderDataToDB.id,
+          product_id: variationFromDB.product_id,
+          name: orderItemName,
+          price: orderItemPrice,
+          quantity: orderItemQuantity,
+          discount: 0, //Si hace el upgrade va a poder setear esto
+        };
         orderItemsToDB.push(orderItemData);
       });
       //Aca ya reste a las variaciones el stock, mapeo y dejo solo id y stock para luego hacer el bulkupdate de eso nomas
-      variationsFromDB = variationsFromDB.map(variationFromDB => ({
+      variationsFromDB = variationsFromDB.map((variationFromDB) => ({
         id: variationFromDB.id,
         quantity: variationFromDB.quantity,
-      }))
+      }));
       // Hasta aca ya arme todo. (BillingAddress - Order - OrderItem - ShippingAddress) ==> Tengo que insertar en la DB
-
 
       // Tema total price
       let orderTotalPrice = 0;
@@ -193,17 +215,18 @@ const controller = {
         }
       );
       //Si la orden se creo ok, hago el bulkupdate de las variations
-      variationsFromDB.length && await db.Variation.bulkCreate(variationsFromDB,{
-        updateOnDuplicate: ['quantity']
-      });
-      orderCreated = await getOrderByPK(orderDataToDB.id);
-      // Borro los temp items si es que viene usuario loggeado 
-      if(user_id){
+      variationsFromDB.length &&
+        (await db.Variation.bulkCreate(variationsFromDB, {
+          updateOnDuplicate: ["quantity"],
+        }));
+      orderCreated = await getOrdersFromDB({id : orderDataToDB.id});
+      // Borro los temp items si es que viene usuario loggeado
+      if (user_id) {
         await db.TempCartItem.destroy({
           where: {
-            user_id
-          }
-        })
+            user_id,
+          },
+        });
       }
       // await sendOrderMails(orderCreated); //TODO:
       // Mando la respuesta
@@ -213,9 +236,9 @@ const controller = {
         },
         ok: true,
         order_id: orderCreated.tra_id,
-        msg: systemMessages.orderMsg.create.es, //TODO: ver
+        msg: systemMessages.orderMsg.create, //TODO: ver
         //Si paga con tarjetas lo tengo que redirigir, sino le pongo false y termina ahi
-        redirect: '/',
+        redirect: "/",
       });
     } catch (error) {
       console.log(`Falle en apiOrderController.createOrder`);
@@ -235,28 +258,28 @@ const controller = {
         // Ver como definir los errors
         // return res.send(errors)
         return res.status(422).json({
-            meta: {
-                status: 422,
-                url: '/api/user',
-                method: "POST"
-            },
-            ok: false,
-            errors,
-            msg: systemMessages.formMsg.validationError.es
+          meta: {
+            status: 422,
+            url: "/api/user",
+            method: "POST",
+          },
+          ok: false,
+          errors,
+          msg: systemMessages.formMsg.validationError.es,
         });
       }
 
       // Datos del body
       let { order_id, order_status_id } = req.body;
 
-      let orderFromDB = await getOrderByPK(order_id);
+      let orderFromDB = await getOrdersFromDB({id: order_id});
       if (!orderFromDB)
         return res
           .status(404)
-          .json({ ok: false, msg: systemMessages.orderMsg.updateFailed.es });
-          
+          .json({ ok: false, msg: systemMessages.orderMsg.updateFailed });
+
       let keysToUpdate = {
-        order_status_id
+        order_status_id,
       };
 
       await db.Order.update(keysToUpdate, {
@@ -285,37 +308,45 @@ const controller = {
 
 export default controller;
 
+let orderIncludeArray = ["user", "orderItems"];
 
-let orderIncludeArray = [
-    'user',
-    'orderItems',
-];
-
-export async function getOrderByPK(id) {
+export async function getOrdersFromDB({ id, limit, offset, user_id }) {
   try {
-  //busco la orden
-  let order = await db.Order.findByPk(id,{
-    include: orderIncludeArray
-  });
-  console.log(order);
-  
-  if(!order)return null
-  order = getDeepCopy(order)
-  return order
-  } catch (error) {
-    console.log(`Falle en getOrderByPK`);
-    return console.log(error);
-  }
-}
-export async function getOrdersFromDB() {
-  try {
-  //busco las ordenes
-  let orders = await db.Order.findAll({
-    include: orderIncludeArray
-  });
-  if(!orders.length) return []
-  orders = getDeepCopy(orders)
-  return orders
+    let orderToReturn, ordersToReturn;
+    if (typeof id === "string") {
+      orderToReturn = await db.AddrOrderess.findByPk(id, {
+        include: orderIncludeArray,
+      });
+      if (!orderToReturn) return null;
+      orderToReturn = orderToReturn && getDeepCopy(orderToReturn);
+      return orderToReturn;
+    }
+    // Condición si id es un array
+    else if (Array.isArray(id)) {
+      ordersToReturn = await db.Address.findAll({
+        where: {
+          id: id, // id es un array, se hace un WHERE id IN (id)
+        },
+        include: addressIncludeArray,
+      });
+    }
+    // Condición si id es undefined
+    else if (id === undefined) {
+      ordersToReturn = await db.Address.findAll({
+        include: addressIncludeArray,
+      });
+    } else if (user_id) {
+      //Aca busco por ordenes de un user
+      ordersToReturn = await db.Address.findAll({
+        where: {
+          user_id,
+        },
+        include: addressIncludeArray,
+      });
+    }
+    if (!ordersToReturn || !ordersToReturn.length) return [];
+    ordersToReturn = getDeepCopy(ordersToReturn);
+    return ordersToReturn;
   } catch (error) {
     console.log(`Falle en getOrders`);
     return console.log(error);
@@ -323,35 +354,40 @@ export async function getOrdersFromDB() {
 }
 
 //Esta funcion toma el objeto y le hace una "foto" de las entidades que luego pueden cambiar
-//En db necesitamos almacenar los datos que perduren, ej si se cambia la address tiene que 
+//En db necesitamos almacenar los datos que perduren, ej si se cambia la address tiene que
 //salir la misma que se compro no puede salir la actualizada, mismo con nombre de item,phone,etc
-function createOrderEntitiesSnapshot(obj){
-    let {billingAddress, shippingAddress, phoneObj} = obj;
-    let billingAddressCountryName = countries?.find(count => count.id == billingAddress.country_id)?.name;
-    let shippingAddressCountryName = countries?.find(count => count.id == shippingAddress.country_id)?.name;
-    //Creo el snapshot de billingAddress
-    obj.billing_address_street = billingAddress.street || '';
-    obj.billing_address_detail = billingAddress.detail || '';
-    obj.billing_address_city = billingAddress.city || '';
-    obj.billing_address_province = billingAddress.province || '';
-    obj.billing_address_zip_code = billingAddress.zip_code || '';
-    obj.billing_address_label = billingAddress.label || '';
-    obj.billing_address_country_name = billingAddressCountryName || '';
-    //Mismo con shippingAddress
-    obj.shipping_address_street = shippingAddress.street || '';
-    obj.shipping_address_detail = shippingAddress.detail || '';
-    obj.shipping_address_city = shippingAddress.city || '';
-    obj.shipping_address_province = shippingAddress.province || '';
-    obj.shipping_address_zip_code = shippingAddress.zip_code || '';
-    obj.shipping_address_label = shippingAddress.label || '';
-    obj.shipping_address_country_name = shippingAddressCountryName || '';
-    //Ahora creo el de phone
-    let phoneCode = countries?.find(count => count.id == phoneObj.country_id)?.code;
-    obj.phone_code = phoneCode;
-    obj.phone_number = phoneObj.phone_number;
-    // Eliminar las propiedades que mande
-    delete obj.billingAddress;
-    delete obj.shippingAddress;
-    delete obj.phoneObj;
+function createOrderEntitiesSnapshot(obj) {
+  let { billingAddress, shippingAddress, phoneObj } = obj;
+  let billingAddressCountryName = countries?.find(
+    (count) => count.id == billingAddress.country_id
+  )?.name;
+  let shippingAddressCountryName = countries?.find(
+    (count) => count.id == shippingAddress.country_id
+  )?.name;
+  //Creo el snapshot de billingAddress
+  obj.billing_address_street = billingAddress.street || "";
+  obj.billing_address_detail = billingAddress.detail || "";
+  obj.billing_address_city = billingAddress.city || "";
+  obj.billing_address_province = billingAddress.province || "";
+  obj.billing_address_zip_code = billingAddress.zip_code || "";
+  obj.billing_address_label = billingAddress.label || "";
+  obj.billing_address_country_name = billingAddressCountryName || "";
+  //Mismo con shippingAddress
+  obj.shipping_address_street = shippingAddress.street || "";
+  obj.shipping_address_detail = shippingAddress.detail || "";
+  obj.shipping_address_city = shippingAddress.city || "";
+  obj.shipping_address_province = shippingAddress.province || "";
+  obj.shipping_address_zip_code = shippingAddress.zip_code || "";
+  obj.shipping_address_label = shippingAddress.label || "";
+  obj.shipping_address_country_name = shippingAddressCountryName || "";
+  //Ahora creo el de phone
+  let phoneCode = countries?.find(
+    (count) => count.id == phoneObj.country_id
+  )?.code;
+  obj.phone_code = phoneCode;
+  obj.phone_number = phoneObj.phone_number;
+  // Eliminar las propiedades que mande
+  delete obj.billingAddress;
+  delete obj.shippingAddress;
+  delete obj.phoneObj;
 }
-

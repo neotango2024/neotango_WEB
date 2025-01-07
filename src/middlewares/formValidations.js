@@ -142,7 +142,7 @@ export default {
     }),
   ],
   addressFields: [
-    body(["street", "label", "detail", "zip_code", "city", "province", "country_id", "first_name", "last_name"])
+    body(["street", "label", "detail", "zip_code", "city", "province", "country_id"])
     .custom((value, { req }) => {
       // que sea de tipo string
       // Si viene formato json entonces lo parseo, sino me fijo directamente
@@ -152,7 +152,7 @@ export default {
       }
       return true;
     }),
-    body(["street", "label", "zip_code", "city", "province", "country_id", "first_name", "last_name"])
+    body(["street", "label", "zip_code", "city", "province", "country_id"])
       .notEmpty()
       .withMessage("Complete todos los campos necesarios")
       .bail(),

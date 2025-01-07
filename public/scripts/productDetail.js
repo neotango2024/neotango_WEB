@@ -1,13 +1,12 @@
 import { productCard } from "./componentRenderer.js";
-import { isInSpanish, settedLanguage } from "./languageHandler.js";
-import { setProductFromDB, productsFromDB, setProductsFromDB, productFromDB, scrollToTop, generateRandomString } from "./utils.js";
+import { isInSpanish } from "./languageHandler.js";
+import { productsFromDB, setProductsFromDB, scrollToTop, generateRandomString } from "./utils.js";
 
 let productDetailExportObj = {
   createProductDetailsSection : null,
   paintRelatedProductCards: null,
 }
 import { deleteLocalStorageItem, getLocalStorageItem, setLocalStorageItem } from "./localStorage.js";
-import { activateContainerLoader } from "./utils.js";
 import { userLogged } from "./checkForUserLogged.js";
 
 let productId;
@@ -116,10 +115,11 @@ window.addEventListener("load", async () => {
       });
     }
     productId = getProductIdFromUrl(); //Obtengo el id del producto   
-    await setProductFromDB(productId); //Seteo el producto
+    await setProductsFromDB({id: productId}); //Seteo el producto
+    const productFromDB = productsFromDB?.length && productsFromDB[0] || null;
     if(!productFromDB)return window.location.href = '/tienda'; //Lo mando a la tienda si no encontro
     let productCategoryID = productFromDB?.category?.id
-    await setProductsFromDB(productCategoryID, 4); //Aca seteo los products fromDB
+    await setProductsFromDB({categoryId : productCategoryID, limit: 4}); //Aca seteo los products fromDB
     document.title = isInSpanish ? `Tienda - ${productFromDB.es_name}` : `Store - ${productFromDB.eng_name}`;
     // Una vez que esta despintp y pinto
     // hidePlaceHolders();
@@ -263,7 +263,7 @@ const handleAddProductToCart = async () => {
   const taco = document.getElementById('taco-id').value;
   const variationFromDB = productFromDB.variations?.find(variation => variation.size?.id == size && variation.taco?.id == taco);
   const cartObject = {
-    variation_id: variationFromDB,
+    variation_id: variationFromDB.id,
     quantity: 1
   }
   if(userLogged !== null) {
@@ -273,7 +273,8 @@ const handleAddProductToCart = async () => {
       body: JSON.stringify(cartObject)
     })
   } else {
-    cartObject.variation_id = generateRandomString(10)
+    //Aca seteo un cartItemID para aca
+    cartObject.id = generateRandomString(10)
     setLocalStorageItem('cartItems', cartObject, true);
   }
 }
