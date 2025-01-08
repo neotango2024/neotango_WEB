@@ -405,7 +405,7 @@ export async function handleUserLoginFetch(bodyData){
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(bodyData),
   });
-  
+  console.log(response)
   if(response.ok){
     response = response.ok ?  await response.json() : null;
     
