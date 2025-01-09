@@ -37,7 +37,7 @@ window.addEventListener("load", async () => {
   // esto es por si toca desde el dropdown
   if (indexFromURL !== null) {
     activeIndexSelected = parseInt(indexFromURL, 10); //El 10 es por algo tecnico del parseInt
-  };
+  }
   let userOrders = [];
   // return
   await setGenders();
@@ -130,11 +130,13 @@ window.addEventListener("load", async () => {
           itemLabel: isInSpanish ? "Historial de Compras" : "Order History",
         },
       ],
-      actualIndexSelected: activeIndexSelected,
+      actualIndexSelected: activeIndexSelected, //Esto basicamente es para saber cual item renderizar
     };
     //Para los labels
     const adminProps = {
-      actualIndexSelected: activeIndexSelected,
+      type: 2, //Admin panel
+      actualIndexSelected: activeIndexSelected, //Esto basicamente es para saber cual item renderizar
+      // TODO: Aca completar los items con los que corresponden para el admin. Fijarse como hice con el user
     };
     const previousMenuBtn = main.querySelector(".dropdown.user-menu-btn");
     if (previousMenuBtn) previousMenuBtn.remove(); //Lo borro
@@ -161,13 +163,16 @@ window.addEventListener("load", async () => {
     let addressesToPaint = userLogged?.addresses;
     //le seteo las clases
     mainContentWrapper.className = "main-content-wrapper address-wrapper";
-    //Agrego la tarjeta para agregar
-    const emptyAddressCard = addressCard(undefined);
-    mainContentWrapper.appendChild(emptyAddressCard);
-    // Agregar el evento al hacer clic
-    emptyAddressCard.addEventListener("click", () =>
-      handleNewAddressButtonClick()
-    );
+    if (userLogged?.addresses.length < 4) {
+      //Agrego la tarjeta para agregar
+      const emptyAddressCard = addressCard(undefined);
+      mainContentWrapper.appendChild(emptyAddressCard);
+      // Agregar el evento al hacer clic
+      emptyAddressCard.addEventListener("click", () =>
+        handleNewAddressButtonClick()
+      );
+    }
+
     for (const address of addressesToPaint) {
       // Crear y agregar la tarjeta de dirección
       const addressElement = addressCard(address);
@@ -178,11 +183,13 @@ window.addEventListener("load", async () => {
     let phonesToPaint = userLogged?.phones;
     //le seteo las clases
     mainContentWrapper.className = "main-content-wrapper phones-wrapper";
-    //Agrego la tarjeta para agregar
-    const emptyPhoneCard = phoneCard(undefined);
-    mainContentWrapper.appendChild(emptyPhoneCard);
-    // Agregar el evento al hacer clic
-    emptyPhoneCard.addEventListener("click", () => handleNewPhoneButtonClick());
+    if (phonesToPaint.length < 3) {
+      //Agrego la tarjeta para agregar
+      const emptyPhoneCard = phoneCard(undefined);
+      mainContentWrapper.appendChild(emptyPhoneCard);
+      // Agregar el evento al hacer clic
+      emptyPhoneCard.addEventListener("click", () => handleNewPhoneButtonClick());
+    }
     for (const address of phonesToPaint) {
       // Crear y agregar la tarjeta de dirección
       const phoneElement = phoneCard(address);
@@ -193,10 +200,10 @@ window.addEventListener("load", async () => {
     //le seteo las clases
     mainContentWrapper.className = "main-content-wrapper user-orders-wrapper";
     //Recien aca cargo las ordenes
-    if(!userOrders.length) userOrders = await getUserOrders();
+    if (!userOrders.length) userOrders = await getUserOrders();
     userOrders.forEach((order) => {
       const orderCardElement = orderCard(order);
-      
+
       mainContentWrapper.appendChild(orderCardElement);
     });
   }

@@ -10,6 +10,11 @@
     justify-content: center;
     padding: 5vh 0;
 }
+.phones-wrapper.main-content-wrapper{
+    flex-direction: column;
+    align-items: center;
+
+}
 .user-info-wrapper{
     max-width: 300px;
     margin: 0 auto;

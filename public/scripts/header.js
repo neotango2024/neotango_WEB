@@ -21,7 +21,7 @@ window.addEventListener('DOMContentLoaded', () => {
     }
     checkForUserIconClicks();
     // renderFormAndButton();
-    renderFormAndButton();
+    // renderFormAndButton();
     paintUserIconOrLetter();
     if(userLogged){
         checkForUserLoggedModalClicks();
