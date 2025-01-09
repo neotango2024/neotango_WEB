@@ -223,8 +223,10 @@ const paintUserIconOrLetter = () => {
 export const translateUserLoggedModal = () => {
     const userAnchors = document.querySelectorAll('.user-anchors');
     userAnchors.forEach(anch => {
+        console.log(anch)
         const anchorDataset = anch.dataset.translation;
         const translation = userLoggedTranslations[anchorDataset]?.[settedLanguage];
+        console.log(translation)
         anch.textContent = translation;
     })
 }
