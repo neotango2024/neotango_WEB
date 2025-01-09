@@ -1,4 +1,4 @@
-import { translateNavbar } from "./header.js";
+import { translateNavbar, translateUserLoggedModal } from "./header.js";
 import { handleTranslateFeatureProducts, translateCompanyInfo } from "./index.js";
 import {setLocalStorageItem, getLocalStorageItem} from './localStorage.js';
 import { userLogged } from "./checkForUserLogged.js";
@@ -81,6 +81,7 @@ const handleChangeLanguage = async(param) => { //param es esp/eng
         case 'index': //Van todos los cambios de index
             translateCompanyInfo();
             handleTranslateFeatureProducts(param);
+            translateUserLoggedModal();
             break;
         case 'cart': //Van todos los cambios de cart
             //Aca tengo que pintar denuevo cards y detalle y form

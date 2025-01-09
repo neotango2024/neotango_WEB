@@ -9,6 +9,7 @@ const {english, spanish} = languages;
 const headerTranslations  = translations['header'];
 const categoriesTranslations = translations['categories'];
 const formTranslations = translations['userForm'];
+const userLoggedTranslations = translations['userLogged'];
 
 const SCREEN_WIDTH = window.innerWidth;
 
@@ -20,8 +21,40 @@ window.addEventListener('DOMContentLoaded', () => {
     }
     checkForUserIconClicks();
     // renderFormAndButton();
+    renderFormAndButton();
     paintUserIconOrLetter();
+    if(userLogged){
+        checkForUserLoggedModalClicks();
+        checkForUserLoggedModalClose();
+        // checkForUserAnchorsClicks();
+    } else {
+        checkForUserIconClicks();
+    }
 })
+
+const checkForUserLoggedModalClose = () => {
+    const closeBtn = document.querySelector('.close-user-logged-modal');
+    const userLoggedModal = document.querySelector('.logged-user-modal');
+    closeBtn.addEventListener('click', () => {
+        userLoggedModal.classList.toggle('logged-user-modal-active')
+        if(SCREEN_WIDTH < 720){
+            toggleBodyScrollableBehavior();
+            toggleOverlay();
+        }
+    })
+}
+
+const checkForUserLoggedModalClicks = () => {
+    const userInitials = document.querySelector('.user-initials');
+    const userLoggedModal = document.querySelector('.logged-user-modal');
+    userInitials.addEventListener('click', () => {
+        userLoggedModal.classList.add('logged-user-modal-active')
+        if(SCREEN_WIDTH < 720){
+            toggleBodyScrollableBehavior();
+            toggleOverlay();
+        }
+    })
+}
 
 const checkForNavbarClicks = () => {
     const burgerMenu = document.querySelector('.menu-container');
@@ -65,16 +98,12 @@ const toggleShopDropdown = () => {
 const checkForUserIconClicks = () => {
     const userIcon = document.querySelector('.user-icon');
     userIcon.addEventListener('click', async () => {
-        console.log(userLogged)
         if(!userLogged){
             // toggleLoginModal();
             createUserLoginModal();
             // Abro el modal
             handlePageModal(true);
 
-        } else {
-            // TODO - REDIRECT TO USER PROFILE
-            window.location.href = '/perfil'
         }
     })
 }
@@ -189,4 +218,13 @@ const paintUserIconOrLetter = () => {
         const userIconElement = document.querySelector('.user-icon');
         userIconElement.classList.toggle('hidden');
     }
+}
+
+export const translateUserLoggedModal = () => {
+    const userAnchors = document.querySelectorAll('.user-anchors');
+    userAnchors.forEach(anch => {
+        const anchorDataset = anch.dataset.translation;
+        const translation = userLoggedTranslations[anchorDataset]?.[settedLanguage];
+        anch.textContent = translation;
+    })
 }

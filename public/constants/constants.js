@@ -27,6 +27,12 @@ export const translations = {
         signIn: { eng: 'Sign in', esp: 'Iniciar sesión' },
         register: { eng: 'Register', esp: 'Registrarse' },
         password: { eng: 'Password', esp: 'Contraseña' }
+    },
+    userLogged: {
+        profile: { eng: 'Profile', esp: 'Perfil' },
+        purchases: { eng: 'My purchases', esp: 'Mis compras' },
+        addresses: { eng: 'My addresses', esp: 'Mis direcciones' },
+        shipping: { eng: 'Shipping', esp: 'Envios' }
     }
 };
 
