@@ -122,82 +122,70 @@ const controller = {
 
 export default controller;
 
-//TODO: Unificar lo que se hace desspues de obtener las variations
+let variationIncludeArray = [{
+    association: 'product',
+    include: [{
+        association: 'files'
+    }]
+}]
 export const findVariationsById = async (variationId) => { 
     try {
+        let variationsArrayToReturn = [];
         if(typeof variationId === 'string'){
             const sanitizedVariationId = variationId.trim();
-            let variationArray = [];
-            const variation = await Variation.findByPk(sanitizedVariationId, { 
-                include: [{
-                    association: 'product',
-                    include: [{
-                        association: 'files'
-                    }]
-                }]
+            let variationFromDB = await Variation.findByPk(sanitizedVariationId, { 
+                include: variationIncludeArray
              }
             );
-            variationArray.push(variation);
-            const [variationTacoSizePopulated] = populateVariations(variationArray);
-            const {taco, size} = variationTacoSizePopulated;
-            const productVariation = getDeepCopy(variationArray[0].product);
-            const variationProdFiles = productVariation.files;
-            await getFilesFromAWS({
-                folderName: 'products',
-                files: variationProdFiles
-            });
-            return {
-                id: variation.id,
-                quantity: variation.quantity,
-                product: productVariation,
-                taco,
-                size
-            }
+            variationFromDB = getDeepCopy(variationFromDB);
+            let variationToPush = await handleVariationToReturn(variationFromDB);
+            variationsArrayToReturn.push(variationToPush);
         } else if (Array.isArray(variationId)){
-            let variationsArrayToReturn = [];
             // this means is an array
             const variationsInDb = await Variation.findAll({ 
                 where: {
                     id: variationId
                 },
-                include: [{
-                    association: 'product',
-                    include: [{
-                        association: 'files'
-                    }]
-                }]
+                include: variationIncludeArray
              }
             );
             for(let i = 0; i < variationsInDb.length; i++){
                 const variation = variationsInDb[i];
-                const variationToPopulate = [variation];
-                const [variationTacoSizePopulated] = populateVariations(variationToPopulate);
-                const {taco, size} = variationTacoSizePopulated;
-                const productVariation = getDeepCopy(variationToPopulate[0].product);
-                const variationProdFiles = productVariation.files;
-                await getFilesFromAWS({
-                    folderName: 'products',
-                    files: variationProdFiles
-                });
-                const variationToPush = {
-                    id: variation.id,
-                    quantity: variation.quantity,
-                    product: productVariation,
-                    taco,
-                    size
-                }
+                let variationToPush = await handleVariationToReturn(variation)
                 variationsArrayToReturn.push(variationToPush);
             }
-            return variationsArrayToReturn;
         } else {
-            variationsToReturn = null;
-        }
+            variationsArrayToReturn = [];
+        };
+        return variationsArrayToReturn
     } catch (error) {
         console.log(`Error finding variations in db: ${error}`);
         return null;
     }
 }
-
+async function handleVariationToReturn (variation){
+    try {
+        const variationToPopulate = [variation]; //esto es para mandar a la funcino que popula
+    const [variationTacoSizePopulated] = populateVariations(variationToPopulate);
+    const {taco, size} = variationTacoSizePopulated;
+    const productVariation = getDeepCopy(variationToPopulate[0].product);
+    const variationProdFiles = productVariation.files;
+    await getFilesFromAWS({
+        folderName: 'products',
+        files: variationProdFiles
+    });
+    const variationToPush = {
+        id: variation.id,
+        quantity: variation.quantity,
+        product: productVariation,
+        taco,
+        size
+    };
+    return variationToPush
+    } catch (error) {
+        return console.log(error);
+    }
+}
 export const insertVariationsInDb = async (variations, productId) => {
     try {
         const mappedVariationsWithId = [];

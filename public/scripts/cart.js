@@ -41,9 +41,8 @@ window.addEventListener("DOMContentLoaded", async () => {
     document.title = isInSpanish ? `Carro` : `Cart`;
     //seteo los productos
     let cartProducts = [];
-    await setCartProducts();
-    console.log(cartProducts);
-    
+    let shippingCost = 0;//Esto va cambiando por eso lo seteo aca
+    await setCartProducts();    
     cartExportObj.pageConstructor = async function (){
      try {
       //Agaro el titulo "carro de compras" y dependiendo que idioma lo pinto
@@ -87,7 +86,11 @@ window.addEventListener("DOMContentLoaded", async () => {
       formWrapper.innerHTML = "";//Esto es porque si pinto las checkout cards entonces se que estoy en la primer seccion
       if (cartProducts?.length) {
         cartProducts.forEach((cartItem) => {
-          const checkoutCardElement = checkoutCard(cartItem.productFromDB);
+          //Esto es para que renderize bien
+          cartItem.product.variation_id = cartItem.variation_id;
+          cartItem.product.sizeFromDB = cartItem.size;
+          cartItem.product.tacoFromDB = cartItem.taco;
+          const checkoutCardElement = checkoutCard(cartItem.product);
           cartProductsWrapper.appendChild(checkoutCardElement);
         });
         //Ahora escucho los botones
@@ -166,7 +169,7 @@ window.addEventListener("DOMContentLoaded", async () => {
         const cardPrice = card.querySelector(".card-price");
         let cardVariationID = card.dataset.variation_id;
         let cartProductFromDB = cartProducts.find(cartItem=>cartItem.variation_id == cardVariationID)
-        const productPrice = isInSpanish ? parseFloat(cartProductFromDB.productFromDB?.ars_price) : parseFloat(cartProductFromDB.productFromDB?.usd_price);   
+        const productPrice = isInSpanish ? parseFloat(cartProductFromDB.product?.ars_price) : parseFloat(cartProductFromDB.product?.usd_price);   
         addBtn.addEventListener("click", () => {
           let actualQuantitySpan = card.querySelector(".card_product_amount");
           actualQuantitySpan.innerHTML =
@@ -217,12 +220,12 @@ window.addEventListener("DOMContentLoaded", async () => {
       let shippingCostElement = document.querySelector(
         ".detail-row-shipping-cost"
       ).innerText;
-      let totalCost = parseFloat(shippingCostElement); //al principio es solo el shipping
+      let totalCost = parseFloat(shippingCostElement) || 0; //al principio es solo el shipping
       let productCost = 0;
       productCards.forEach((card) => {
         let cardVariationID = card.dataset.variation_id;
         let cartProductFromDB = cartProducts.find(cartItem=>cartItem.variation_id == cardVariationID)
-        const unityPrice = isInSpanish ? parseFloat(cartProductFromDB.productFromDB?.ars_price) : parseFloat(cartProductFromDB.productFromDB?.usd_price);        
+        const unityPrice = isInSpanish ? parseFloat(cartProductFromDB.product?.ars_price) : parseFloat(cartProductFromDB.product?.usd_price);        
         const totalUnits = parseInt(
           card.querySelector(".card_product_amount").innerText
         );
@@ -395,7 +398,7 @@ window.addEventListener("DOMContentLoaded", async () => {
         buttonLabel,
         handleNewAddressButtonClick
       );
-    }
+    };
     async function addButton(container, buttonText,cb) {
       const button = document.createElement("button");
       button.type = "button";
@@ -410,7 +413,7 @@ window.addEventListener("DOMContentLoaded", async () => {
             // Si no se encuentra input, lo añade al final como fallback
             container.appendChild(button);
         }
-    }   
+    };
     //Pinta el select de los telefonos & addresses
     cartExportObj.paintCheckoutPhoneSelect =  async function(){
       if(!countriesFromDB?.length) await setCountries();
@@ -504,19 +507,17 @@ window.addEventListener("DOMContentLoaded", async () => {
           return
         })
       }
-    }
+    };
     //Crea la tarjeta de Detalle
     function createCartDetailContainer() {
       const productsLength = cartProducts?.length || 0;
       let productsCost = 0;
       cartProducts?.forEach(cartItem => {       
-        // console.log(cartItem.productFromDB); 
-        const productPrice = isInSpanish ? cartItem.productFromDB?.ars_price : cartItem.productFromDB?.usd_price;        
+        const productPrice = isInSpanish ? cartItem.product?.ars_price : cartItem.product?.usd_price;        
         const itemQuantity = cartItem.quantity;
         productsCost += parseFloat(productPrice) * parseInt(itemQuantity)
       });
-      const shippingCost = 80; //TODO: ver este tema
-      const totalCost = productsCost + shippingCost;
+      const totalCost = productsCost;
 
       // Crear contenedor principal
       const container = document.createElement("div");
@@ -559,7 +560,7 @@ window.addEventListener("DOMContentLoaded", async () => {
   
       const shippingCostContainer = document.createElement("p");
       shippingCostContainer.className = "detail-row-p";
-      shippingCostContainer.innerHTML = `$<span class="detail-row-shipping-cost">${shippingCost}</span>`;
+      shippingCostContainer.innerHTML = `<span class="detail-row-shipping-cost">${shippingCost == 0 ? isInSpanish ? "A estimar" : "To estimate" : `$${shippingCost}`}</span>`;
       shippingRow.appendChild(shippingCostContainer);
   
       detailListContainer.appendChild(shippingRow);
@@ -591,29 +592,22 @@ window.addEventListener("DOMContentLoaded", async () => {
       container.appendChild(finalizeButton);
   
       return container;
-    }
+    };
     //Define los cart product dependiendo si esta loggeado o no
     async function setCartProducts(){
-      if(userLogged){
-        let variationIdsToFetch = userLogged.tempCartItems?.map(item=>item.variation_id); //Dejo el array de ids
-        await setVariationsFromDB(variationIdsToFetch); //Dejo seteado el array de variation
-        console.log(variationsFromDB); //TODO:
-        
-        cartProducts = [];
-
-        return
-      };
-      //aca es un guest
-      cartProducts = getLocalStorageItem('cartItems') || [];
-      if(!cartProducts.length) return
-      let IdsToFetch = cartProducts?.map(cartItem=>cartItem.variation_id);
-      //Tengo que pegarle el producto a cada cartItem para poder renderizarlo con precio/imagen/etc
-      await setVariationsFromDB(IdsToFetch); 
+      cartProducts = userLogged ? userLogged.tempCartItems || [] : getLocalStorageItem('cartItems') || []; //seteo el cartProduct
+      const variationIdsToFetch = cartProducts?.map(item=>item.variation_id); //Dejo el array de ids para hacer fetch
+      if(!variationIdsToFetch || !variationIdsToFetch.length) return
+      await setVariationsFromDB(variationIdsToFetch); //seteo los variations
       cartProducts.forEach(cartItem => {
-        cartItem.variationFromDB = variationsFromDB?.find(variation=>variation.id == cartItem.variation_id)
+        const variationFromDB = variationsFromDB?.find(variation=>variation.id == cartItem.variation_id);
+        //Aca lo dejo seteado con las entidades
+        cartItem.product = variationFromDB.product;
+        cartItem.size = variationFromDB.size;
+        cartItem.taco = variationFromDB.taco;
       });
       return
-    }
+    };
   } catch (error) {
     console.log("falle");
     return console.log(error);
