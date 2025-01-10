@@ -107,6 +107,59 @@ nav {
     align-items: center;
     flex-wrap: wrap;
     margin-bottom: 25px;
+    cursor: pointer;
+}
+
+.shop-item-container {
+    position: relative;
+    flex-wrap: nowrap!important;
+}
+
+.desktop-shop-dropdown {
+    position: absolute;
+    width: 165px;
+    height: auto;
+    top: 27px;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: #fff;
+    z-index: 13;
+    opacity: 0;
+    padding: 15px 5px;
+    pointer-events: none;
+    transition: opacity 0.3s;
+    box-shadow: 4px 4px 8px rgba(0, 0, 0, 0.1), 
+    -4px -4px 8px rgba(0, 0, 0, 0.1), 
+    4px -4px 8px rgba(0, 0, 0, 0.1), 
+    -4px 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.desktop-shop-dropdown li:first-child {
+    margin-bottom: 20px;
+}
+
+.desktop-shop-dropdown-active {
+    pointer-events: all;
+    opacity: 1;
+}
+
+
+.desktop-shop-item-text-container {
+    display: flex;
+    align-items: center;
+}
+
+.desktop-shop-item-text-container:hover * {
+    color: var(--red-color);
+}
+
+.shop-item-container:hover .desktop-shop-dropdown {
+    pointer-events: all;
+    opacity: 1!important;
+}
+
+.desktop-shop-item-text-container i {
+    transition: color 0.3s;
 }
 
 
@@ -284,24 +337,26 @@ nav {
 
     .logged-user-modal {
         position: absolute;
-        width: 200px;
+        width: 165px;
         height: 245px;
         top: 35px;
-        left: -172px;
-        transform: translateX(0);
+        left: 50%;
+        transform: translateX(-50%);
         opacity: 0;
         transition: opacity .3s;
-        box-shadow: 4px 4px 8px rgba(0, 0, 0, 0.2), 
-            -4px -4px 8px rgba(0, 0, 0, 0.2), 
-            4px -4px 8px rgba(0, 0, 0, 0.2), 
-            -4px 4px 8px rgba(0, 0, 0, 0.2);
+        box-shadow: 4px 4px 8px rgba(0, 0, 0, 0.1), 
+            -4px -4px 8px rgba(0, 0, 0, 0.1), 
+            4px -4px 8px rgba(0, 0, 0, 0.1), 
+            -4px 4px 8px rgba(0, 0, 0, 0.1);
             padding: 0;
             padding: 5px 20px;
             z-index: 13;
+        pointer-events: none;
     }
 
     .logged-user-modal-active {
         opacity: 1;
+        pointer-events: all;
     }
 
     .user-actions-container {
@@ -349,6 +404,14 @@ nav {
         font-size: 14px;
     }
 
+    .close-menu-container {
+        display: none;
+    }
+    .user-logged-list {
+        margin-top: 17px;
+    }
+
+
 }
 
 @media(min-width:1024px){
@@ -364,7 +427,7 @@ nav {
     .page-link-item a:hover, .user-action-item i:hover {
         color: var(--red-color);
     }
-
+ 
     .header-container {
         max-width: 1200px;
         overflow: visible;
@@ -372,6 +435,11 @@ nav {
 
     .page-link-item a {
         font-size: 14px;
+    }
+
+    .user-initials-container:hover .logged-user-modal {
+        pointer-events: all;
+        opacity: 1;
     }
 
     .active-flag-container {
