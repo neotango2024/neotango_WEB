@@ -616,7 +616,7 @@ export function createUserMenuBtn(props) {
   // Agregar encabezado según el tipo
   const header = document.createElement('div');
   header.className = 'header';
-  if(props.type == 1){
+  if(props.type == 2){
     //user
     header.textContent = isInSpanish ? 'Configuracion' : 'Settings';
   } else {
@@ -651,7 +651,7 @@ export function createUserMenuBtn(props) {
 
   // Agregar el enlace de cierre de sesión
   const logoutLink = document.createElement('a');
-  logoutLink.href = '/user/logout';
+  logoutLink.href = '/logout';
   logoutLink.className = 'item';
 
   const logoutIcon = document.createElement('i');

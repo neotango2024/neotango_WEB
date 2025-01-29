@@ -278,6 +278,10 @@ export async function handleModalCreation({entityType, buildBodyData, saveGuestE
       submitButton.classList.remove('loading');
       // Cierro el modal
       if(modalResponse)handlePageModal(false);
+      if(updateElements){
+        //Ahora deberia actualizar dependiendo donde este
+        await updateElements();
+       }
       return
     }
     if(userLogged){//Aca esta loggeado, lo creo en db

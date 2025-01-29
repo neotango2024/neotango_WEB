@@ -356,6 +356,7 @@ export async function getOrdersFromDB({ id, limit, offset, user_id }) {
       });
     }
     
+    console.log(ordersToReturn);
     
     if (!ordersToReturn || !ordersToReturn.length) return [];
     ordersToReturn = getDeepCopy(ordersToReturn);

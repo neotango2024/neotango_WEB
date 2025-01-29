@@ -77,13 +77,13 @@ const handleChangeLanguage = async(param) => { //param es esp/eng
     
     const bodyName = document.querySelector('body').dataset.page_name;    
     translateNavbar();
+    translateUserLoggedModal();
     switch (bodyName) {
         case 'index': //Van todos los cambios de index
             translateCompanyInfo();
             handleTranslateFeatureProducts(param);
-            translateUserLoggedModal();
             break;
-        case 'cart': //Van todos los cambios de cart
+            case 'cart': //Van todos los cambios de cart
             //Aca tengo que pintar denuevo cards y detalle y form
             cartExportObj.pageConstructor && await cartExportObj.pageConstructor();
             break;

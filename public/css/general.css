@@ -141,6 +141,9 @@ ul{
 .ui.breadcrumb a.section{
     color: #000;
 }
+.ui.menu.header-dropdown > .item:hover{
+    background: none !important;
+}
 .breadcrumb .section.active{
     color: var(--red-color);
   }
@@ -180,6 +183,9 @@ label{
 }
 .green{
     color: #0c970c !important;
+}
+.ui.toggle.checkbox input:checked~.box:before, .ui.toggle.checkbox input:checked~label:before {
+    background-color: var(--red-color) !important;
 }
 @media(min-width:768px){
     .mobile-only{

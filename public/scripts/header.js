@@ -242,9 +242,10 @@ export const translateNavbar = () => {
         }
 
     });
+    activateHeaderDropdowns()
 }
 
-const paintUserIconOrLetter = () => {
+export const paintUserIconOrLetter = () => {
     if(userLogged){
         const firstNameLetter = userLogged.first_name.split('')[0]
         const lastNameLetter = userLogged.last_name.split('')[0]
@@ -266,4 +267,18 @@ export const translateUserLoggedModal = () => {
 
         anch.textContent = translation;
     })
+}
+
+function activateHeaderDropdowns(){
+    $('.header .menu .browse')
+    .popup({
+        inline     : true,
+        hoverable  : true,
+        position   : 'bottom left',
+        delay: {
+        show: 150,
+        hide: 600
+        }
+    })
+;
 }

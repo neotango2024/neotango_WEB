@@ -200,16 +200,18 @@ const controller = {
   getUserOrders: async (req, res) => {
     try {
       let { userLoggedId } = req.query;
-      let userOrders = await getOrdersFromDB({user_id: userLoggedId})
+      let userOrders = await getOrdersFromDB({user_id: userLoggedId}) || [];
+      console.log(userOrders?.length);
+      
       // return res.send(ordersToPaint);
       //Una vez tengo todas las ordenes, obtengo todos los productos que quiero mostrar, y por cada uno hago el setKeysToReturn
       let idsToLook = [];
-      userOrders.forEach(order=>{
+      userOrders?.forEach(order=>{
         order.orderItems?.forEach(orderItem=>!idsToLook.includes(orderItem.product_id) && idsToLook.push(orderItem.product_id))
       });
       //Una vez obtenido, agarro los productos de DB para agarrar sus fotos
       let productsFromDB = await findProductsInDb(idsToLook,null,true)
-      userOrders.forEach(order=>{
+      userOrders?.forEach(order=>{
         order.orderItems?.forEach(orderItem=>{
           let productFromDB = productsFromDB.find(prod=>prod.id == orderItem.product_id);
           orderItem.product = productFromDB

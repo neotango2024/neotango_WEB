@@ -169,7 +169,7 @@ async function handleVariationToReturn (variation){
     const [variationTacoSizePopulated] = populateVariations(variationToPopulate);
     const {taco, size} = variationTacoSizePopulated;
     const productVariation = getDeepCopy(variationToPopulate[0].product);
-    const variationProdFiles = productVariation.files;
+    const variationProdFiles = productVariation?.files;
     await getFilesFromAWS({
         folderName: 'products',
         files: variationProdFiles

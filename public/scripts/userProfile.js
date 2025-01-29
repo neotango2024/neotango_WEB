@@ -20,7 +20,7 @@ import {
 } from "./utils.js";
 
 let activeIndexSelected = 0; //index del array "items"
-let typeOfPanel = 1; //User 1 | Admin 2
+let typeOfPanel = 1; //Admin 1 | User 2 TODO: CHequear por el tipo de usuario al recargar
 let userProfileExportObj = {
   pageConstructor: null,
 };
@@ -28,7 +28,9 @@ let userProfileExportObj = {
 window.addEventListener("load", async () => {
   const { pathname, search } = window.location;
   if (!pathname.endsWith("/perfil")) return;
+  //si no hay user logged lo manda a la home
   if (!userLogged) return (window.location.href = "/");
+  typeOfPanel = userLogged.user_role_id;
 
   // Obtén el parámetro `index` de la URL
   const urlParams = new URLSearchParams(search);
@@ -40,7 +42,7 @@ window.addEventListener("load", async () => {
   }
   let userOrders = [];
   // return
-  await setGenders();
+  await setGenders(); //Setea el genero
   const main = document.querySelector(".main");
   const mainContentWrapper = document.querySelector(".main-content-wrapper");
   // Para los labels
@@ -57,7 +59,6 @@ window.addEventListener("load", async () => {
       anchor.addEventListener("click", async () => {
         let iconClass = anchor.querySelector("i")?.className;
         menuBtn.className = iconClass;
-
         const anchorIndex = anchor.dataset.index;
         if (activeIndexSelected != anchorIndex) {
           // Aca esta tocando otro
@@ -85,16 +86,16 @@ window.addEventListener("load", async () => {
       //esta funcion dependiendo que viene invoca a la funcion que pinta/despinta las cosas
       switch (activeIndexSelected) {
         case 0: //Profile | Ventas
-          typeOfPanel == 1 ? paintUserProfile() : paintAdminSales();
+          typeOfPanel == 2 ? paintUserProfile() : paintAdminSales(); //TODO: Armar para admin las sales
           break;
         case 1: //Addresses | Products
-          typeOfPanel == 1 ? paintUserAddresses() : paintAdminSales();
+          typeOfPanel == 2 ? paintUserAddresses() : paintAdminProducts(); //TODO: Armar para admin los products
           break;
         case 2: //Phones | shippings
-          typeOfPanel == 1 ? paintUserPhones() : paintAdminShippings();
+          typeOfPanel == 2 ? paintUserPhones() : paintAdminShippings(); //TODO: Armar para admin los envios
           break;
         case 3: //Order History | ??
-          typeOfPanel == 1 ? await paintUserOrders() : null;
+          typeOfPanel == 2 ? await paintUserOrders() : null;
           break;
         default:
           break;
@@ -107,7 +108,7 @@ window.addEventListener("load", async () => {
   //Construye el menu
   function menuBtnConstructor() {
     const userProps = {
-      type: 1, // User panel
+      type: typeOfPanel, // User panel
       items: [
         {
           itemType: "profile", // Identificador
@@ -130,13 +131,20 @@ window.addEventListener("load", async () => {
           itemLabel: isInSpanish ? "Historial de Compras" : "Order History",
         },
       ],
-      actualIndexSelected: activeIndexSelected, //Esto basicamente es para saber cual item renderizar
+      actualIndexSelected: activeIndexSelected, //Esto basicamente es para saber cual item renderizar activo
     };
     //Para los labels
     const adminProps = {
-      type: 2, //Admin panel
-      actualIndexSelected: activeIndexSelected, //Esto basicamente es para saber cual item renderizar
-      // TODO: Aca completar los items con los que corresponden para el admin. Fijarse como hice con el user
+      type: typeOfPanel, //Admin panel
+      items: [
+        {
+          itemType: "profile", // Identificador
+          itemLogo: "bx bx-user-circle", // Clase CSS para el ícono
+          itemLabel: isInSpanish ? "Perfil" : "Profile", // Texto del tooltip
+        },
+        //TODO: poner las opciones del admin. LOGOUT NO
+      ],
+      actualIndexSelected: activeIndexSelected, //Esto basicamente es para saber cual item renderizar activo
     };
     const previousMenuBtn = main.querySelector(".dropdown.user-menu-btn");
     if (previousMenuBtn) previousMenuBtn.remove(); //Lo borro

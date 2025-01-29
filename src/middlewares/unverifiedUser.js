@@ -12,7 +12,7 @@ const unverifiedUser = async (req, res, next) => {
         // Ruta a la que quiere ir
         let pathToGo = getRelativePath(req.url);
         // Si quiere ir a logout o al verify no quiero nada de aca
-        if (pathToGo == '/user/logout') return next();
+        if (pathToGo == '/logout') return next();
         if (token) {
             const decodedData = jwt.verify(token, webTokenSecret);
             if (decodedData) { //Si verifico el token, solo agarro el id

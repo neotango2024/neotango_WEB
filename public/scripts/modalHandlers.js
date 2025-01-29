@@ -1,4 +1,5 @@
 import { validateUserSignUpForm } from "./formValidators.js";
+import { paintUserIconOrLetter } from "./header.js";
 import { setLocalStorageItem } from "./localStorage.js";
 import { buildAddressBodyData, buildPhoneBodyData, buildUserLoginBodyData, buildUserSignUpBodyData, handleAddressFetch, handleModalCreation, handlePhoneFetch, handleUserLoginFetch, handleUserSignUpFetch, updateAddressElements, updatePhoneElements } from "./utils.js";
 
@@ -23,7 +24,8 @@ try {
         entityType: 'user',
         method: "POST",
         buildBodyData: buildUserLoginBodyData,
-        postToDatabase: handleUserLoginFetch
+        postToDatabase: handleUserLoginFetch,
+        updateElements: paintUserIconOrLetter
       })//hago el fetch para crear ese telefono
 } catch (error) {
     return console.log(error);

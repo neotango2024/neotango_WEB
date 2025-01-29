@@ -51,7 +51,14 @@ const controller = {
             console.log(`Error in user profile: ${error}, redirecting...`);
             return res.redirect('/');
         }
-    } 
+    },
+    logout: (req,res)=>{
+        let pathToReturn = req.session.returnTo;
+        res.clearCookie("userAccessToken");
+        res.clearCookie("adminToken");
+        req.session.destroy();        
+        return res.redirect(`${pathToReturn}`);
+    },
 };
 
 export default controller;
