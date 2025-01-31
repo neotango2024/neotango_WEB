@@ -90,6 +90,7 @@ window.addEventListener("DOMContentLoaded", async () => {
           cartItem.product.variation_id = cartItem.variation_id;
           cartItem.product.sizeFromDB = cartItem.size;
           cartItem.product.tacoFromDB = cartItem.taco;
+          cartItem.product.quantity = cartItem.quantity;
           const checkoutCardElement = checkoutCard(cartItem.product);
           cartProductsWrapper.appendChild(checkoutCardElement);
         });
@@ -119,18 +120,27 @@ window.addEventListener("DOMContentLoaded", async () => {
             if (btn.classList.contains("finalize-order-button")) {
               btn.classList.add('loading');
               await generateCheckoutForm();
-              
+               //aca es un guest
+               let checkoutCards = Array.from(document.querySelectorAll('.checkout-card'));
+               checkoutCards = checkoutCards.map(card=>{
+                 return {
+                   id: card.dataset?.variation_id,
+                   quantity: card.querySelector('.card_product_amount').innerText
+                 }
+               });
               if(userLogged){
-                //Aca tengo que actualizar el carro //TODO:
-              } else{
-                //aca es un guest
-                let checkoutCards = Array.from(document.querySelectorAll('.checkout-card'));
-                checkoutCards = checkoutCards.map(card=>{
-                  return {
-                    id: card.dataset?.variation_id,
-                    quantity: card.querySelector('.card_product_amount').innerText
-                  }
+                //Aca tengo que actualizar el carro
+                let response = await fetch(`/api/cart/${userLogged.id}`, {
+                  method: "PUT",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({tempCartItems: checkoutCards}),
                 });
+                if(!response.ok){
+                  //Aca ver que hacer si da error TODO:
+                };
+                response = await response.json();
+                userLogged.tempCartItems = response.updatedCardItems;
+              } else{
                 // Aca borro y vuelvo a armar el local
                 deleteLocalStorageItem('cartItems');
                 checkoutCards.forEach(card => {
@@ -198,7 +208,23 @@ window.addEventListener("DOMContentLoaded", async () => {
           }`;
           modifyDetailList();
         });
-        removeBtn.addEventListener("click", () => {
+        removeBtn.addEventListener("click", async () => {
+          const cardLoader = card.querySelector('.ui.dimmer');
+          cardLoader.classList.add('active');
+          // Lo saco de la lista si es userLogged
+          if(userLogged){
+            let itemID = cartProducts.find(prod=>prod.variation_id == card.dataset.variation_id).id || null;
+            if(!itemID)return;
+            let response = await fetch(`/api/cart/${itemID}`, {
+              method: "DELETE",
+              headers: { "Content-Type": "application/json" },
+            });
+            if(!response.ok){
+              // TODO:
+            };
+            //Aca ya lo borro, lo saco de los del userlogged
+            // let indexToRemove = userLogged.tempCartItems
+          }
           card.remove();
           modifyDetailList();
         });
@@ -600,7 +626,7 @@ window.addEventListener("DOMContentLoaded", async () => {
       if(!variationIdsToFetch || !variationIdsToFetch.length) return
       await setVariationsFromDB(variationIdsToFetch); //seteo los variations
       cartProducts.forEach(cartItem => {
-        const variationFromDB = variationsFromDB?.find(variation=>variation.id == cartItem.variation_id);
+        const variationFromDB = variationsFromDB?.find(variation=>variation.id == cartItem.variation_id);        
         //Aca lo dejo seteado con las entidades
         cartItem.product = variationFromDB.product;
         cartItem.size = variationFromDB.size;

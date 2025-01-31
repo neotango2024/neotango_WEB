@@ -3,6 +3,7 @@ import { populateSize, populateTaco } from '../../utils/helpers/populateStaticDb
 import { findProductsInDb } from './apiProductController.js';
 import { findVariationsById } from '../api/apiVariationsController.js';
 import { v4 as UUIDV4 } from 'uuid';
+import { Op } from 'sequelize';
 const { TempCartItem } = db;
 
 const controller = {
@@ -87,7 +88,7 @@ const controller = {
             })
         }
         return res.status(200).json({
-            ok: false,
+            ok: true,
             msg: 'Succesfully added item to cart'
         })
         } catch (error) {
@@ -118,10 +119,52 @@ const controller = {
             }
             return res.status(200).json({
                 msg: 'Succesfully deleted item',
-                ok: false,
+                ok: true,
             })
         } catch (error) {
             console.log(`Error deleting cart item`);
+            console.log(error);
+            
+            return res.status(500).json({
+                msg: 'Internal server error',
+                ok: false,
+            })
+        }
+    },
+    handleUpdateUserCart: async(req,res) => {
+        try {
+            let {tempCartItems} = req.body;
+            const userId = req.params.userId;
+            let cartItemsFromDB = await db.TempCartItem.findAll({
+                where: {
+                    [Op.or]: tempCartItems.map((item) => ({
+                        variation_id: item.id,
+                        user_id: userId,
+                    })),
+                  },
+            });
+            tempCartItems = tempCartItems.map(item=>{
+                const cartItemFromDB = cartItemsFromDB.find(dbItem => dbItem.variation_id == item.id);
+                return {
+                    id: cartItemFromDB.id,
+                    variation_id: cartItemFromDB.variation_id,
+                    user_id: userId,
+                    quantity: item.quantity
+                }
+            })
+            // Hago un bulkUpdate de las cantidades
+            await db.TempCartItem.bulkCreate(tempCartItems,{
+                updateOnDuplicate: [
+                    'quantity'
+                ]
+            });
+            return res.status(200).json({
+                ok: true,
+                updatedCardItems : tempCartItems
+            })
+        } catch (error) {
+            console.log(`Error updating cart`);
+            console.log(error);
             return res.status(500).json({
                 msg: 'Internal server error',
                 ok: false,

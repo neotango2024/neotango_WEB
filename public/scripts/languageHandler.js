@@ -1,4 +1,4 @@
-import { translateNavbar, translateUserLoggedModal } from "./header.js";
+import { paintUserIconOrLetter, translateNavbar, translateUserLoggedModal } from "./header.js";
 import { handleTranslateFeatureProducts, translateCompanyInfo } from "./index.js";
 import {setLocalStorageItem, getLocalStorageItem} from './localStorage.js';
 import { userLogged } from "./checkForUserLogged.js";
@@ -77,7 +77,7 @@ const handleChangeLanguage = async(param) => { //param es esp/eng
     
     const bodyName = document.querySelector('body').dataset.page_name;    
     translateNavbar();
-    translateUserLoggedModal();
+    paintUserIconOrLetter()
     switch (bodyName) {
         case 'index': //Van todos los cambios de index
             translateCompanyInfo();

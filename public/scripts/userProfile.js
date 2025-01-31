@@ -10,6 +10,7 @@ import {
   userInfoComponent,
 } from "./componentRenderer.js";
 import { gendersFromDB, setGenders } from "./getStaticTypesFromDB.js";
+import { paintUserIconOrLetter } from "./header.js";
 import { isInSpanish } from "./languageHandler.js";
 import {
   handleNewAddressButtonClick,
@@ -293,7 +294,9 @@ window.addEventListener("load", async () => {
       userLogged.last_name = bodyData.last_name;
       userLogged.gender_id = bodyData.gender_id;
       showCardMessage(true, isInSpanish ? response.msg.es : response.msg.en);
+      mainContentWrapper.innerHTML = '';
       paintUserProfile();
+      paintUserIconOrLetter(); //Esto es para que cambie las inciiales
       return;
     }
     let msg = isInSpanish
