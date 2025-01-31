@@ -293,15 +293,17 @@ window.addEventListener("load", async () => {
         variation_id: variationSelected.id,
         quantity: 1,
       };
-      console.log(cartObject);
       
       if (userLogged !== null) {
         cartObject.user_id = userLogged.id;
-        await fetch(`/api/cart/${userLogged.id}`, {
+        let response = await fetch(`/api/cart/${userLogged.id}`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(cartObject),
         });
+        if(response.ok){
+          userLogged.tempCartItems?.push(cartObject);
+        }
       } else {
         //Aca seteo un cartItemID para aca
         cartObject.id = generateRandomString(10);
@@ -327,7 +329,8 @@ window.addEventListener("load", async () => {
       } else {
         cartItems = userLogged.tempCartItems || [];
       }
-
+      console.log(cartItems);
+      
       const variationIsInCartIndex = cartItems.findIndex(
         (item) => item.variation_id == variationSelected.id
       );

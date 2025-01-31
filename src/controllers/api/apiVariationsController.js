@@ -167,7 +167,7 @@ async function handleVariationToReturn (variation){
     try {
         const variationToPopulate = [variation]; //esto es para mandar a la funcino que popula
     const [variationTacoSizePopulated] = populateVariations(variationToPopulate);
-    const {taco, size} = variationTacoSizePopulated;
+    const {taco, size} = variationTacoSizePopulated;    
     const productVariation = getDeepCopy(variationToPopulate[0].product);
     const variationProdFiles = productVariation?.files;
     await getFilesFromAWS({

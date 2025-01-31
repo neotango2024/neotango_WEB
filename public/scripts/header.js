@@ -1,9 +1,9 @@
-import {form, button, createUserLoginModal} from './componentRenderer.js';
+import {form, button, createUserLoginModal, generateHeaderShopDropdown, generateUserLoggedDropdown} from './componentRenderer.js';
 import { checkForUserLogged, userLogged } from './checkForUserLogged.js';
 import { translations } from '../constants/constants.js';
 import { getLocalStorageItem } from './localStorage.js';
 import { languages } from '../constants/constants.js';
-import { handleModalCreation, handlePageModal, isInDesktop, scrollToTop, showCardMessage, toggleBodyScrollableBehavior, toggleOverlay } from './utils.js';
+import { handleModalCreation, handlePageModal, isInDesktop, isInMobile, scrollToTop, showCardMessage, toggleBodyScrollableBehavior, toggleOverlay } from './utils.js';
 import { isInSpanish, settedLanguage } from './languageHandler.js';
 const {english, spanish} = languages;
 const headerTranslations  = translations['header'];
@@ -27,7 +27,6 @@ window.addEventListener('DOMContentLoaded', () => {
     paintUserIconOrLetter();
     if(userLogged){
         checkForUserLoggedModalClicks();
-        checkForUserLoggedModalClose();
     } else {
         checkForUserIconClicks();
     }
@@ -64,18 +63,6 @@ const checkForWindowClicksForDropdowns = () => {
             }
         }
     });
-}
-
-const checkForUserLoggedModalClose = () => {
-    const closeBtn = document.querySelector('.close-user-logged-modal');
-    const userLoggedModal = document.querySelector('.logged-user-modal');
-    closeBtn.addEventListener('click', () => {
-        userLoggedModal.classList.toggle('logged-user-modal-active')
-        if(SCREEN_WIDTH < 720){
-            toggleBodyScrollableBehavior();
-            toggleOverlay();
-        }
-    })
 }
 
 const checkForUserLoggedModalClicks = () => {
@@ -148,78 +135,6 @@ const checkForUserIconClicks = () => {
     })
 }
 
-
-const checkForLoginModalCloseClicks = () => {
-    const closeBtn = document.querySelector('.close-sign-in-modal');
-    closeBtn.addEventListener('click', () => {
-        toggleLoginModal();
-    })
-}
-
-const toggleLoginModal = () => {
-    const modal = document.querySelector('.no-logged-user-modal');
-    modal.classList.toggle('no-logged-user-modal-active');
-    if(SCREEN_WIDTH < 1024){
-        toggleBodyScrollableBehavior();
-        toggleOverlay();
-    }
-}
-
-// const renderFormAndButton = () => {
-//     const localStorageItem = getLocalStorageItem('language');
-//     const settedLanguage = userLogged && userLogged.language ? userLogged.language : localStorageItem ? localStorageItem : null;
-
-//     const inputProps = [
-//         {
-//             placeholder: 'Email',
-//             name: 'email',
-//             required: true,
-//             width: 75,
-//         },
-//         {
-//             placeholder: settedLanguage === english  ? 'Password' : 'Contraseña',
-//             name: 'password',
-//             type: 'password',
-//             className: 'pasword-input',
-//             required: true,
-//             width: 75,
-//             datasetObject: {
-//                 dataKey: 'translation',
-//                 dataValue: 'password'
-//             }
-//         }
-//     ];
-//     const formTitleObject = {
-//         title: settedLanguage === english  ? 'Sign in' : 'Iniciar sesión',
-//         datasetObject: {
-//             dataKey: 'translation',
-//             dataValue: 'title'
-//         }
-//     }
-//     const formAction = '/user/login';
-//     const formProps = {
-//         inputProps,
-//         formTitleObject,
-//         formAction,
-//     }
-//     const formContainerCreated = form(formProps);
-//     const modal = document.querySelector('.no-logged-user-modal');
-//     modal.appendChild(formContainerCreated);
-
-//     const buttonProps = {
-//         text: settedLanguage === english ? 'Sign in' : 'Iniciar sesión',
-//         width: 75,
-//         fontSize: 100,
-//         container: 'custom-form',
-//         datasetObject: {
-//             dataKey: 'translation',
-//             dataValue: 'signIn'
-//         }
-//     }
-//     const buttonCreated = button(buttonProps);
-//     formContainerCreated.append(buttonCreated);
-// }
-
 export const translateNavbar = () => {
     const linksContent = document.querySelectorAll('.page-link-item');
     linksContent.forEach((link) => {
@@ -242,19 +157,25 @@ export const translateNavbar = () => {
         }
 
     });
-    activateHeaderDropdowns()
+    if(!isInMobile()){
+        const headerShopDropdownToReplace = document.querySelector('.ui.menu.header-dropdown')
+        const headerShopDropdown = generateHeaderShopDropdown();
+        headerShopDropdownToReplace.parentNode.replaceChild(headerShopDropdown, headerShopDropdownToReplace);
+        activateHeaderDropdowns();
+    }
+   
 }
 
 export const paintUserIconOrLetter = () => {
+    const userIconElement = document.querySelector('.user-icon');
     if(userLogged){
-        const firstNameLetter = userLogged.first_name.split('')[0]
-        const lastNameLetter = userLogged.last_name.split('')[0]
-        const userInitialsContainer = document.querySelector('.user-initials-container');
-        const userInitialsElement = userInitialsContainer.querySelector('span');
-        userInitialsElement.textContent = firstNameLetter + lastNameLetter;
-        userInitialsContainer.classList.toggle('hidden');
+        userIconElement.classList.add('hidden');
+        const userLoggedDropdownToChange = document.querySelector('.user-initials-container');
+        const userInitialsDropdown = generateUserLoggedDropdown();
+        userLoggedDropdownToChange.parentNode.replaceChild(userInitialsDropdown, userLoggedDropdownToChange);
+        activateHeaderDropdowns();
     } else {
-        const userIconElement = document.querySelector('.user-icon');
+        
         userIconElement.classList.toggle('hidden');
     }
 }
@@ -270,11 +191,21 @@ export const translateUserLoggedModal = () => {
 }
 
 function activateHeaderDropdowns(){
-    $('.header .menu .browse')
+    $('.header .menu.nav-link-item .browse')
     .popup({
         inline     : true,
         hoverable  : true,
         position   : 'bottom left',
+        delay: {
+        show: 150,
+        hide: 600
+        }
+    });
+    $('.header .menu.user-initials-container .browse')
+    .popup({
+        inline     : true,
+        hoverable  : true,
+        position   : 'bottom right',
         delay: {
         show: 150,
         hide: 600

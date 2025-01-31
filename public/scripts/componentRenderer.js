@@ -103,7 +103,9 @@ export function checkoutCard (props) {
     // Append all to container
     container.appendChild(imageDiv);
     container.appendChild(contentDiv);
-  
+    container.innerHTML += `<div class="ui dimmer">
+    <div class="ui loader"></div>
+  </div>`
     return container;
   }
 
@@ -1132,6 +1134,103 @@ export function userInfoComponent(props) {
 
   return container;
 }
+
+export function generateHeaderShopDropdown() {
+  const dropdownContainer = document.createElement("div");
+  dropdownContainer.className = "ui menu header-dropdown nav-link-item";
+  let shopWord = isInSpanish ? "Tienda" : "Shop"
+  const dropdownTrigger = document.createElement("a");
+  dropdownTrigger.className = "browse item header-nav-letter";
+  dropdownTrigger.innerHTML = `${shopWord.toUpperCase()} <i class="dropdown icon"></i>`;
+
+  const popupContainer = document.createElement("div");
+  popupContainer.className = "ui fluid popup bottom left transition hidden header-dropdown-items-section";
+
+  const columnDiv = document.createElement("div");
+  columnDiv.className = "ui column";
+
+  const header = document.createElement("h4");
+  header.className = "ui header";
+  header.textContent = shopWord;
+
+  const listDiv = document.createElement("div");
+  listDiv.className = "ui link list";
+
+  const items = [
+      { text: isInSpanish ? "Zapatos de hombre" : "Men shoes", href: "#" },
+      { text: isInSpanish ? "Zapatos de Mujer" : "Women shoes", href: "#" }
+  ];
+
+  items.forEach(item => {
+      const link = document.createElement("a");
+      link.className = "item";
+      link.href = item.href;
+      link.textContent = item.text;
+      listDiv.appendChild(link);
+  });
+
+  columnDiv.appendChild(header);
+  columnDiv.appendChild(listDiv);
+  popupContainer.appendChild(columnDiv);
+  dropdownContainer.appendChild(dropdownTrigger);
+  dropdownContainer.appendChild(popupContainer);
+
+  return dropdownContainer; // Puedes cambiar este selector para añadirlo donde quieras
+}
+
+export function generateUserLoggedDropdown() {
+  const dropdownContainer = document.createElement("li");
+  dropdownContainer.className = "ui menu header-dropdown user-action-item user-initials-container";
+
+  const dropdownTrigger = document.createElement("a");
+  dropdownTrigger.className = "browse item header-nav-letter";
+  
+  const initialsSpan = document.createElement("span");
+  initialsSpan.className = "user-initials";
+  const firstNameLetter = userLogged.first_name.split('')[0]
+  const lastNameLetter = userLogged.last_name.split('')[0]
+  initialsSpan.textContent = firstNameLetter + lastNameLetter;
+  
+  dropdownTrigger.appendChild(initialsSpan);
+  
+  const popupContainer = document.createElement("div");
+  popupContainer.className = "ui fluid popup header-dropdown-items-section bottom left transition hidden";
+
+  const columnDiv = document.createElement("div");
+  columnDiv.className = "ui column";
+
+  const header = document.createElement("h4");
+  header.className = "ui header";
+  header.textContent = "Menu";
+
+  const listDiv = document.createElement("div");
+  listDiv.className = "ui link list user-logged-list";
+
+  const items = [
+      { text: isInSpanish ? "Perfil" : "Profile", href: "/perfil?index=0",},
+      { text: isInSpanish ? "Mis Direcciones" : "My addresses", href: "/perfil?index=1",},
+      { text: isInSpanish ? "Mis Telefonos" : "My phones", href: "/perfil?index=2",},
+      { text: isInSpanish ? "Mis Compras" : "My orders", href: "/perfil?index=3",},
+      { text: isInSpanish ? "Cerrar sesión" : "Logout", href: "/logout" }
+  ];
+
+  items.forEach(item => {
+      const link = document.createElement("a");
+      link.className = "item user-anchors";
+      link.href = item.href;
+      link.textContent = item.text;
+      listDiv.appendChild(link);
+  });
+
+  columnDiv.appendChild(header);
+  columnDiv.appendChild(listDiv);
+  popupContainer.appendChild(columnDiv);
+  dropdownContainer.appendChild(dropdownTrigger);
+  dropdownContainer.appendChild(popupContainer);
+
+  return dropdownContainer;
+}
+
 
 
 export const createLoadingSpinner = (optionalClassName) => {

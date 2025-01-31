@@ -212,6 +212,10 @@ export function activateDropdown({className, array, placeHolder,values}){
 export function isInDesktop() {
   return window.innerWidth >= 1024; // Mobile & Tablet
 }
+// Se fija si esta en desktop
+export function isInMobile() {
+  return window.innerWidth < 768; // Mobile
+}
 
 // Se fija que el modal este completo
 export function handleModalCheckForComplete(){
