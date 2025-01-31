@@ -8,13 +8,10 @@ import countries from '../../utils/staticDB/countries.js';
 import tacos from '../../utils/staticDB/tacos.js';
 import sizes from '../../utils/staticDB/sizes.js';
 import genders from '../../utils/staticDB/genders.js';
-
-
-
+import ordersStatuses from '../../utils/staticDB/ordersStatuses.js';
 
 const {productMsg} = systemMessages;
 const { fetchFailed, notFound, fetchSuccessfull, createFailed, updateFailed, deleteSuccess, createSuccessfull, deleteFailed } = productMsg;
-
 
 const controller = {
     getPaymentTypes: async (req, res) => {
@@ -94,8 +91,7 @@ const controller = {
         }
     },
     getGenders: async (req, res) => {
-        try {
-            
+        try { 
             return res.status(200).json({
                 ok: true,
                 data: genders
@@ -109,6 +105,21 @@ const controller = {
             })
         }
     },
+    getOrderStatuses: async (req, res) => {
+        try {
+            return res.status(200).json({
+                ok: true,
+                data: ordersStatuses
+            })
+        } catch (error) {
+            console.log(`error in getOrderStatuses:`);
+            console.log(error);
+            return res.status(500).json({
+                ok: false,
+                msg: fetchFailed
+            })
+        }
+    }
 };
 
 export default controller;

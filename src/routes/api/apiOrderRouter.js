@@ -8,7 +8,10 @@ router.get('/',apiOrderController.getOrders);
 // POST
 router.post('/',formValidations.orderFields,apiOrderController.createOrder);
 // PUT
+router.put('/order-status/:orderId',apiOrderController.updateOrderStatus);
+
 router.put('/',formValidations.addressFields,apiOrderController.updateOrder);
+
 
 
 export default router;

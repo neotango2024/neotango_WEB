@@ -1,7 +1,6 @@
 .main-content-wrapper.user-orders-wrapper{
     flex-direction: column;
     align-items: center;
-    padding: 0 5vw;
 }
 .order-card{
     width: 100%;

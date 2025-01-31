@@ -11,5 +11,6 @@ router.get('/country', apiTypeController.getCountries);
 router.get('/taco', apiTypeController.getTacos);
 router.get('/size', apiTypeController.getSizes);
 router.get('/gender', apiTypeController.getGenders);
+router.get('/order-statuses', apiTypeController.getOrderStatuses);
 
 export default router;

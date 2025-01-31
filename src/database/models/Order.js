@@ -38,6 +38,7 @@ export default (sequelize, dataTypes) => {
         //Phone Snapshot
         phone_code: { type: dataTypes.STRING(50) },
         phone_number: { type: dataTypes.STRING(100) },
+        currency_id: {type: dataTypes.INTEGER}
     }
 
     let config = {

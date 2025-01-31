@@ -43,6 +43,7 @@ import {
   insertPhoneToDB,
 } from "./apiPhoneController.js";
 import { getMappedErrors } from "../../utils/helpers/getMappedErrors.js";
+import currencies from "../../utils/staticDB/currencies.js";
 
 // ENV
 const webTokenSecret = process.env.JSONWEBTOKEN_SECRET;
@@ -308,6 +309,32 @@ const controller = {
       return res.status(500).json({ error });
     }
   },
+  updateOrderStatus: async (req, res) => {
+    try {
+      const {orderId} = req.params;
+      if(!orderId){
+        console.log('No order id provided to update')
+        return res.status(400).json({
+          ok: false
+        })
+      }
+      const { body: { order_status_id } } = req;
+      await db.Order.update({order_status_id}, {
+        where: {
+          id: orderId
+        }
+      })
+      return res.status(204).json({
+        ok: true
+      })
+    } catch (error) {
+      console.log(`error in updateOrderStatus: ${error}`);
+      return res.status(500).json({
+        ok: false,
+        data: null
+      })
+    }
+  }
 };
 
 export default controller;
@@ -355,18 +382,24 @@ export async function getOrdersFromDB({ id, limit, offset, user_id }) {
         include: orderIncludeArray,
       });
     }
-    
-    console.log(ordersToReturn);
+  
     
     if (!ordersToReturn || !ordersToReturn.length) return [];
     ordersToReturn = getDeepCopy(ordersToReturn);
-    ordersToReturn?.forEach(orderToReturn=> setOrderKeysToReturn(orderToReturn));
+    ordersToReturn?.forEach(orderToReturn=> {
+      setOrderKeysToReturn(orderToReturn);
+      populateCurrencies(orderToReturn);
+    });
 
     return ordersToReturn;
   } catch (error) {
     console.log(`Falle en getOrders`);
     return console.log(error);
   }
+}
+
+const populateCurrencies = (order) => {
+  order.currency = currencies.find(currency => currency.id === order.currency_id)
 }
 
 //Esta funcion toma el objeto y le hace una "foto" de las entidades que luego pueden cambiar

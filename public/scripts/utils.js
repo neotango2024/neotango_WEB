@@ -90,9 +90,10 @@ export function generateRandomString(length){
 }
 
 export let productsFromDB = [];
-export async function setProductsFromDB({ categoryId = undefined, limit = undefined, offset = undefined, id = undefined}) {
+export async function setProductsFromDB({ categoryId = null, limit = null, offset = null, id = null} = {}) {
   try {
       const queryParams = new URLSearchParams();
+
       if (categoryId) queryParams.append('categoryId', categoryId);
       if (limit) queryParams.append('limit', limit);
       if (offset) queryParams.append('offset', offset);
@@ -108,11 +109,20 @@ export async function setProductsFromDB({ categoryId = undefined, limit = undefi
         await (await fetch(url)).json()
       ).data || [];
 
+
       productsFromDB = array;
   } catch (error) {
       console.log(`Falle en setProductsFromDB: ${error}`);
   }
 }
+
+export let ordersFromDb;
+export const setOrdersFromDb = async () => {
+    const response = await fetch('/api/order');
+    const data = await response.json();
+    ordersFromDb = data.orders;
+}
+
 
 export let variationsFromDB = [];
 export async function setVariationsFromDB(id) {
@@ -594,3 +604,12 @@ export function handleUserSignUpClick(){
         // Abro el modal
         handlePageModal(true);
     }; 
+
+// recibe fecha en 2025-01-29T18:33:30.000Z y la pasa a dia, mes y año
+export const sanitizeDate = (date) => {
+  const fecha = new Date(date);
+  const dia = fecha.getUTCDate().toString().padStart(2, '0');
+  const mes = (fecha.getUTCMonth() + 1).toString().padStart(2, '0'); // Sumar 1 porque los meses van de 0 a 11
+  const año = fecha.getUTCFullYear();
+  return `${dia}-${mes}-${año}`;
+}

@@ -1134,6 +1134,11 @@ export function userInfoComponent(props) {
 }
 
 
-
-
-
+export const createLoadingSpinner = (optionalClassName) => {
+  const loadingState = document.createElement("div");
+  loadingState.className = `loading-state ${optionalClassName}`;
+  const loadingSpinner = document.createElement("div");
+  loadingSpinner.className = "loading";
+  loadingState.appendChild(loadingSpinner);
+  return loadingState;
+}

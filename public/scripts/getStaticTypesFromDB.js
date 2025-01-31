@@ -75,3 +75,16 @@ export async function setGenders(){
         return console.log(error);        
     }
 }
+
+export async function getOrderStatuses(){
+    try {
+        const orderStatusesResponse = await fetch(`${window.location.origin}/api/type/order-statuses`);
+        const orderStatusesJson = await orderStatusesResponse.json();
+        return orderStatusesJson.data;
+    } catch (error) {
+        console.log("Falle");
+        return console.log(error);        
+    }
+}
+
+

@@ -187,6 +187,29 @@ label{
 .ui.toggle.checkbox input:checked~.box:before, .ui.toggle.checkbox input:checked~label:before {
     background-color: var(--red-color) !important;
 }
+.loading-state {
+    width: 100%;
+    height: auto;
+    /* background-color: rgba(0, 0, 0, 0.3); */
+    z-index: 9999;
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+    margin-left: 10px;
+}
+  .loading {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    border: 5px solid #ddd;
+    border-top-color: var(--light-red-color);
+    animation: loading 1s linear infinite;
+  }
+  @keyframes loading {
+    to {
+      transform: rotate(360deg);
+    }
+  }
 @media(min-width:768px){
     .mobile-only{
         display: none !important;

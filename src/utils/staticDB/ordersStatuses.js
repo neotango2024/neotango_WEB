@@ -2,8 +2,8 @@ export default [
     {
         id: 1,
         status: {
-            es: 'Termianda',
-            en: 'Finalized'
+            es: 'Completada',
+            en: 'Done'
         },
         class: 'green' //Verde
     },
