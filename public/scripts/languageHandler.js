@@ -6,7 +6,7 @@ import { productsFromDB, toggleBodyScrollableBehavior, toggleOverlay } from './u
 import { cartExportObj } from "./cart.js";
 import { productDetailExportObj } from "./productDetail.js";
 import { handleTranslateCategoryProducts, translateCategoryTitle, translateFilters } from "./productList.js";
-import { userProfileExportObj } from "./userProfile.js";
+import { translateUserLabels, userProfileExportObj } from "./userProfile.js";
 import { translateAboutUsContent } from "./aboutUs.js";
 
 export let settedLanguage = null;
@@ -99,6 +99,7 @@ const handleChangeLanguage = async(param) => { //param es esp/eng
             break
         case 'profile':
             userProfileExportObj.pageConstructor && userProfileExportObj.pageConstructor();
+            translateUserLabels();
            break
         case "aboutUs":
             translateAboutUsContent();

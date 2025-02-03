@@ -30,10 +30,9 @@ export const translations = {
     },
     userLogged: {
         profile: { eng: 'Profile', esp: 'Perfil' },
-        addresses: { eng: 'My addresses', esp: 'Mis direcciones' },
+        address: { eng: 'My addresses', esp: 'Mis direcciones' },
         phones: { eng: 'My phones', esp: 'Mis telefonos' },
-        purchases: { eng: 'My orders', esp: 'Mis compras' },
-        shipping: { eng: 'Shipping', esp: 'Envios' }
+        orderHistory: { eng: 'My orders', esp: 'Mis compras' },
     },
     aboutUs: {
         title: {eng: 'About us', esp: 'Nosotros'},

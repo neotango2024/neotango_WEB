@@ -36,6 +36,7 @@ import {
   shippingZones,
   handleUpdateZonePrices
 } from "./utils.js";
+import { translations } from "../constants/constants.js";
 
 let activeIndexSelected = 0; //index del array "items"
 let typeOfPanel; //Admin 1 | User 2 
@@ -861,5 +862,21 @@ const listenForZoneFormSubmit = (form) => {
     button.style.display = "block";
   })
 }
+
+export const translateUserLabels = () => {
+  const {user_role_id} = userLogged;
+  if(user_role_id === 2){
+    const lang = isInSpanish ? 'esp' : 'eng';
+    const items = document.querySelectorAll('.item');
+    items.forEach(item => {
+      if(item.dataset.label){
+        const translation = translations.userLogged[item.dataset.label][lang];
+        const span = item.querySelector('span');
+        span.textContent = translation;
+      }
+    })
+  }
+}
+
 
 export { userProfileExportObj };

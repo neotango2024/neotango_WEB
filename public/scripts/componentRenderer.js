@@ -715,6 +715,8 @@ export function createUserMenuBtn(props) {
     const itemLink = document.createElement("a");
     itemLink.className = `item`;
     itemLink.dataset.index = i;
+    itemLink.dataset.label = item.itemType;
+
     // Agregar clases adicionales si el tipo coincide con la URL actual
     if (props.actualIndexSelected == i)
       itemLink.classList.add("active", "selected");
@@ -1167,185 +1169,190 @@ function createField(field) {
   // Crear el contenedor del campo
   const fieldContainer = document.createElement("div");
   fieldContainer.className = `field ${field.containerClassName || ""}`; // Usar containerClassName
-
+  
   // Agregar etiqueta si está presente
   if (field.label) {
-    const label = document.createElement("label");
-    label.textContent = field.label;
-    fieldContainer.appendChild(label);
+  const label = document.createElement("label");
+  label.textContent = field.label;
+  fieldContainer.appendChild(label);
   }
-
+  
   // Manejo de nestedFields (para soportar estructuras complejas)
   if (field.nestedFields) {
-    field.nestedFields.forEach((nestedField) => {
-      const nestedElement = createField(nestedField);
-      fieldContainer.appendChild(nestedElement);
-    });
+  field.nestedFields.forEach((nestedField) => {
+  const nestedElement = createField(nestedField);
+  fieldContainer.appendChild(nestedElement);
+  });
   }
-
+  
   // Manejo de togglers
   if (field.type === "toggle") {
-    const toggleWrapper = document.createElement("div");
-    toggleWrapper.className = "ui toggle checkbox";
-
-    const input = document.createElement("input");
-    input.type = "checkbox";
-    input.name = field.name;
-    input.className = field.className || "hidden";
-    input.checked = field.checked;
-
-    const label = document.createElement("label");
-    label.textContent = field.labelForToggle || "";
-
-    toggleWrapper.appendChild(input);
-    toggleWrapper.appendChild(label);
-    fieldContainer.appendChild(toggleWrapper);
+  const toggleWrapper = document.createElement("div");
+  toggleWrapper.className = "ui toggle checkbox";
+  
+  const input = document.createElement("input");
+  input.type = "checkbox";
+  input.name = field.name;
+  input.className = field.className || "hidden";
+  input.checked = field.checked;
+  
+  const label = document.createElement("label");
+  label.textContent = field.labelForToggle || "";
+  
+  toggleWrapper.appendChild(input);
+  toggleWrapper.appendChild(label);
+  fieldContainer.appendChild(toggleWrapper);
   }
-
+  
   // Manejo de tipo date
   if (field.type === "date") {
-    const input = document.createElement("input");
-    input.type = "date";
-    input.name = field.name;
-    input.className = field.className || "";
-    input.required = field.required || false;
-
-    if (field.value) {
-      input.value = field.value;
-    }
-
-    fieldContainer.appendChild(input);
+  const input = document.createElement("input");
+  input.type = "date";
+  input.name = field.name;
+  input.className = field.className || "";
+  input.required = field.required || false;
+  
+  if (field.value) {
+  input.value = field.value;
   }
-
+  
+  fieldContainer.appendChild(input);
+  }
+  
   // Manejo de select
   if (field.type === "select") {
-    const select = document.createElement("select");
-    select.name = field.name;
-    select.className = field.className || "ui dropdown";
-    select.required = field.required || false;
-
-    if (field.dataAttributes) {
-      Object.entries(field.dataAttributes).forEach(([key, value]) => {
-        select.dataset[key] = value;
-      });
-    }
-
-    if (field.multiple) select.setAttribute("multiple", "");
-
-    if (!field.options?.length) {
-      const opt = document.createElement("option");
-      opt.value = "";
-      opt.textContent = "Loading...";
-      select.appendChild(opt);
-    }
-
-    (field.options || []).forEach((option) => {
-      const opt = document.createElement("option");
-      opt.value = option.value;
-      opt.textContent = option.label;
-      if (field.value && field.value === option.value) {
-        opt.selected = true;
-      }
-      select.appendChild(opt);
-    });
-
-    fieldContainer.appendChild(select);
+  const select = document.createElement("select");
+  select.name = field.name;
+  select.className = field.className || "ui dropdown";
+  select.required = field.required || false;
+  
+  if (field.dataAttributes) {
+  Object.entries(field.dataAttributes).forEach(([key, value]) => {
+  select.dataset[key] = value;
+  });
   }
-
+  
+  if (field.multiple) select.setAttribute("multiple", "");
+  
+  if (!field.options?.length) {
+  const opt = document.createElement("option");
+  opt.value = "";
+  opt.textContent = "Loading...";
+  select.appendChild(opt);
+  }
+  
+  (field.options || []).forEach((option) => {
+  const opt = document.createElement("option");
+  opt.value = option.value;
+  opt.textContent = option.label;
+  if (field.value && field.value === option.value) {
+  opt.selected = true;
+  }
+  select.appendChild(opt);
+  });
+  
+  fieldContainer.appendChild(select);
+  }
+  
   // Manejo de radio-group
   if (field.type === "radio-group") {
-    const radioGroup = document.createElement("div");
-    radioGroup.className = "inline fields";
-
-    (field.options || []).forEach((option, index) => {
-      const radioField = document.createElement("div");
-      radioField.className = "field";
-
-      const radioDiv = document.createElement("div");
-      radioDiv.className = "ui radio checkbox";
-
-      const input = document.createElement("input");
-      input.type = "radio";
-      input.name = field.name;
-      input.value = option.value;
-      input.checked = option.checked || index === 0;
-      input.required = field.required || false;
-
-      const label = document.createElement("label");
-      label.textContent = option.label;
-
-      radioDiv.appendChild(input);
-      radioDiv.appendChild(label);
-      radioField.appendChild(radioDiv);
-      radioGroup.appendChild(radioField);
-    });
-
-    fieldContainer.appendChild(radioGroup);
+  const radioGroup = document.createElement("div");
+  radioGroup.className = "inline fields";
+  
+  (field.options || []).forEach((option, index) => {
+  const radioField = document.createElement("div");
+  radioField.className = "field";
+  
+  const radioDiv = document.createElement("div");
+  radioDiv.className = "ui radio checkbox";
+  
+  const input = document.createElement("input");
+  input.type = "radio";
+  input.name = field.name;
+  input.value = option.value;
+  input.checked = option.checked || index === 0;
+  input.required = field.required || false;
+  
+  const label = document.createElement("label");
+  label.textContent = option.label;
+  
+  radioDiv.appendChild(input);
+  radioDiv.appendChild(label);
+  radioField.appendChild(radioDiv);
+  radioGroup.appendChild(radioField);
+  });
+  
+  fieldContainer.appendChild(radioGroup);
   }
-
+  
   // Manejo de textarea
   if (field.type === "textarea") {
-    const textarea = document.createElement("textarea");
-    textarea.name = field.name;
-    textarea.placeholder = field.placeholder || "";
-    textarea.className = field.className || "";
-    textarea.required = field.required || false;
-
-    if (field.value) {
-      textarea.value = field.value;
-    }
-
-    fieldContainer.appendChild(textarea);
+  const textarea = document.createElement("textarea");
+  textarea.name = field.name;
+  textarea.placeholder = field.placeholder || "";
+  textarea.className = field.className || "";
+  textarea.required = field.required || false;
+  
+  if (field.value) {
+  textarea.value = field.value;
   }
-
-  // Manejo de input estándar (text, number, email)
-  if (["text", "number", "email"].includes(field.type)) {
-    const input = document.createElement("input");
-    input.type = field.type;
-    input.name = field.name;
-    input.placeholder = field.placeholder || "";
-    input.className = field.className || "";
-    input.required = field.required || false;
-
-    if (field.value) {
-      input.value = field.value;
-    }
-
-    fieldContainer.appendChild(input);
+  
+  fieldContainer.appendChild(textarea);
   }
-
+  
+  // Manejo de input estándar (text, number, email, password)
+  if (["text", "number", "email", "password"].includes(field.type)) {
+  const input = document.createElement("input");
+  input.type = field.type;
+  input.name = field.name;
+  input.placeholder = field.placeholder || "";
+  input.className = field.className || "";
+  input.required = field.required || false;
+  
+  if (field.value) {
+  input.value = field.value;
+  }
+  
+  // Opcionalmente, puedes agregar atributos específicos para inputs de contraseña
+  if (field.type === "password") {
+  input.autocomplete = field.autocomplete || "off";
+  }
+  
+  fieldContainer.appendChild(input);
+  }
+  
   // Manejo de input file con extensiones permitidas
   if (field.type === "file") {
-    const input = document.createElement("input");
-    input.type = "file";
-    input.name = field.name;
-    input.className = field.className || "";
-    input.required = field.required || false;
-
-    if (field.multiple) {
-      input.setAttribute("multiple", "");
-    }
-
-    // Validar extensiones permitidas
-    if (
-      Array.isArray(field.allowedExtensions) &&
-      field.allowedExtensions.length > 0
-    ) {
-      input.accept = field.allowedExtensions.map((ext) => `.${ext}`).join(",");
-    }
-
-    fieldContainer.appendChild(input);
+  const input = document.createElement("input");
+  input.type = "file";
+  input.name = field.name;
+  input.className = field.className || "";
+  input.required = field.required || false;
+  
+  if (field.multiple) {
+  input.setAttribute("multiple", "");
   }
-
+  
+  // Validar extensiones permitidas
+  if (
+  Array.isArray(field.allowedExtensions) &&
+  field.allowedExtensions.length > 0
+  ) {
+  input.accept = field.allowedExtensions.map((ext) => `.${ext}`).join(",");
+  }
+  
+  fieldContainer.appendChild(input);
+  }
+  
   // Manejo de extraContent (debe agregarse al final del contenedor principal)
   if (field.extraContent) {
-    const extraContentContainer = document.createElement("div");
-    extraContentContainer.innerHTML = field.extraContent;
-    fieldContainer.appendChild(extraContentContainer);
+  const extraContentContainer = document.createElement("div");
+  extraContentContainer.innerHTML = field.extraContent;
+  fieldContainer.appendChild(extraContentContainer);
   }
-
+  
   return fieldContainer;
-}
+  }
 
 export function destroyExistingModal() {
   const existingModal = document.querySelector(".ui.modal");
