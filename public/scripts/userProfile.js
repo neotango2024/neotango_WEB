@@ -10,6 +10,7 @@ import {
   createUserMenuBtn,
   destroyExistingModal,
   form,
+  generateOrderDetailModal,
   orderCard,
   phoneCard,
   userInfoComponent,
@@ -47,12 +48,10 @@ window.addEventListener("load", async () => {
   if (!pathname.endsWith("/perfil")) return;
   if (!userLogged) return (window.location.href = "/");
   typeOfPanel = userLogged.user_role_id;
-
   const orderStatuses = await getOrderStatuses();
   // Obtén el parámetro `index` de la URL
   const urlParams = new URLSearchParams(window.location.search);
   const indexFromURL = urlParams.get("index");
-  
   // Si existe el parámetro, actualiza `activeIndexSelected`
   // esto es por si toca desde el dropdown
   if (indexFromURL !== null) {
@@ -248,7 +247,11 @@ window.addEventListener("load", async () => {
     if (!userOrders.length) userOrders = await getUserOrders();
     userOrders.forEach((order) => {
       const orderCardElement = orderCard(order);
-
+      orderCardElement.addEventListener('click',()=>{
+        let orderModalElement = generateOrderDetailModal(order);
+        document.body.appendChild(orderModalElement);
+        handlePageModal(true);
+      })
       mainContentWrapper.appendChild(orderCardElement);
     });
   }

@@ -233,16 +233,16 @@
   align-items: center;
   margin: 2.5vh auto;
 }
-.ui.form .add-size-button-field{
-    width: fit-content;
-    margin: 2.5vh auto;
+.ui.form .add-size-button-field {
+  width: fit-content;
+  margin: 2.5vh auto;
 }
-.variation-sizes-wrapper{
-    width: 100%;
-    display: flex;
-    justify-content: space-evenly;
-    flex-wrap: wrap;
-    gap: 10px;
+.variation-sizes-wrapper {
+  width: 100%;
+  display: flex;
+  justify-content: space-evenly;
+  flex-wrap: wrap;
+  gap: 10px;
 }
 .variation-size-container {
   width: 22.5%;
@@ -254,9 +254,96 @@
 .variation-size-container * {
   text-align: center;
 }
-.ui.form .variation-field select{
-    padding: 5px 0;
-    text-align: center;
+.ui.form .variation-field select {
+  padding: 5px 0;
+  text-align: center;
+}
+
+.ui.modal > .content.order-detail-modal-content{
+  padding: 5vh 0;
+}
+.ui.card.order-detail-card {
+  margin: 0 auto;
+  width: 95%;
+  max-width: 550px;
+}
+.ui.card.order-detail-card .content::after,
+.ui.card.order-detail-card .content::before {
+  display: none;
+}
+.ui.card.order-detail-card .content {
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+}
+.modal-card-header-span {
+  color: #000;
+  font-weight: 600;
+  font-size: small;
+  width: 50%;
+}
+.modal-card-content-row {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 15px;
+  font-size: medium;
+}
+.order-detail-card-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: 5vh;
+}
+.order-detail-card-section .card-label.label {
+  font-size: large;
+}
+.order-detail-card-section .ui.card {
+  display: flex;
+  flex-direction: row;
+  height: 4.25rem;
+  justify-content: space-evenly;
+  width: 80%;
+  max-width: 300px;
+  padding: 10px 0;
+}
+.order-detail-card-section .ui.card::after{
+  display: none;
+}
+.card-shipping-detail.order-detail-card-section .ui.card,
+.card-billing-detail.order-detail-card-section .ui.card {
+  height: fit-content;
+}
+.card-logo-container{
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 40%;
+}
+.card-logo-i{
+  font-size: 2.5rem;
+  color: var(--dark-grey-color);
+}
+.card-label-container {
+  width: 60%;
+  display: flex;
+  align-items: center;
+}
+.card-shipping-detail .card-label-container,
+.card-billing-detail .card-label-container{
+  flex-direction: column;
+  justify-content: space-evenly;
+  align-items: flex-start;
+}
+.card-billing-detail .card-label-container{
+  align-items: center;
+}
+.card-label {
+  font-size: medium;
+  font-weight: 600;
+}
+.card-desc{
+  font-size: small;
 }
 .zones-container {
   width: 100%;
@@ -323,6 +410,15 @@
   .ui.placeholder.menu-placeholder {
     display: block;
     width: 40%;
+  }
+  .ui.card.order-detail-card{
+    width: 80%;
+  }
+  .modal-card-header-span {
+    font-size: medium;
+  }
+  .order-detail-card-section .ui.card{
+    max-width: 400px;
   }
 }
 @media (min-width: 1024px) {
