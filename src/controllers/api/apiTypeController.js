@@ -9,6 +9,7 @@ import tacos from '../../utils/staticDB/tacos.js';
 import sizes from '../../utils/staticDB/sizes.js';
 import genders from '../../utils/staticDB/genders.js';
 import ordersStatuses from '../../utils/staticDB/ordersStatuses.js';
+import { categories } from '../../utils/staticDB/categories.js';
 
 const {productMsg} = systemMessages;
 const { fetchFailed, notFound, fetchSuccessfull, createFailed, updateFailed, deleteSuccess, createSuccessfull, deleteFailed } = productMsg;
@@ -80,6 +81,21 @@ const controller = {
             return res.status(200).json({
                 ok: true,
                 data: sizes
+            })
+        } catch (error) {
+            console.log(`error in getSizes:`);
+            console.log(error);
+            return res.status(500).json({
+                ok: false,
+                msg: fetchFailed.en
+            })
+        }
+    },
+    getCategories: async (req, res) => {
+        try {
+            return res.status(200).json({
+                ok: true,
+                data: categories
             })
         } catch (error) {
             console.log(`error in getSizes:`);

@@ -1,6 +1,6 @@
 import { cartExportObj } from "./cart.js";
 import { checkForUserLogged, userLogged } from "./checkForUserLogged.js";
-import { createAddressModal, createPhoneModal, createUserSignUpModal } from "./componentRenderer.js";
+import { closeModal, createAddressModal, createPhoneModal, createUserSignUpModal } from "./componentRenderer.js";
 import { countriesFromDB } from "./getStaticTypesFromDB.js";
 import { isInSpanish } from "./languageHandler.js";
 import { userProfileExportObj } from "./userProfile.js";
@@ -92,6 +92,22 @@ export function generateRandomString(length){
 export let productsFromDB = [];
 export async function setProductsFromDB({ categoryId = null, limit = null, offset = null, id = null} = {}) {
   try {
+      const fetchedArray = await fetchDBProducts ({
+        categoryId,
+        limit,
+        offset,
+        id
+      })
+
+      productsFromDB = fetchedArray;
+  } catch (error) {
+      console.log(`Falle en setProductsFromDB:`);
+      return console.log(error);
+  }
+}
+
+export async function fetchDBProducts({ categoryId = null, limit = null, offset = null, id = null} = {}) {
+  try {
       const queryParams = new URLSearchParams();
 
       if (categoryId) queryParams.append('categoryId', categoryId);
@@ -110,9 +126,10 @@ export async function setProductsFromDB({ categoryId = null, limit = null, offse
       ).data || [];
 
 
-      productsFromDB = array;
+      return array;
   } catch (error) {
-      console.log(`Falle en setProductsFromDB: ${error}`);
+      console.log(`Falle en fetchDBProducts`);
+      return console.log(error);
   }
 }
 
@@ -166,7 +183,7 @@ export function handlePageModal(boolean){
   return
   }
   // Aca lo cierro
-  $(".ui.modal").modal("hide");
+  closeModal();
   return;
 }
 
@@ -349,6 +366,63 @@ export function buildAddressBodyData(form){
     id: userLogged ? undefined : generateRandomString(10),
   }
 }
+export function buildProductBodyData(form){
+  let bodyDataToReturn =  {
+    es_name: form['product-es-name']?.value,
+    eng_name: form['product-en-name']?.value,
+    ars_price: form['product-ars-price']?.value,
+    usd_price: form['product-usd-price']?.value,
+    english_description: form['product-en-description']?.value,
+    spanish_description: form['product-es-description']?.value,
+    sku: form['product-sku']?.value,
+    category_id: form['product-category-id']?.value,
+    variations: [],
+    images: [],
+    filesFromArray: [],
+  };
+  const variationFields = document.querySelectorAll('.variation-field') || [];
+  variationFields.forEach(field => {
+    const tacoId = field.querySelector('select[name="variation-taco-id"]').value;
+    const sizeContainers = field.querySelectorAll('.variation-size-container') || [];
+    sizeContainers.forEach(sizeField => {
+      const sizeId = sizeField.querySelector('select[name="variation-size-id"]').value;
+      const stock = sizeField.querySelector('input[name="variation-stock"]').value;
+      bodyDataToReturn.variations.push({
+        tacoId,
+        sizeId,
+        quantity: stock,
+      })
+    });
+  });
+  const imagesInput = form['product-image'];
+  if (imagesInput && imagesInput.files?.length > 0) {
+    bodyDataToReturn.images = Array.from(imagesInput.files); // Convertir FileList a Array
+    // Crear un array con los nombres de los archivos
+    bodyDataToReturn.filesFromArray = bodyDataToReturn.images.map((file) => ({
+      filename: file.name,
+      main_file: file.main_file
+    }));
+  };
+  // Convertir el objeto en FormData
+  const formData = new FormData();
+
+  // Agregar campos normales al FormData
+  Object.keys(bodyDataToReturn).forEach((key) => {
+    if (key === "variations" || key === "filesFromArray") {
+      // Convertir las variaciones a JSON y agregar al FormData
+      formData.append(key, JSON.stringify(bodyDataToReturn[key]));
+    } else if (key === "images") {
+      // Agregar archivos al FormData
+      bodyDataToReturn.images.forEach((file) => {
+        formData.append("images", file); // `images` debe coincidir con el nombre esperado en backend
+      });
+    } else if (bodyDataToReturn[key] !== undefined) {
+      formData.append(key, bodyDataToReturn[key]);
+    }
+  });
+
+  return formData;
+}
 
 export function buildUserSignUpBodyData(form){
   return {
@@ -419,6 +493,13 @@ export async function updatePhoneElements(){
     return console.log(error);
   }
 };
+export async function updateProductTable(){
+  try {
+  // TODO:
+  } catch (error) {
+    return console.log(error);
+  }
+};
 
 //Crea y actualiza los valores de phone & address del usuario loggeado (se supone que solo creamos phone & address de los usuarios)
 export async function handlePhoneFetch(bodyData, method){
@@ -465,6 +546,29 @@ export async function handleAddressFetch(bodyData, method){
       let addressToChangeIndex = userLogged.addresses?.findIndex(addressFromDB => addressFromDB.id ==  bodyData.id);
       if(addressToChangeIndex<0)return       
       userLogged.addresses[addressToChangeIndex] = bodyData;
+    };
+    let responseMsg = isInSpanish ? response.msg.es : response.msg.en
+    showCardMessage(true, responseMsg);
+    return true;
+  }
+  return false
+};
+
+export async function handleProductFetch(bodyData, method){
+  let response = await fetch('/api/product', {
+    method: method,
+    body: bodyData,
+  });
+  
+  if(response.ok){
+    response = response.ok &&  await response.json();
+    //Aca dio ok, entonces al ser de un usuario actualizo al usuarioLogged.phones
+    if(method == "POST"){
+      //Aca agrego
+      
+    } else if(method == "PUT"){
+      //Aca modifico, tengo que modificar en el array de userlogged
+      
     };
     let responseMsg = isInSpanish ? response.msg.es : response.msg.en
     showCardMessage(true, responseMsg);
@@ -520,7 +624,7 @@ export async function handleUserSignUpFetch(bodyData){
 //Pinta la tarjeta de succes/error
 export function showCardMessage(isPositive, messageText) {
   // Seleccionar el contenedor padre
-  const messageContainer = document.querySelector('.view_message_container');
+  const messageContainer = document.querySelector('.view-message-container');
 
   if (!messageContainer) {
       console.error("Contenedor principal no encontrado");

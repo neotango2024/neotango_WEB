@@ -1,8 +1,8 @@
 import { userLogged } from "./checkForUserLogged.js";
-import { countriesFromDB, setCountries } from "./getStaticTypesFromDB.js";
+import { categoriesFromDB, countriesFromDB, setCategories, setCountries, setSizes, setTacos, sizesFromDB, tacosFromDB } from "./getStaticTypesFromDB.js";
 import { isInSpanish, settedLanguage } from "./languageHandler.js";
-import { handleAddressModalActions, handlePhoneModalActions, handleUserLoginModal, handleUserSignUpModal } from "./modalHandlers.js";
-import { activateDropdown, generateRandomString, getProductImageSizeUrl, getProductMainImage, handleNewAddressButtonClick, handleNewPhoneButtonClick, handleUserSignUpClick, toggleInputPasswordType } from "./utils.js";
+import { handleAddressModalActions, handlePhoneModalActions, handleProductModalActions, handleUserLoginModal, handleUserSignUpModal } from "./modalHandlers.js";
+import { activateDropdown, generateRandomString, getProductImageSizeUrl, getProductMainImage, handleNewAddressButtonClick, handleNewPhoneButtonClick, handlePageModal, handleUserSignUpClick, toggleInputPasswordType } from "./utils.js";
 const SCREEN_WIDTH = window.screen.width;
 
 export function checkoutCard (props) {
@@ -555,14 +555,12 @@ export function button(props) {
     return button;
 }
 
-export function productCard (prod, containerClass, infoFontSize, isCarouselCard = false) {
+export function productCard (prod, infoFontSize, isCarouselCard = false) {
   const { id, es_name, eng_name, ars_price, usd_price } = prod;
-  const container = document.querySelector(`.${containerClass}`);
 
   const card = document.createElement('div');
   card.className = `${isCarouselCard ? 'carousel-card' : 'product-card'}`;
   card.dataset.productId = id;
-  container.appendChild(card);
 
   const cardAnchor = document.createElement('a');
   cardAnchor.className = 'product-card-anchor';
@@ -586,16 +584,17 @@ export function productCard (prod, containerClass, infoFontSize, isCarouselCard 
 
   const productName = document.createElement('span');
   productName.className = 'product-name';
-  productName.textContent = settedLanguage === 'esp' ? es_name : eng_name;
+  productName.textContent = isInSpanish ? es_name : eng_name;
   productName.style.fontSize = infoFontSize ? `${infoFontSize}%` : '120%'
 
   const productPrice = document.createElement('span');
   productPrice.className = 'product-price';
-  productPrice.textContent = `$${settedLanguage === 'esp' ? ars_price : usd_price}`;
+  productPrice.textContent = `$${isInSpanish ? ars_price : usd_price}`;
   productPrice.style.fontSize = infoFontSize ? `${infoFontSize}%` : '120%'
 
   productInfoContainer.appendChild(productName);
   productInfoContainer.appendChild(productPrice);
+  return card
 }
 
 export function createUserMenuBtn(props) {
@@ -970,31 +969,45 @@ export async function createUserSignUpModal(){
   }
 }
 
-export function createModal({ headerTitle, formFields, buttons, id }) {
-  const existingModal = document.querySelector(".ui.modal");
-  if (existingModal) {
-    existingModal.remove();
-  }
-
+export function createModal({
+  headerTitle,
+  formClassName = '',
+  formFields,
+  buttons,
+  id,
+}) {
+  destroyExistingModal();
   const modal = document.createElement("div");
   modal.className = "ui small modal";
   if (id) modal.dataset.db_id = id;
 
+  // Crear el header
   const header = document.createElement("div");
   header.className = "header";
   header.innerHTML = `${headerTitle} <i class='bx bx-x close-modal-btn'></i>`;
   modal.appendChild(header);
 
+  // Crear el contenido principal
   const content = document.createElement("div");
   content.className = "content";
 
+  // Crear el formulario
   const form = document.createElement("form");
-  form.className = "ui form";
+  form.className = `ui form ${formClassName}`;
 
+  // Crear los campos del formulario
   formFields.forEach((field) => {
-    if (field.type === "two-fields") {
+    if (field.type === "header") {
+      // Crear un header <h4>
+      const headerElement = document.createElement("h4");
+      headerElement.className = "ui dividing header";
+      headerElement.textContent = field.label || "";
+      form.appendChild(headerElement);
+    } else if (field.type.endsWith("-fields")) {
       const fieldContainer = document.createElement("div");
-      fieldContainer.className = "two fields";
+
+      // Reemplazar "-" con un espacio para generar la clase correcta
+      fieldContainer.className = field.type.replace("-", " ");
 
       field.fields.forEach((subField) => {
         const subFieldContainer = createField(subField);
@@ -1002,26 +1015,45 @@ export function createModal({ headerTitle, formFields, buttons, id }) {
       });
 
       form.appendChild(fieldContainer);
+    } else if (field.type === "inline-fields") {
+      const inlineContainer = document.createElement("div");
+      inlineContainer.className = "inline fields";
+
+      field.fields.forEach((subField) => {
+        const subFieldContainer = createField(subField);
+        inlineContainer.appendChild(subFieldContainer);
+      });
+
+      const fieldWrapper = document.createElement("div");
+      fieldWrapper.className = "field";
+      fieldWrapper.appendChild(inlineContainer);
+      form.appendChild(fieldWrapper);
     } else {
       const fieldContainer = createField(field);
       form.appendChild(fieldContainer);
     }
   });
 
+  // Crear el contenedor de botones
   const buttonContainer = document.createElement("div");
   buttonContainer.className = "field margin-field";
 
   buttons.forEach((button) => {
     const btn = document.createElement("button");
-    btn.type = "button";
+    btn.type = button.type || "button";
     btn.className = button.className || "ui button";
     btn.textContent = button.text || "Button";
-    btn.addEventListener("click", button.onClick || (() => {}));
+    btn.dataset.method = button.method;
+    if (button.onClick) {
+      btn.addEventListener("click", button.onClick);
+    }
+
     buttonContainer.appendChild(btn);
   });
 
   form.appendChild(buttonContainer);
 
+  // Agregar mensaje de error
   const errorMessage = document.createElement("div");
   errorMessage.className = "ui error message";
   form.appendChild(errorMessage);
@@ -1030,76 +1062,204 @@ export function createModal({ headerTitle, formFields, buttons, id }) {
   modal.appendChild(content);
   document.body.appendChild(modal);
 
-  modal.querySelector(".close-modal-btn")?.addEventListener("click", () => {
-    $(modal).modal("hide");
-  });
+  // Evento para cerrar el modal
+  modal.querySelector(".close-modal-btn")?.addEventListener("click", () => closeModal());
 
   return modal;
 }
 
 function createField(field) {
+  // Crear el contenedor del campo
   const fieldContainer = document.createElement("div");
-  fieldContainer.className = `field ${field.required ? "required" : ""}`;
+  fieldContainer.className = `field ${field.containerClassName || ""}`; // Usar containerClassName
 
+  // Agregar etiqueta si está presente
   if (field.label) {
     const label = document.createElement("label");
     label.textContent = field.label;
     fieldContainer.appendChild(label);
   }
 
-  if (field.icon) {
-    const iconInputContainer = document.createElement("div");
-    iconInputContainer.className = "ui icon input";
+  // Manejo de nestedFields (para soportar estructuras complejas)
+  if (field.nestedFields) {
+    field.nestedFields.forEach((nestedField) => {
+      const nestedElement = createField(nestedField);
+      fieldContainer.appendChild(nestedElement);
+    });
+  }
+
+  // Manejo de togglers
+  if (field.type === "toggle") {
+    const toggleWrapper = document.createElement("div");
+    toggleWrapper.className = "ui toggle checkbox";
 
     const input = document.createElement("input");
-    input.type = field.type || "text";
-    input.name = field.name || "";
-    input.placeholder = field.placeHolder || "";
-    input.required = field.required || false;
+    input.type = "checkbox";
+    input.name = field.name;
+    input.className = field.className || "hidden";
+    input.checked = field.checked;
+
+    const label = document.createElement("label");
+    label.textContent = field.labelForToggle || "";
+
+    toggleWrapper.appendChild(input);
+    toggleWrapper.appendChild(label);
+    fieldContainer.appendChild(toggleWrapper);
+  }
+
+  // Manejo de tipo date
+  if (field.type === "date") {
+    const input = document.createElement("input");
+    input.type = "date";
+    input.name = field.name;
     input.className = field.className || "";
+    input.required = field.required || false;
 
-    const icon = document.createElement("i");
-    icon.className = `${field.icon} icon`;
-
-    if (field.iconCallback && typeof field.iconCallback === "function") {
-      icon.addEventListener("click", (event) => field.iconCallback(event, input));
+    if (field.value) {
+      input.value = field.value;
     }
 
-    iconInputContainer.appendChild(input);
-    iconInputContainer.appendChild(icon);
-    fieldContainer.appendChild(iconInputContainer);
-  } else if (field.type === "select") {
+    fieldContainer.appendChild(input);
+  }
+
+  // Manejo de select
+  if (field.type === "select") {
     const select = document.createElement("select");
-    select.name = field.name || "";
+    select.name = field.name;
     select.className = field.className || "ui dropdown";
     select.required = field.required || false;
 
-    if (Array.isArray(field.options)) {
-      field.options.forEach((option) => {
-        const optionElement = document.createElement("option");
-        optionElement.value = option.value || "";
-        optionElement.textContent = option.label || "";
-        if (option.selected || option.value == field.value) optionElement.selected = true;
-        select.appendChild(optionElement);
+    if (field.dataAttributes) {
+      Object.entries(field.dataAttributes).forEach(([key, value]) => {
+        select.dataset[key] = value;
       });
     }
 
+    if (field.multiple) select.setAttribute("multiple", "");
+
+    if (!field.options?.length) {
+      const opt = document.createElement("option");
+      opt.value = "";
+      opt.textContent = "Loading...";
+      select.appendChild(opt);
+    }
+
+    (field.options || []).forEach((option) => {
+      const opt = document.createElement("option");
+      opt.value = option.value;
+      opt.textContent = option.label;
+      if (field.value && field.value === option.value) {
+        opt.selected = true;
+      }
+      select.appendChild(opt);
+    });
+
     fieldContainer.appendChild(select);
-  } else {
+  }
+
+  // Manejo de radio-group
+  if (field.type === "radio-group") {
+    const radioGroup = document.createElement("div");
+    radioGroup.className = "inline fields";
+
+    (field.options || []).forEach((option, index) => {
+      const radioField = document.createElement("div");
+      radioField.className = "field";
+
+      const radioDiv = document.createElement("div");
+      radioDiv.className = "ui radio checkbox";
+
+      const input = document.createElement("input");
+      input.type = "radio";
+      input.name = field.name;
+      input.value = option.value;
+      input.checked = option.checked || index === 0;
+      input.required = field.required || false;
+
+      const label = document.createElement("label");
+      label.textContent = option.label;
+
+      radioDiv.appendChild(input);
+      radioDiv.appendChild(label);
+      radioField.appendChild(radioDiv);
+      radioGroup.appendChild(radioField);
+    });
+
+    fieldContainer.appendChild(radioGroup);
+  }
+
+  // Manejo de textarea
+  if (field.type === "textarea") {
+    const textarea = document.createElement("textarea");
+    textarea.name = field.name;
+    textarea.placeholder = field.placeholder || "";
+    textarea.className = field.className || "";
+    textarea.required = field.required || false;
+
+    if (field.value) {
+      textarea.value = field.value;
+    }
+
+    fieldContainer.appendChild(textarea);
+  }
+
+  // Manejo de input estándar (text, number, email)
+  if (["text", "number", "email"].includes(field.type)) {
     const input = document.createElement("input");
-    input.type = field.type || "text";
-    input.name = field.name || "";
-    input.value = field.value || "";
-    input.placeholder = field.placeHolder || "";
-    input.required = field.required || false;
+    input.type = field.type;
+    input.name = field.name;
+    input.placeholder = field.placeholder || "";
     input.className = field.className || "";
+    input.required = field.required || false;
+
+    if (field.value) {
+      input.value = field.value;
+    }
+
     fieldContainer.appendChild(input);
+  }
+
+  // Manejo de input file con extensiones permitidas
+  if (field.type === "file") {
+    const input = document.createElement("input");
+    input.type = "file";
+    input.name = field.name;
+    input.className = field.className || "";
+    input.required = field.required || false;
+
+    if (field.multiple) {
+      input.setAttribute("multiple", "");
+    }
+
+    // Validar extensiones permitidas
+    if (Array.isArray(field.allowedExtensions) && field.allowedExtensions.length > 0) {
+      input.accept = field.allowedExtensions.map((ext) => `.${ext}`).join(",");
+    }
+
+    fieldContainer.appendChild(input);
+  }
+
+  // Manejo de extraContent (debe agregarse al final del contenedor principal)
+  if (field.extraContent) {
+    const extraContentContainer = document.createElement("div");
+    extraContentContainer.innerHTML = field.extraContent;
+    fieldContainer.appendChild(extraContentContainer);
   }
 
   return fieldContainer;
 }
 
 
+export function destroyExistingModal() {
+  const existingModal = document.querySelector(".ui.modal");
+  if (existingModal) {
+    existingModal.remove();
+  }
+}
+
+export function closeModal(){
+  $('.ui.modal').modal("hide");
+}
 export function userInfoComponent(props) {
   const { first_name, last_name, email } = props;
 
@@ -1205,14 +1365,25 @@ export function generateUserLoggedDropdown() {
 
   const listDiv = document.createElement("div");
   listDiv.className = "ui link list user-logged-list";
+  const isAdmin = userLogged.user_role_id == 1;
+  let items;
+  if(isAdmin){
+    items = [
+        { text: isInSpanish ? "Ventas" : "Orders", href: "/perfil?index=0",},
+        { text: isInSpanish ? "Productos" : "Products", href: "/perfil?index=1",},
+        { text: isInSpanish ? "Envios" : "Shippings", href: "/perfil?index=2",},
+        { text: isInSpanish ? "Cerrar sesión" : "Logout", href: "/logout" }
+    ];
+  } else{
+    items = [
+        { text: isInSpanish ? "Perfil" : "Profile", href: "/perfil?index=0",},
+        { text: isInSpanish ? "Mis Direcciones" : "My addresses", href: "/perfil?index=1",},
+        { text: isInSpanish ? "Mis Telefonos" : "My phones", href: "/perfil?index=2",},
+        { text: isInSpanish ? "Mis Compras" : "My orders", href: "/perfil?index=3",},
+        { text: isInSpanish ? "Cerrar sesión" : "Logout", href: "/logout" }
+    ];
 
-  const items = [
-      { text: isInSpanish ? "Perfil" : "Profile", href: "/perfil?index=0",},
-      { text: isInSpanish ? "Mis Direcciones" : "My addresses", href: "/perfil?index=1",},
-      { text: isInSpanish ? "Mis Telefonos" : "My phones", href: "/perfil?index=2",},
-      { text: isInSpanish ? "Mis Compras" : "My orders", href: "/perfil?index=3",},
-      { text: isInSpanish ? "Cerrar sesión" : "Logout", href: "/logout" }
-  ];
+  }
 
   items.forEach(item => {
       const link = document.createElement("a");
@@ -1231,8 +1402,6 @@ export function generateUserLoggedDropdown() {
   return dropdownContainer;
 }
 
-
-
 export const createLoadingSpinner = (optionalClassName) => {
   const loadingState = document.createElement("div");
   loadingState.className = `loading-state ${optionalClassName}`;
@@ -1240,4 +1409,402 @@ export const createLoadingSpinner = (optionalClassName) => {
   loadingSpinner.className = "loading";
   loadingState.appendChild(loadingSpinner);
   return loadingState;
+}
+
+export function generateVariationField() {
+  // Crear el contenedor principal
+  const container = document.createElement("div");
+  container.classList.add("ui", "segment", "field", "margin-field", "variation-field");
+
+  // Crear el icono de eliminar
+  const removeIcon = document.createElement("i");
+  removeIcon.classList.add("bx", "bx-x", "remove-variation-btn", "remove-btn");
+
+  // Crear el campo de selección (Taco)
+  const variationHeaderField = document.createElement("div");
+  variationHeaderField.classList.add("field", "variation-header-field");
+
+  const label = document.createElement("label");
+  label.textContent = "Taco";
+
+  const select = document.createElement("select");
+  select.name = "variation-taco-id";
+  select.required = true;
+  const productCategory = document.querySelector('select[name="product-category-id"]').value 
+  const options = tacosFromDB.filter(taco=> taco.category_id == productCategory).map(taco=>({
+    value: taco.id,
+    text: taco.name,
+  }))
+
+  options.forEach((opt) => {
+    const option = document.createElement("option");
+    option.value = opt.value;
+    option.textContent = opt.text;
+    select.appendChild(option);
+  });
+
+  variationHeaderField.appendChild(label);
+  variationHeaderField.appendChild(select);
+
+  // Crear el botón "Add Size"
+  const addSizeButtonField = document.createElement("div");
+  addSizeButtonField.classList.add("field", "margin-field", "add-size-button-field");
+
+  const addButton = document.createElement("button");
+  addButton.classList.add("ui", "button", "basic", "red", "tiny");
+  addButton.textContent = "Add Size";
+  addButton.type = "button"
+
+  addSizeButtonField.appendChild(addButton);
+
+  // Crear el contenedor de tallas (donde se agregarán los tamaños)
+  const variationSizesWrapper = document.createElement("div");
+  variationSizesWrapper.classList.add("field", "variation-sizes-wrapper");
+
+  // Agregar todos los elementos al contenedor principal
+  container.appendChild(removeIcon);
+  container.appendChild(variationHeaderField);
+  container.appendChild(addSizeButtonField);
+  container.appendChild(variationSizesWrapper);
+
+  return container;
+}
+
+export function generateVariationSizeContainer() {
+  // Crear el contenedor principal
+  const container = document.createElement("div");
+  container.classList.add("variation-size-container");
+
+  // Crear el icono de eliminar
+  const removeIcon = document.createElement("i");
+  removeIcon.classList.add("bx", "bx-x", "remove-size-btn", "remove-btn");
+
+  // Crear el primer field (Size)
+  const sizeField = document.createElement("div");
+  sizeField.classList.add("field");
+
+  const sizeLabel = document.createElement("label");
+  sizeLabel.textContent = "Size";
+
+  const sizeSelect = document.createElement("select");
+  sizeSelect.name = "variation-size-id";
+  
+  const sizeOptions = sizesFromDB.map(size=>({
+    value: size.id,
+    text: size.size,
+    disabled: false
+  }));
+
+  sizeOptions.forEach((opt) => {
+    const option = document.createElement("option");
+    option.value = opt.value;
+    option.textContent = opt.text;
+    if (opt.disabled) option.disabled = true;
+    sizeSelect.appendChild(option);
+  });
+
+  sizeField.appendChild(sizeLabel);
+  sizeField.appendChild(sizeSelect);
+
+  // Crear el segundo field (Stock)
+  const stockField = document.createElement("div");
+  stockField.classList.add("field");
+
+  const stockLabel = document.createElement("label");
+  stockLabel.textContent = "Stock";
+
+  const stockInput = document.createElement("input");
+  stockInput.type = "text";
+  stockInput.name = "variation-stock";
+  stockInput.placeholder = "";
+  stockInput.required = true;
+  stockInput.classList.add("numeric-only-input");
+
+  stockField.appendChild(stockLabel);
+  stockField.appendChild(stockInput);
+
+  // Agregar elementos al contenedor principal
+  container.appendChild(removeIcon);
+  container.appendChild(sizeField);
+  container.appendChild(stockField);
+
+  return container;
+}
+
+export async function createProductModal(product = undefined){
+  if(!categoriesFromDB.length) await setCategories();
+  if(!sizesFromDB.length) await setSizes();
+  if(!tacosFromDB.length) await setTacos();
+  createModal({
+    headerTitle: product ? "Edit Product" : "Create Product",
+    formClassName: "",
+    formFields: [
+      {
+        type: "two-fields",
+        fields: [
+          {
+            type: "text",
+            label: "Spanish Name",
+            name: "product-es-name",
+            placeholder: "Zapato",
+            required: true,
+            containerClassName: "required",
+            value: product ? product.es_name : "",
+          },
+          {
+            type: "text",
+            label: "English Name",
+            name: "product-en-name",
+            placeholder: "Shoe",
+            required: true,
+            containerClassName: "required",
+            value: product ? product.eng_name : "",
+          },
+        ],
+      },
+      {
+        type: "two-fields",
+        fields: [
+          {
+            type: "text",
+            label: "ARS Price",
+            name: "product-ars-price",
+            placeholder: "50000",
+            required: true,
+            containerClassName: "required",
+            value: product ? product.ars_price : "",
+          },
+          {
+            type: "text",
+            label: "USD Price",
+            name: "product-usd-price",
+            placeholder: "50",
+            required: true,
+            containerClassName: "required",
+            value: product ? product.usd_price : "",
+          },
+        ],
+      },
+      {
+        type: "two-fields",
+        fields: [
+          {
+            type: "text",
+            label: "Spanish Description",
+            name: "product-es-description",
+            placeholder:
+              "Lorem ipsum dolor sit amet, consectetur adipisicing elit. Incidunt, ex.",
+            required: true,
+            containerClassName: "required",
+            value: product ? product.spanish_description : "",
+          },
+          {
+            type: "text",
+            label: "English Description",
+            name: "product-en-description",
+            placeholder:
+              "Lorem ipsum dolor sit amet, consectetur adipisicing elit. Incidunt, ex.",
+            required: true,
+            containerClassName: "required",
+            value: product ? product.english_description : "",
+          },
+        ],
+      },
+      {
+        type: "two-fields",
+        fields: [
+          {
+            type: "text",
+            label: "SKU",
+            name: "product-sku",
+            placeholder: "300xce",
+            required: true,
+            containerClassName: "required",
+            value: product ? product.sku : "",
+          },
+          {
+            type: "select",
+            label: "Category",
+            name: "product-category-id",
+            options: categoriesFromDB.map(cat=>({
+              value: cat.id,
+              label: cat.name.en,
+            })),
+            required: true,
+            containerClassName: "required",
+            value: product ? product.category_id : '',
+          },
+        ],
+      },
+      {
+        type: "file",
+        label: "Images",
+        name: "product-image",
+        allowedExtensions: ["jpg", "jpeg", "png", "webp"],
+        multiple: true,
+        required: true,
+      },
+      {
+        type: "field",
+        containerClassName: "margin-field files_thumb_field",
+        extraContent: "", // Espacio donde se mostrarán las miniaturas de los archivos
+      },
+      {
+        type: "field",
+        extraContent:
+          '<button class="ui button small basic red add-variation-btn" type="button">Add Variation</button>',
+      },
+      {
+        type: "field",
+        containerClassName: "margin-field variations-wrapper-field",
+        extraContent: "", // Espacio donde se agregarán variaciones dinámicamente
+      },
+    ],
+    buttons: [
+      {
+        type: "button",
+        className: "ui button submit negative send-modal-form-btn",
+        text: product ? "Edit" : "Create",
+        onClick: async() => await handleProductModalActions(product)
+      },
+    ],
+  });
+  // Una vez lo creo, lo abro
+  handlePageModal(true);
+  listenProductModalCategorySelect();
+  // Ahora agrego las escuchas
+  listenToProductModalBtns();
+  // Para escuchar los files
+  await setFilesThumb();
+  // escucho el x
+  
+};
+
+function listenToProductModalBtns(){
+  const addVariationBtn = document.querySelector('.ui.modal .add-variation-btn');
+  const addVariationSizeBtns = document.querySelectorAll('.ui.modal .add-size-button-field');
+  const removeVariationBtns = document.querySelectorAll('.ui.modal .remove-variation-btn');
+  const removeVariationSizeBtns = document.querySelectorAll('.ui.modal .remove-size-btn');
+  if(!addVariationBtn.dataset.listened){
+    addVariationBtn.dataset.listened = true;
+    addVariationBtn.addEventListener('click',()=>{
+      const wrapper = document.querySelector('.ui.modal .variations-wrapper-field');
+      const newField = generateVariationField();
+      wrapper.appendChild(newField);
+      return listenToProductModalBtns();
+    })
+  };
+  addVariationSizeBtns.forEach(btn => {
+    if(btn.dataset.listened)return;
+    btn.dataset.listened = true
+    btn.addEventListener('click',()=>{
+      const wrapper = btn.closest('.variation-field').querySelector('.variation-sizes-wrapper');
+      const newField = generateVariationSizeContainer();
+      wrapper.appendChild(newField);
+      return listenToProductModalBtns();
+    })
+  });
+  removeVariationBtns.forEach(btn => {
+    if(btn.dataset.listened)return;
+    btn.dataset.listened = true
+    btn.addEventListener('click',()=>{
+      const wrapper = btn.closest('.variation-field');
+      wrapper.remove()
+    })
+  });
+  removeVariationSizeBtns.forEach(btn => {
+    if(btn.dataset.listened)return;
+    btn.dataset.listened = true
+    btn.addEventListener('click',()=>{
+      const wrapper = btn.closest('.variation-size-container  ');
+      wrapper.remove()
+    })
+  });
+}
+
+function listenProductModalCategorySelect(){
+  const categorySelect = document.querySelector('.ui.modal select[name="product-category-id"]');
+  categorySelect.addEventListener('change',()=>{
+    const variationsWrapper = document.querySelector('.ui.modal .variations-wrapper-field');
+    variationsWrapper.innerHTML = '';
+  })
+}
+
+async function setFilesThumb() {
+  // Lógica para pintar imágenes y elegir principal
+  let fileInput = document.querySelector(".ui.modal input[type=file]");
+  let files = []; // Almacena los archivos seleccionados
+
+  fileInput.addEventListener("change", (e) => {
+    // Contenedor donde van a ir las fotos
+    let divContainer = document.querySelector(".ui.modal .files_thumb_field");
+    divContainer.innerHTML = ""; // Limpia el contenedor antes de agregar nuevas imágenes
+
+    let fileObject = e.target.files;
+    files = []; // Reinicia el array de archivos
+
+    // Recorre el objeto del input y guarda los archivos en un array
+    for (let i = 0; i < fileObject.length; i++) {
+      const file = fileObject[i];
+      file.main_file = i === 0; // Marca el primero como principal por defecto
+      files.push(file);
+    }
+
+    const filePromises = files.map((file, i) => {
+      return new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = function () {
+          let boxHTML;
+
+          if (file.type.startsWith("image/")) {
+            // Si es una imagen
+            boxHTML = `
+              <div class="image-radio-box" data-index="${i}">
+                  <div class="image-container">
+                      <img src="${reader.result}" alt="${file.name}" class="image-to-select-main">
+                  </div>
+                  <input type="radio" name="mainImage" value="${file.name}" class="radio-from-image" ${i == 0 ? "checked" : ""}>
+              </div>
+            `;
+          } else {
+            boxHTML = "";
+          }
+          resolve(boxHTML);
+        };
+      });
+    });
+
+    Promise.all(filePromises).then((boxes) => {
+      // Agrega los boxes al contenedor
+      boxes.forEach((box) => (divContainer.innerHTML += box));
+      listenToImageClick();
+
+      // Asegurar que la primera imagen sigue siendo `main_file` si nadie cambia la selección
+      if (files.length > 0) {
+        files[0].main_file = true; // Refuerza que el primer archivo es el principal
+      }
+    });
+
+    function listenToImageClick() {
+      const imagesRadioBoxes = document.querySelectorAll(".ui.modal .image-radio-box");
+
+      imagesRadioBoxes.forEach((box) => {
+        if (box.dataset.listened) return;
+        box.dataset.listened = true;
+        box.addEventListener("click", () => {
+          const checkboxToCheck = box.querySelector('input[type="radio"]');
+          checkboxToCheck.checked = true;
+
+          // Obtener el índice del archivo seleccionado
+          const index = parseInt(box.dataset.index);
+
+          // Actualizar la propiedad main_file en el array de archivos
+          files.forEach((file, i) => {
+            file.main_file = i === index;
+          });
+        });
+      });
+    }
+  });
 }

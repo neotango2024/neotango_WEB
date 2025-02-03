@@ -63,6 +63,19 @@ export async function setSizes(){
     }
 }
 
+export let categoriesFromDB = [];
+export async function setCategories(){
+    try {
+        let array = (
+            await (await fetch(`${window.location.origin}/api/type/category`)).json()
+          ).data || [];
+          categoriesFromDB = array;
+    } catch (error) {
+        console.log("Falle");
+        return console.log(error);        
+    }
+}
+
 export let gendersFromDB = [];
 export async function setGenders(){
     try {

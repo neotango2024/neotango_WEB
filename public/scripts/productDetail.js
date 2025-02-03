@@ -6,6 +6,7 @@ import {
   scrollToTop,
   generateRandomString,
   variationsFromDB,
+  fetchDBProducts,
 } from "./utils.js";
 
 let productDetailExportObj = {
@@ -148,25 +149,29 @@ window.addEventListener("load", async () => {
     };
     productDetailExportObj.paintRelatedProductCards = function () {
       const relatedProductCardWrapper = document.querySelector(
-        ".product-cards-wrapper"
+        ".related-products-section .product-cards-wrapper"
       );
       relatedProductCardWrapper.innerHTML = "";
-      let productsToPaint = [...productsFromDB];
+      let productsToPaint = [...relatedProducts];
 
       // Filtrar el array para excluir el producto con el mismo id y devuelve solo los primeros 3 elementos
-      productsToPaint = productsFromDB
+      productsToPaint = productsToPaint
         .filter((product) => product.id !== productId)
         .slice(0, 3);
       productsToPaint.forEach((prod) => {
-        productCard(prod, "product-cards-wrapper");
+        let cardElement = productCard(prod);
+        relatedProductCardWrapper.appendChild(cardElement)
       });
     };
     productId = getProductIdFromUrl(); //Obtengo el id del producto
     await setProductsFromDB({ id: productId }); //Seteo el producto
+   
     const productFromDB = (productsFromDB?.length && productsFromDB[0]) || null;
     if (!productFromDB) return (window.location.href = "/tienda"); //Lo mando a la tienda si no encontro
     let productCategoryID = productFromDB?.category?.id;
-    await setProductsFromDB({ categoryId: productCategoryID, limit: 4 }); //Aca seteo los products fromDB
+    const relatedProducts = await fetchDBProducts({ categoryId: productCategoryID, limit: 4 }); //Aca seteo los related
+    console.log(relatedProducts);
+    
     document.title = isInSpanish
       ? `Tienda - ${productFromDB.es_name}`
       : `Store - ${productFromDB.eng_name}`;
@@ -174,7 +179,7 @@ window.addEventListener("load", async () => {
     // hidePlaceHolders();
     createImagesContainer(productFromDB?.files);
     checkForImageClick();
-    productsFromDB.length && productDetailExportObj.paintRelatedProductCards(); //Pinto los related
+    relatedProducts.length && productDetailExportObj.paintRelatedProductCards(); //Pinto los related
     productDetailExportObj.createProductDetailsSection(productFromDB);
     scrollToTop();
     //Hago el pedido al fetch de 4 productos y filtrar 3
@@ -329,8 +334,7 @@ window.addEventListener("load", async () => {
       } else {
         cartItems = userLogged.tempCartItems || [];
       }
-      console.log(cartItems);
-      
+
       const variationIsInCartIndex = cartItems.findIndex(
         (item) => item.variation_id == variationSelected.id
       );

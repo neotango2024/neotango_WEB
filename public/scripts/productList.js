@@ -21,7 +21,8 @@ const handleRenderProductList = (products) => {
     const productsContainer = document.querySelector('.products-container');
     productsContainer.innerHTML = '';
     products.forEach((prod) => {
-            productCard(prod, 'products-container');
+        let productCardElement = productCard(prod);
+        productsContainer.appendChild(productCardElement)
     })
 }
 

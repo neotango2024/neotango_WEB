@@ -1,7 +1,7 @@
 import { validateUserSignUpForm } from "./formValidators.js";
 import { paintUserIconOrLetter } from "./header.js";
 import { setLocalStorageItem } from "./localStorage.js";
-import { buildAddressBodyData, buildPhoneBodyData, buildUserLoginBodyData, buildUserSignUpBodyData, handleAddressFetch, handleModalCreation, handlePhoneFetch, handleUserLoginFetch, handleUserSignUpFetch, updateAddressElements, updatePhoneElements } from "./utils.js";
+import { buildAddressBodyData, buildPhoneBodyData, buildProductBodyData, buildUserLoginBodyData, buildUserSignUpBodyData, handleAddressFetch, handleModalCreation, handlePhoneFetch, handleProductFetch, handleUserLoginFetch, handleUserSignUpFetch, updateAddressElements, updatePhoneElements, updateProductTable } from "./utils.js";
 
 export async function handlePhoneModalActions(phone = undefined){
 try {
@@ -60,4 +60,18 @@ try {
 }
 }
 
+export async function handleProductModalActions(product = undefined){
+try {
+    await handleModalCreation({
+        entityType: 'product',
+        method: product ? "PUT" : "POST",
+        buildBodyData: buildProductBodyData,
+        saveGuestEntity: null, 
+        updateElements: updateProductTable, // Funcion que actualiza la tabla de productos
+        postToDatabase: handleProductFetch
+      })//hago el fetch para crear esa address
+} catch (error) {
+    return console.log(error);
+}
+}
 

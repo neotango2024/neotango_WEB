@@ -85,7 +85,9 @@ const controller = {
             };
 
             // vamos a recibir variaciones que contienen size_id, taco_id, quantity
-            const { variations, filesFromArray } = body;
+            let { variations, filesFromArray } = body;
+            variations = JSON.parse(req.body.variations);
+            filesFromArray = JSON.parse(req.body.filesFromArray);
             const isCreatingVariationsSuccessful = await insertVariationsInDb(variations, newProductId);
             if(!isCreatingVariationsSuccessful){
                 return res.status(500).json({

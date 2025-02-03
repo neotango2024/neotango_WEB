@@ -141,15 +141,7 @@ window.addEventListener("DOMContentLoaded", async () => {
                 response = await response.json();
                 userLogged.tempCartItems = response.updatedCardItems;
               } else{
-                // Aca borro y vuelvo a armar el local
-                deleteLocalStorageItem('cartItems');
-                checkoutCards.forEach(card => {
-                  let cartProduct = cartProducts.find(cartItem => cartItem.variation_id == card.id);
-                  if(!cartProduct)return;
-                  cartProduct.quantity = card.quantity;
-                  delete cartProduct.productFromDB;
-                  setLocalStorageItem('cartItems', cartProduct, true)  
-                });                           
+                updateGuestCart();                      
               }
               // return;
               await setCartProducts();
@@ -222,11 +214,18 @@ window.addEventListener("DOMContentLoaded", async () => {
             if(!response.ok){
               // TODO:
             };
+            card.remove();
+            modifyDetailList();
+            return
             //Aca ya lo borro, lo saco de los del userlogged
             // let indexToRemove = userLogged.tempCartItems
+          } else {
+            card.remove();
+            updateGuestCart();
+            modifyDetailList();
+            return
           }
-          card.remove();
-          modifyDetailList();
+          
         });
       });
     }
@@ -539,7 +538,7 @@ window.addEventListener("DOMContentLoaded", async () => {
       const productsLength = cartProducts?.length || 0;
       let productsCost = 0;
       cartProducts?.forEach(cartItem => {       
-        const productPrice = isInSpanish ? cartItem.product?.ars_price : cartItem.product?.usd_price;        
+        const productPrice = isInSpanish ? cartItem.product?.ars_price : cartItem.product?.usd_price;       
         const itemQuantity = cartItem.quantity;
         productsCost += parseFloat(productPrice) * parseInt(itemQuantity)
       });
@@ -634,6 +633,18 @@ window.addEventListener("DOMContentLoaded", async () => {
       });
       return
     };
+    function updateGuestCart(){
+      const checkoutCards = Array.from(document.querySelectorAll('.checkout-card'));
+      // Aca borro y vuelvo a armar el local
+      deleteLocalStorageItem('cartItems');
+      checkoutCards.forEach(card => {
+        let cartProduct = cartProducts.find(cartItem => cartItem.variation_id == card.dataset.variation_id);
+        if(!cartProduct) return;
+        cartProduct.quantity = card.querySelector('.card_product_amount').innerText;
+        delete cartProduct.productFromDB;
+        setLocalStorageItem('cartItems', cartProduct, true)  
+      });     
+    }
   } catch (error) {
     console.log("falle");
     return console.log(error);

@@ -2,15 +2,22 @@ import { userLogged } from "./checkForUserLogged.js";
 import {
   addressCard,
   checkoutCard,
+  closeModal,
   createAddressModal,
   createLoadingSpinner,
+  createProductModal,
   createUserMenuBtn,
+  destroyExistingModal,
   form,
   orderCard,
   phoneCard,
   userInfoComponent,
 } from "./componentRenderer.js";
-import { gendersFromDB, getOrderStatuses, setGenders } from "./getStaticTypesFromDB.js";
+import {
+  gendersFromDB,
+  getOrderStatuses,
+  setGenders,
+} from "./getStaticTypesFromDB.js";
 import { paintUserIconOrLetter } from "./header.js";
 import { isInSpanish } from "./languageHandler.js";
 import {
@@ -21,32 +28,33 @@ import {
   setProductsFromDB,
   setOrdersFromDb,
   showCardMessage,
-  ordersFromDb
+  ordersFromDb,
+  handlePageModal,
 } from "./utils.js";
 
-
 let activeIndexSelected = 0; //index del array "items"
-let typeOfPanel; //Admin 1 | User 2 TODO: CHequear por el tipo de usuario al recargar
+let typeOfPanel; //Admin 1 | User 2 
 let userProfileExportObj = {
   pageConstructor: null,
 };
-
 
 window.addEventListener("load", async () => {
   const { pathname } = window.location;
   if (!pathname.endsWith("/perfil")) return;
   if (!userLogged) return (window.location.href = "/");
   typeOfPanel = userLogged.user_role_id;
+
   const orderStatuses = await getOrderStatuses();
   // Obtén el parámetro `index` de la URL
-  const urlParams = new URLSearchParams(window.location);
+  const urlParams = new URLSearchParams(window.location.search);
   const indexFromURL = urlParams.get("index");
+  
   // Si existe el parámetro, actualiza `activeIndexSelected`
   // esto es por si toca desde el dropdown
   if (indexFromURL !== null) {
     activeIndexSelected = parseInt(indexFromURL, 10); //El 10 es por algo tecnico del parseInt
   }
-  if(typeOfPanel === 1){
+  if (typeOfPanel === 1) {
     await setProductsFromDB();
     await setOrdersFromDb();
   }
@@ -85,7 +93,7 @@ window.addEventListener("load", async () => {
     menuBtnConstructor(); //Pinto las opciones
     await contentConstructorHandler();
   };
-
+  
   userProfileExportObj.pageConstructor();
 
   //Esta funcion define que pintar (dependiendo que esta seleccionado, y si es admin/user)
@@ -96,16 +104,18 @@ window.addEventListener("load", async () => {
       //esta funcion dependiendo que viene invoca a la funcion que pinta/despinta las cosas
       switch (activeIndexSelected) {
         case 0: //Profile | Ventas
-          typeOfPanel === 2 ? await paintUserOrders() : paintAdminSales(orderStatuses); 
+          typeOfPanel === 2
+            ? paintUserProfile()
+            : paintAdminSales(orderStatuses);
           break;
         case 1: //Addresses | Products
-          typeOfPanel === 2 ? paintUserAddresses() : paintAdminProducts(); //TODO: Armar para admin los products
+          typeOfPanel === 2 ? paintUserAddresses() : paintAdminProducts();
           break;
         case 2: //Phones | shippings
-          typeOfPanel === 2 ? paintUserPhones() : paintAdminShippings(); //TODO: Armar para admin los envios
+          typeOfPanel === 2 ? paintUserPhones() : paintAdminShippings(); 
           break;
         case 3: //Order History | ??
-          typeOfPanel === 2 ?  paintUserProfile : null;
+          typeOfPanel === 2 ? paintUserOrders() : null;
           break;
         default:
           break;
@@ -216,7 +226,9 @@ window.addEventListener("load", async () => {
       const emptyPhoneCard = phoneCard(undefined);
       mainContentWrapper.appendChild(emptyPhoneCard);
       // Agregar el evento al hacer clic
-      emptyPhoneCard.addEventListener("click", () => handleNewPhoneButtonClick());
+      emptyPhoneCard.addEventListener("click", () =>
+        handleNewPhoneButtonClick()
+      );
     }
     for (const address of phonesToPaint) {
       // Crear y agregar la tarjeta de dirección
@@ -313,7 +325,7 @@ window.addEventListener("load", async () => {
       userLogged.last_name = bodyData.last_name;
       userLogged.gender_id = bodyData.gender_id;
       showCardMessage(true, isInSpanish ? response.msg.es : response.msg.en);
-      mainContentWrapper.innerHTML = '';
+      mainContentWrapper.innerHTML = "";
       paintUserProfile();
       paintUserIconOrLetter(); //Esto es para que cambie las inciiales
       return;
@@ -330,145 +342,150 @@ const orderLimit = 8;
 let offset = 0;
 
 const paintAdminSales = async (orderStatuses) => {
-  const mainWrapper = document.querySelector('.main-content-wrapper');
-  const h1Element = document.createElement('h1');
-  h1Element.className = 'page-title red';
+  const mainWrapper = document.querySelector(".main-content-wrapper");
+  const h1Element = document.createElement("h1");
+  h1Element.className = "page-title red";
   h1Element.textContent = "Ventas";
   mainWrapper.appendChild(h1Element);
-  const h3SummaryElement = document.createElement('h3');
-  h3SummaryElement.className = 'red title-description ';
+  const h3SummaryElement = document.createElement("h3");
+  h3SummaryElement.className = "red title-description ";
   h3SummaryElement.textContent = "Resumen";
   mainWrapper.appendChild(h3SummaryElement);
   const totalPeriodSelect = constructTotalPeriodSelect();
-  const selectContainer = document.createElement('div');
-  selectContainer.className = 'total-select-container';
-  selectContainer.appendChild(totalPeriodSelect)
+  const selectContainer = document.createElement("div");
+  selectContainer.className = "total-select-container";
+  selectContainer.appendChild(totalPeriodSelect);
   listenForTotalPeriodSelectChange(totalPeriodSelect);
   mainWrapper.appendChild(selectContainer);
   const totalSalesCashContainer = constructTotalSalesCashSquares();
   mainWrapper.appendChild(totalSalesCashContainer);
-  const h3TableElement = document.createElement('h3');
-  h3TableElement.className = 'red title-description table-h3';
+  const h3TableElement = document.createElement("h3");
+  h3TableElement.className = "red title-description table-h3";
   h3TableElement.textContent = "Tabla de ventas";
   mainWrapper.appendChild(h3TableElement);
-  const gridTable = document.createElement('div');
-  gridTable.className = 'ag-theme-alpine';
-  gridTable.id = 'myGrid';
+  const gridTable = document.createElement("div");
+  gridTable.className = "ag-theme-alpine";
+  gridTable.id = "myGrid";
   mainWrapper.appendChild(gridTable);
   const rowsData = [];
-  ordersFromDb.forEach(order => {
+  ordersFromDb.forEach((order) => {
     const rowObject = {
       identificador: order.tra_id,
       nombre: order.first_name,
       apellido: order.last_name,
       items: order.orderItems.length,
       fecha: sanitizeDate(order.createdAt),
-      estado: order.orderStatus.status.es
-    }
+      estado: order.orderStatus.status.es,
+    };
     rowsData.push(rowObject);
-  })
+  });
   const gridData = {
     columnDefs: [
       { field: "identificador", flex: 1, filter: "agTextColumnFilter" },
-    { field: "nombre", flex: 0.8, filter: "agTextColumnFilter" },
-    { field: "apellido", flex: 1, filter: "agTextColumnFilter" },
-    { field: "items", flex: 0.5, filter: "agNumberColumnFilter" },
-    { field: "estado", flex: 1, filter: "agTextColumnFilter" },
-    { field: "fecha", flex: 0.6, filter: "agDateColumnFilter" },
+      { field: "nombre", flex: 0.8, filter: "agTextColumnFilter" },
+      { field: "apellido", flex: 1, filter: "agTextColumnFilter" },
+      { field: "items", flex: 0.5, filter: "agNumberColumnFilter" },
+      { field: "estado", flex: 1, filter: "agTextColumnFilter" },
+      { field: "fecha", flex: 0.6, filter: "agDateColumnFilter" },
     ],
-    domLayout: 'autoHeight',
-    onRowClicked: event => {
-      const order = ordersFromDb.find(order => order.tra_id === event.data.identificador)
-      handleRowClick(order, orderStatuses); 
-    }
+    domLayout: "autoHeight",
+    onRowClicked: (event) => {
+      const order = ordersFromDb.find(
+        (order) => order.tra_id === event.data.identificador
+      );
+      handleRowClick(order, orderStatuses);
+    },
   };
   gridData.rowData = rowsData;
   const gridDiv = document.querySelector("#myGrid");
   agGrid.createGrid(gridDiv, gridData);
-}
+};
 
-const filterOrdersByDateRange = (orders, startDate, endDate) => { 
+const filterOrdersByDateRange = (orders, startDate, endDate) => {
   const start = new Date(startDate);
   const end = new Date(endDate);
 
-  return orders.filter(order => {
-      const orderDate = new Date(order.createdAt);
-      return orderDate >= start && orderDate <= end;
+  return orders.filter((order) => {
+    const orderDate = new Date(order.createdAt);
+    return orderDate >= start && orderDate <= end;
   });
-}
+};
 
 const listenForTotalPeriodSelectChange = (selectElement) => {
-  selectElement.addEventListener('change', (e) => {
-    handleTotalPeriodChange(e.target.value)
-  }) 
-}
+  selectElement.addEventListener("change", (e) => {
+    handleTotalPeriodChange(e.target.value);
+  });
+};
 
 const handleTotalPeriodChange = (eventValue) => {
   // eventValue sería 7, 15, 30, 90, etc.
-  
+
   const currentDate = new Date();
-  
-  const startDate = new Date(currentDate); 
+
+  const startDate = new Date(currentDate);
   startDate.setDate(startDate.getDate() - eventValue);
 
   const filteredOrders = filterOrdersByDateRange(
-    ordersFromDb, 
-    startDate, 
+    ordersFromDb,
+    startDate,
     currentDate
   );
-  
-  
-  let totalSalesAccumulador = filteredOrders.length;
-  
-  const {dolarSalesNumber, pesosSalesNumber} = getTotalUsdAndPesosAccumulators(filteredOrders);
 
-  const totalUsdElement = document.querySelector('.usd-total');
+  let totalSalesAccumulador = filteredOrders.length;
+
+  const { dolarSalesNumber, pesosSalesNumber } =
+    getTotalUsdAndPesosAccumulators(filteredOrders);
+
+  const totalUsdElement = document.querySelector(".usd-total");
   totalUsdElement.textContent = dolarSalesNumber;
 
-  const totalArsElement = document.querySelector('.ars-total');
+  const totalArsElement = document.querySelector(".ars-total");
   totalArsElement.textContent = pesosSalesNumber;
 
-  const totalSalesElement = document.querySelector('.sales-total');
+  const totalSalesElement = document.querySelector(".sales-total");
   totalSalesElement.textContent = totalSalesAccumulador;
 };
 
 const constructTotalPeriodSelect = () => {
-
   const select = document.createElement("select");
 
   const options = [
-      { value: "7", text: "Últimos 7 días" },
-      { value: "15", text: "Últimos 15 días" },
-      { value: "30", text: "Último mes" },
-      { value: "90", text: "Últimos 3 meses" }
+    { value: "7", text: "Últimos 7 días" },
+    { value: "15", text: "Últimos 15 días" },
+    { value: "30", text: "Último mes" },
+    { value: "90", text: "Últimos 3 meses" },
   ];
 
-  options.forEach(optionData => {
-      const option = document.createElement("option");
-      option.value = optionData.value;
-      option.textContent = optionData.text;
-      select.appendChild(option);
+  options.forEach((optionData) => {
+    const option = document.createElement("option");
+    option.value = optionData.value;
+    option.textContent = optionData.text;
+    select.appendChild(option);
   });
   return select;
 };
 const constructTotalSalesCashSquares = () => {
-  const totalSalesAndCashContainer = document.createElement('div');
+  const totalSalesAndCashContainer = document.createElement("div");
   totalSalesAndCashContainer.className = "total-sales-cash-container";
 
   const totalCashContainer = document.createElement("div");
   totalCashContainer.className = "total-sales-container";
 
-  
   const today = new Date();
   const sevenDaysAgo = new Date();
   sevenDaysAgo.setDate(today.getDate() - 7);
 
-  const startDate = sevenDaysAgo.toISOString(); 
+  const startDate = sevenDaysAgo.toISOString();
   const endDate = today.toISOString();
 
-  const filteredOrders = filterOrdersByDateRange(ordersFromDb, startDate, endDate);
+  const filteredOrders = filterOrdersByDateRange(
+    ordersFromDb,
+    startDate,
+    endDate
+  );
 
-  const {dolarSalesNumber, pesosSalesNumber} = getTotalUsdAndPesosAccumulators(filteredOrders);
+  const { dolarSalesNumber, pesosSalesNumber } =
+    getTotalUsdAndPesosAccumulators(filteredOrders);
 
   totalCashContainer.innerHTML = `
     <i class= "bx bx-cart cart-icon"> </i>
@@ -482,31 +499,30 @@ const constructTotalSalesCashSquares = () => {
   totalSalesAndCashContainer.appendChild(totalCashContainer);
 
   return totalSalesAndCashContainer;
-}
+};
 
 const getTotalUsdAndPesosAccumulators = (orders) => {
   let dolarSalesNumber = 0;
   let pesosSalesNumber = 0;
 
-  orders.forEach(order => {
-    const {currency_id, total} = order;
+  orders.forEach((order) => {
+    const { currency_id, total } = order;
 
-    if(currency_id === 1){
+    if (currency_id === 1) {
       dolarSalesNumber += total;
     } else {
       pesosSalesNumber += total;
     }
-  }) 
+  });
 
   return {
     dolarSalesNumber,
-    pesosSalesNumber
-  }
-
-}
+    pesosSalesNumber,
+  };
+};
 
 const paintAdminProducts = async () => {
-  const mainWrapper = document.querySelector('.main-content-wrapper');
+  const mainWrapper = document.querySelector(".main-content-wrapper");
   const titleAddProductContainer = document.createElement("div");
   titleAddProductContainer.className = "title-add-product-container";
   titleAddProductContainer.innerHTML = `
@@ -516,14 +532,14 @@ const paintAdminProducts = async () => {
         </div>
   `;
   mainWrapper.appendChild(titleAddProductContainer);
-  const gridTable = document.createElement('div');
-  gridTable.className = 'ag-theme-alpine';
-  gridTable.id = 'myGrid';
+  const gridTable = document.createElement("div");
+  gridTable.className = "ag-theme-alpine";
+  gridTable.id = "myGrid";
   mainWrapper.appendChild(gridTable);
- 
+
   const rowsData = [];
-  productsFromDB.forEach(prod => {
-    const {sku, es_name, category, createdAt, usd_price, ars_price} = prod;
+  productsFromDB.forEach((prod) => {
+    const { sku, es_name, category, createdAt, usd_price, ars_price } = prod;
     const rowObject = {
       sku,
       nombre: es_name,
@@ -531,62 +547,60 @@ const paintAdminProducts = async () => {
       dolares: usd_price,
       pesos: ars_price,
       creado: sanitizeDate(createdAt),
-    }
+    };
     rowsData.push(rowObject);
-  })
+  });
   const gridData = {
     columnDefs: [
-    { field: "sku", flex: 0.8, filter: "agTextColumnFilter" },
-    { field: "nombre", flex: 1, filter: "agTextColumnFilter" },
-    { field: "categoria", flex: 0.7, filter: "agTextColumnFilter" },
-    { field: "dolares", flex: 0.5, filter: "agTextColumnFilter" },
-    { field: "pesos", flex: 0.5, filter: "agTextColumnFilter" },
-    { field: "creado", flex: 0.4, filter: "agDateColumnFilter" },
+      { field: "sku", flex: 0.8, filter: "agTextColumnFilter" },
+      { field: "nombre", flex: 1, filter: "agTextColumnFilter" },
+      { field: "categoria", flex: 0.7, filter: "agTextColumnFilter" },
+      { field: "dolares", flex: 0.5, filter: "agTextColumnFilter" },
+      { field: "pesos", flex: 0.5, filter: "agTextColumnFilter" },
+      { field: "creado", flex: 0.4, filter: "agDateColumnFilter" },
     ],
     // onRowClicked: event => {
     //   const order = ordersFromDb.find(order => order.tra_id === event.data.identificador)
-    //   handleRowClick(order, orderStatuses); 
+    //   handleRowClick(order, orderStatuses);
     // }
   };
   gridData.rowData = rowsData;
   const gridDiv = document.querySelector("#myGrid");
   agGrid.createGrid(gridDiv, gridData);
-}
- 
+  // Una vez lo creo, armo las escuchas
+  listenToAddProductBtn();
+};
+
 const handleRowClick = async (order, orderStatuses) => {
-  const existingModal = document.querySelector(".ui.modal");
-  if (existingModal) {
-    existingModal.remove();
-  }
-  console.log(order)
+  destroyExistingModal();
   const modal = document.createElement("div");
   modal.className = "ui tiny order-modal modal";
 
   const closeButtonContainer = document.createElement("div");
-  closeButtonContainer.className = 'close-button-container';
+  closeButtonContainer.className = "close-button-container";
   modal.appendChild(closeButtonContainer);
-  const closeBtn = document.createElement('i');
-  closeBtn.className = 'bx bx-x close-btn'
-  closeBtn.onclick = () => {
-    $(modal).modal('hide');
-  };
-  closeButtonContainer.appendChild(closeBtn)
+  const closeBtn = document.createElement("i");
+  closeBtn.className = "bx bx-x close-btn";
+  closeBtn.onclick = closeModal();
+  closeButtonContainer.appendChild(closeBtn);
 
   // Contenido del modal
   const content = document.createElement("div");
-  const { tra_id, 
-        first_name, 
-        last_name, 
-        shipping_address_city,
-        shipping_address_country_name,
-        shipping_address_detail, 
-        shipping_address_province,
-        shipping_address_street,
-        shipping_address_zip_code,
-        orderItems, 
-        currency, 
-        total} = order;
-  const loadingSpinner = createLoadingSpinner('hidden');
+  const {
+    tra_id,
+    first_name,
+    last_name,
+    shipping_address_city,
+    shipping_address_country_name,
+    shipping_address_detail,
+    shipping_address_province,
+    shipping_address_street,
+    shipping_address_zip_code,
+    orderItems,
+    currency,
+    total,
+  } = order;
+  const loadingSpinner = createLoadingSpinner("hidden");
   content.className = "content";
   content.innerHTML = `
       <h2>Detalle de orden</h2>
@@ -602,11 +616,17 @@ const handleRowClick = async (order, orderStatuses) => {
         <p class="order-label">Estado</p>
         <div class="select-loading-container">
           <select id="orderStatusSelect">
-          ${orderStatuses.map(status => `
-            <option value="${status.id}" ${status.id === order.orderStatus.id ? 'selected' : ''}>
+          ${orderStatuses
+            .map(
+              (status) => `
+            <option value="${status.id}" ${
+                status.id === order.orderStatus.id ? "selected" : ""
+              }>
               ${status.status.es}
             </option>
-          `).join('')}
+          `
+            )
+            .join("")}
         </div>
       </select>
       </div>
@@ -618,20 +638,26 @@ const handleRowClick = async (order, orderStatuses) => {
       </div>
       <div class="order-label-text-container">
         <p class="order-label">Productos</p>
-        ${orderItems.map(item => `
+        ${orderItems
+          .map(
+            (item) => `
           <p class="order-text"> ${item.es_name} - talle: ${item.size} - taco: ${item.taco} - cantidad: ${item.quantity} - precio unitario ${item.price} </p>  
-        `).join('')}
+        `
+          )
+          .join("")}
       </div>
       <div class="order-label-text-container">
         <p class="order-label">Total</p>
         <p class="order-text"> ${total} ${currency.currency}  </p>
       </div>
   `;
-  
+
   modal.appendChild(content);
 
   document.body.appendChild(modal);
-  const loadingSelectContainer = document.querySelector('.select-loading-container');
+  const loadingSelectContainer = document.querySelector(
+    ".select-loading-container"
+  );
   loadingSelectContainer.appendChild(loadingSpinner);
 
   addOrderStatusSelectEventListener(order);
@@ -640,10 +666,10 @@ const handleRowClick = async (order, orderStatuses) => {
     .modal({
       onHidden: function () {
         removeOrderStatusSelectEventListener();
-        modal.remove(); 
+        modal.remove();
       },
     })
-    .modal('show');
+    .modal("show");
 };
 
 const handleChangeOrderStatusWrapper = async (e, order) => {
@@ -652,57 +678,61 @@ const handleChangeOrderStatusWrapper = async (e, order) => {
 
 const addOrderStatusSelectEventListener = (order) => {
   const select = document.getElementById("orderStatusSelect");
-  
+
   // declaramos una propiedad del select como funcion
-  select._handleChangeOrderStatusWrapper = (e) => handleChangeOrderStatusWrapper(e, order);
-  
+  select._handleChangeOrderStatusWrapper = (e) =>
+    handleChangeOrderStatusWrapper(e, order);
+
   // al hacer el event listener, el callback es el wrapper
   select.addEventListener("change", select._handleChangeOrderStatusWrapper);
 };
 
 const removeOrderStatusSelectEventListener = () => {
   const select = document.getElementById("orderStatusSelect");
-  
+
   // el select debería tener la propiedad declarada antes
   if (select._handleChangeOrderStatusWrapper) {
-      select.removeEventListener("change", select._handleChangeOrderStatusWrapper);
-      delete select._handleChangeOrderStatusWrapper; 
+    select.removeEventListener(
+      "change",
+      select._handleChangeOrderStatusWrapper
+    );
+    delete select._handleChangeOrderStatusWrapper;
   }
 };
 const handleChangeOrderStatus = async (e, order) => {
-  const loadingSpinner = document.querySelector('.loading-state')
+  const loadingSpinner = document.querySelector(".loading-state");
   try {
     const newOrderStatus = e.target.value;
-    loadingSpinner.classList.remove('hidden');
+    loadingSpinner.classList.remove("hidden");
     const statusResponse = await fetch(`/api/order/order-status/${order.id}`, {
-      method: 'PUT',
+      method: "PUT",
       headers: {
-        "Content-Type": "application/json" 
-    },
-      body: JSON.stringify({order_status_id: newOrderStatus})
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ order_status_id: newOrderStatus }),
     });
-
   } catch (error) {
     // TODO - show result message
   }
-  loadingSpinner.classList.add('hidden');
-}
+  loadingSpinner.classList.add("hidden");
+};
 
 const getAllProducts = async () => {
   try {
-    const productsResponse = await fetch('/api/product');
+    const productsResponse = await fetch("/api/product");
     const productsResponseJson = await productsResponse.json();
   } catch (error) {
-     // TODO - show result message
+    // TODO - show result message
   }
-}
+};
 
 const getAllOrders = async () => {
-  const response = await fetch(`/api/order?limit=${orderLimit}&offset=${offset}`);
+  const response = await fetch(
+    `/api/order?limit=${orderLimit}&offset=${offset}`
+  );
   const data = await response.json();
   return data.orders;
 };
-
 
 async function getUserOrders() {
   let array =
@@ -715,5 +745,16 @@ async function getUserOrders() {
     ).data || [];
   return array;
 }
+
+async function listenToAddProductBtn() {
+  const addProductBtn = document.querySelector(".add-product-icon");
+  if (!addProductBtn.dataset.listened) {
+    addProductBtn.dataset.listened = true;
+    addProductBtn.addEventListener("click", async () => {
+      await createProductModal();
+    });
+  }
+}
+
 
 export { userProfileExportObj };

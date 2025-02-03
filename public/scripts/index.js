@@ -196,11 +196,13 @@ const handleRenderFeatureProducts = async () => {
   const container = document.querySelector('.products-carousel');
   const cardWidth = 200; 
   const totalProducts = productsFromDB.length * 2; 
+  container.innerHTML = '';
   productsFromDB.forEach((prod, index) => {
     if(skeletons[index]){
       skeletons[index].style.display = 'none';
     }
-    productCard(prod, 'products-carousel',null, true);
+    let productCardElement = productCard(prod, null, true);
+    container.appendChild(productCardElement);
   })
   const items = [...container.children];
   items.forEach(item => {
