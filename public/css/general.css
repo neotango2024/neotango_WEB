@@ -235,6 +235,9 @@ label {
 .grey{
   color: var(--dark-grey-color);
 }
+.input-error {
+  border: 1px solid red!important;
+}
 @keyframes loading {
   to {
     transform: rotate(360deg);

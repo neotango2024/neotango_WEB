@@ -797,13 +797,13 @@ const paintAdminShippings = () => {
   form.className = 'zone-form';
 
   const usdLabelInputContainer = document.createElement('div');
-  usdLabelInputContainer.className = "shipping-label-input-container"
+  usdLabelInputContainer.className = "shipping-label-input-container";
   const labelUSD = document.createElement('label');
   labelUSD.textContent = 'Precio en USD';
   labelUSD.htmlFor = 'usd-price';
 
   const inputUSD = document.createElement('input');
-  inputUSD.type = 'text';
+  inputUSD.type = 'number';
   inputUSD.value = price.usd_price;
   inputUSD.className = 'usd-price-input';
   inputUSD.id = 'usd-price';
@@ -818,7 +818,7 @@ const paintAdminShippings = () => {
   labelARS.htmlFor = 'ars-price';
 
   const inputARS = document.createElement('input');
-  inputARS.type = 'text';
+  inputARS.type = 'number';
   inputARS.value = price.ars_price;
   inputARS.className = 'ars-price-input';
   inputARS.id = 'ars-price';
@@ -845,17 +845,27 @@ const paintAdminShippings = () => {
 
 const listenForZoneFormSubmit = (form) => {
   form.addEventListener('submit', async (e) => {
-    const zoneId = form.dataset.zoneId;
     e.preventDefault();
+    const usdPriceInput = form.querySelector('.usd-price-input');
+    if(!usdPriceInput.value){
+      usdPriceInput.classList.add('input-error');
+      return;
+    }
+    if(usdPriceInput.classList.contains('input-error')) usdPriceInput.classList.remove('input-error');
+    const arsPriceInput = form.querySelector('.ars-price-input');
+    if(!arsPriceInput.value){
+      arsPriceInput.classList.add('input-error');
+      return;
+    }
+    if(arsPriceInput.classList.contains('input-error')) arsPriceInput.classList.remove('input-error');
+    const zoneId = form.dataset.zoneId;
     const loadingSpinner = createLoadingSpinner('zone-loading-spinner');
     const button = form.querySelector('button');
     button.style.display = "none";
     form.appendChild(loadingSpinner);
-    const usdPriceInputValue = form.querySelector('.usd-price-input').value;
-    const arsPriceInputValue = form.querySelector('.ars-price-input').value;
     const pricesObject = {
-      usdPriceInputValue,
-      arsPriceInputValue
+      usdPriceInputValue: usdPriceInput.value,
+      arsPriceInputValue: arsPriceInput.value
     }
     const okResponse = await handleUpdateZonePrices(pricesObject, zoneId);
     loadingSpinner.remove();
