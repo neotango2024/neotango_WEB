@@ -1,10 +1,12 @@
 export const paymentTypes =  [
     {
         id: 1,
-        type: "Mercado Pago"
+        type: "Mercado Pago",
+        filename: 'mp-logo.png'
     },
     {
         id: 2,
-        type: "Paypal"
+        type: "Paypal",
+        filename: 'paypal-logo.png'
     },
 ]

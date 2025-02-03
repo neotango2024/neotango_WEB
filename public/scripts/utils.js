@@ -455,6 +455,12 @@ export function toggleInputPasswordType(event){
   return
 }
 
+export function getDateString(date){
+  const orderDate = new Date(date); // Asume que tienes la fecha de creación
+  const locale = isInSpanish ? 'es-ES' : 'en-US'; // Seleccionar el idioma basado en isInSpanish
+  const options = { day: 'numeric', month: 'long', year: 'numeric' };
+  return orderDate.toLocaleDateString(locale, options);
+}
 
 
 //Una vez que se crea la entidad, ahi dependiendo si es en carro o profile tengo que hacer algo

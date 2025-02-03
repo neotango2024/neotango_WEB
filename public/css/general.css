@@ -214,6 +214,27 @@ label {
   font-size: 1.2rem;
   cursor: pointer;
 }
+.border-left{
+  border-left: 1px solid var(--dark-grey-color);
+}
+.border-right{
+  border-right: 1px solid var(--dark-grey-color);
+}
+.border-top{
+  border-top: 1px solid var(--dark-grey-color);
+}
+.border-bottom{
+  border-bottom: 1px solid var(--dark-grey-color);
+}
+.align-end{
+  text-align: end;
+}
+.no-margin{
+  margin: 0;
+}
+.grey{
+  color: var(--dark-grey-color);
+}
 @keyframes loading {
   to {
     transform: rotate(360deg);

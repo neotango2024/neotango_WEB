@@ -44,6 +44,8 @@ import {
 } from "./apiPhoneController.js";
 import { getMappedErrors } from "../../utils/helpers/getMappedErrors.js";
 import currencies from "../../utils/staticDB/currencies.js";
+import { paymentTypes } from "../../utils/staticDB/paymentTypes.js";
+import { shippingTypes } from "../../utils/staticDB/shippingTypes.js";
 
 // ENV
 const webTokenSecret = process.env.JSONWEBTOKEN_SECRET;
@@ -442,5 +444,15 @@ function createOrderEntitiesSnapshot(obj) {
 }
 
 function setOrderKeysToReturn(order){
-  order.orderStatus = ordersStatuses.find(status=>status.id == order.order_status_id)
+  order.orderStatus = ordersStatuses.find(status=>status.id == order.order_status_id);
+  order.paymentType = paymentTypes.find(payType => payType.id == order.payment_types_id);
+  order.shippingType = shippingTypes.find(shipType => shipType.id == order.shipping_types_id);
+  order.currencyType = currencies?.find(curType => curType.id == order.currency_id);
+  order.orderItemsPurchased =  order.orderItems.reduce((acum,item)=>{
+    return acum + item.quantity
+  },0)
+  order.orderItemsPurchasedPrice =  order.orderItems.reduce((acum,item)=>{
+    return acum + (parseInt(item.quantity) * parseFloat(item.price || 0))
+  },0);
+  order.shippingCost = parseFloat(order.total) - order.orderItemsPurchasedPrice;
 }
