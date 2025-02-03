@@ -1,6 +1,7 @@
 import { userLogged } from "./checkForUserLogged.js";
 import {
   addressCard,
+  button,
   checkoutCard,
   closeModal,
   createAddressModal,
@@ -30,6 +31,9 @@ import {
   showCardMessage,
   ordersFromDb,
   handlePageModal,
+  setShippingZones,
+  shippingZones,
+  handleUpdateZonePrices
 } from "./utils.js";
 
 let activeIndexSelected = 0; //index del array "items"
@@ -57,6 +61,7 @@ window.addEventListener("load", async () => {
   if (typeOfPanel === 1) {
     await setProductsFromDB();
     await setOrdersFromDb();
+    await setShippingZones();
   }
   let userOrders = [];
   // return
@@ -393,7 +398,7 @@ const paintAdminSales = async (orderStatuses) => {
       const order = ordersFromDb.find(
         (order) => order.tra_id === event.data.identificador
       );
-      handleRowClick(order, orderStatuses);
+      handleOrderRowClick(order, orderStatuses);
     },
   };
   gridData.rowData = rowsData;
@@ -539,8 +544,9 @@ const paintAdminProducts = async () => {
 
   const rowsData = [];
   productsFromDB.forEach((prod) => {
-    const { sku, es_name, category, createdAt, usd_price, ars_price } = prod;
+    const {id, sku, es_name, category, createdAt, usd_price, ars_price } = prod;
     const rowObject = {
+      id,
       sku,
       nombre: es_name,
       categoria: category.name.es,
@@ -559,10 +565,12 @@ const paintAdminProducts = async () => {
       { field: "pesos", flex: 0.5, filter: "agTextColumnFilter" },
       { field: "creado", flex: 0.4, filter: "agDateColumnFilter" },
     ],
-    // onRowClicked: event => {
-    //   const order = ordersFromDb.find(order => order.tra_id === event.data.identificador)
-    //   handleRowClick(order, orderStatuses);
-    // }
+    onRowClicked: (event) => {
+      const product = productsFromDB.find(
+        (product) => product.id === event.data.id
+      );
+      handleProductRowClick(product);
+    },
   };
   gridData.rowData = rowsData;
   const gridDiv = document.querySelector("#myGrid");
@@ -571,7 +579,11 @@ const paintAdminProducts = async () => {
   listenToAddProductBtn();
 };
 
-const handleRowClick = async (order, orderStatuses) => {
+const handleProductRowClick = (product) => {
+  console.log(product)
+}
+
+const handleOrderRowClick = async (order, orderStatuses) => {
   destroyExistingModal();
   const modal = document.createElement("div");
   modal.className = "ui tiny order-modal modal";
@@ -756,5 +768,95 @@ async function listenToAddProductBtn() {
   }
 }
 
+const paintAdminShippings = () => {
+  const mainWrapper = document.querySelector('.main-content-wrapper');
+  if(window.screen.width > 1024){
+    mainWrapper.style.alignItems = "flex-start"
+  }
+  const h1Element = document.createElement('h1');
+  h1Element.className = "page-title red";
+  h1Element.textContent = "Envíos";
+  mainWrapper.appendChild(h1Element)
+  const zonesContainer = document.createElement('div');
+  zonesContainer.className = "zones-container";
+  mainWrapper.appendChild(zonesContainer);
+
+  shippingZones.forEach(zone => {
+    const {name, price} = zone;
+    const zoneContainer = document.createElement('div');
+    zoneContainer.className = 'zone-container';
+    zoneContainer.innerHTML = `
+      <p class="zone-name red">${name.es}<p>
+    `;
+    
+  const form = document.createElement('form');
+  form.className = 'zone-form';
+
+  const usdLabelInputContainer = document.createElement('div');
+  usdLabelInputContainer.className = "shipping-label-input-container"
+  const labelUSD = document.createElement('label');
+  labelUSD.textContent = 'Precio en USD';
+  labelUSD.htmlFor = 'usd-price';
+
+  const inputUSD = document.createElement('input');
+  inputUSD.type = 'text';
+  inputUSD.value = price.usd_price;
+  inputUSD.className = 'usd-price-input';
+  inputUSD.id = 'usd-price';
+
+  usdLabelInputContainer.appendChild(labelUSD);
+  usdLabelInputContainer.appendChild(inputUSD);
+
+  const arsLabelInputContainer = document.createElement('div');
+  arsLabelInputContainer.className = "shipping-label-input-container";
+  const labelARS = document.createElement('label');
+  labelARS.textContent = 'Precio en ARS';
+  labelARS.htmlFor = 'ars-price';
+
+  const inputARS = document.createElement('input');
+  inputARS.type = 'text';
+  inputARS.value = price.ars_price;
+  inputARS.className = 'ars-price-input';
+  inputARS.id = 'ars-price';
+
+  arsLabelInputContainer.appendChild(labelARS);
+  arsLabelInputContainer.appendChild(inputARS);
+
+  const buttonProps = {
+    width: 70,
+    text: 'Guardar'
+  }
+  const buttonCreated = button(buttonProps);
+
+  form.appendChild(usdLabelInputContainer);
+  form.appendChild(arsLabelInputContainer);
+  form.appendChild(buttonCreated);
+  form.dataset.zoneId = zone.id;
+
+  zoneContainer.appendChild(form);
+  zonesContainer.appendChild(zoneContainer);
+  listenForZoneFormSubmit(form);
+  })
+}
+
+const listenForZoneFormSubmit = (form) => {
+  form.addEventListener('submit', async (e) => {
+    const zoneId = form.dataset.zoneId;
+    e.preventDefault();
+    const loadingSpinner = createLoadingSpinner('zone-loading-spinner');
+    const button = form.querySelector('button');
+    button.style.display = "none";
+    form.appendChild(loadingSpinner);
+    const usdPriceInputValue = form.querySelector('.usd-price-input').value;
+    const arsPriceInputValue = form.querySelector('.ars-price-input').value;
+    const pricesObject = {
+      usdPriceInputValue,
+      arsPriceInputValue
+    }
+    const okResponse = await handleUpdateZonePrices(pricesObject, zoneId);
+    loadingSpinner.remove();
+    button.style.display = "block";
+  })
+}
 
 export { userProfileExportObj };

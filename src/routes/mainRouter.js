@@ -9,6 +9,8 @@ router.get('/verificar',mainController.userVerification);
 router.get('/categoria/:categoryId',mainController.productList);
 router.get('/producto/:id',mainController.productDetail);
 router.get('/perfil',mainController.userProfile);
+router.get('/nosotros',mainController.aboutUs);
+router.get('/faq',mainController.faq);
 router.get('/logout',getLastURL,mainController.logout);
 
 export default router;

@@ -52,6 +52,22 @@ const controller = {
             return res.redirect('/');
         }
     },
+    aboutUs: async (req, res) => {
+        try {
+            return res.render('aboutUs')
+        } catch (error) {
+            console.log(`Error in about us: ${error}, redirecting...`);
+            return res.redirect('/');
+        }
+    },
+    faq: async (req, res) => {
+        try {
+            return res.render('faq')
+        } catch (error) {
+            console.log(`Error in faq: ${error}, redirecting...`);
+            return res.redirect('/');
+        }
+    },
     logout: (req,res)=>{
         let pathToReturn = req.session.returnTo;
         res.clearCookie("userAccessToken");

@@ -31,9 +31,7 @@ export function checkoutCard (props) {
         img.src = '/img/product/default.png';
         let randomNumber = generateRandomString(10)
         img.alt = `default-image-${randomNumber}`; // Usar el nombre del archivo para alt
-    }
-
-    imageDiv.appendChild(img);
+    }w
   
     // Content section
     const contentDiv = document.createElement("div");
@@ -546,6 +544,7 @@ export function button(props) {
     }
 
     const formContainer = document.querySelector(props.container);
+   
     formContainer?.appendChild(button);
     if(props.datasetObject){
       const {dataKey, dataValue} = props.datasetObject;
@@ -1406,7 +1405,7 @@ export const createLoadingSpinner = (optionalClassName) => {
   const loadingState = document.createElement("div");
   loadingState.className = `loading-state ${optionalClassName}`;
   const loadingSpinner = document.createElement("div");
-  loadingSpinner.className = "loading";
+  loadingSpinner.className = "loading-circle";
   loadingState.appendChild(loadingSpinner);
   return loadingState;
 }

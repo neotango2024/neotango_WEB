@@ -1,7 +1,4 @@
 import systemMessages from '../../utils/staticDB/systemMessages.js';
-
-
-
 import { paymentTypes } from '../../utils/staticDB/paymentTypes.js';
 import { shippingTypes } from '../../utils/staticDB/shippingTypes.js';
 import countries from '../../utils/staticDB/countries.js';
@@ -10,6 +7,8 @@ import sizes from '../../utils/staticDB/sizes.js';
 import genders from '../../utils/staticDB/genders.js';
 import ordersStatuses from '../../utils/staticDB/ordersStatuses.js';
 import { categories } from '../../utils/staticDB/categories.js';
+import zones from '../../utils/staticDB/zones.js';
+
 
 const {productMsg} = systemMessages;
 const { fetchFailed, notFound, fetchSuccessfull, createFailed, updateFailed, deleteSuccess, createSuccessfull, deleteFailed } = productMsg;
@@ -136,6 +135,7 @@ const controller = {
             })
         }
     }
+
 };
 
 export default controller;

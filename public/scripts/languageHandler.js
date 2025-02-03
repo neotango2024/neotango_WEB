@@ -7,6 +7,7 @@ import { cartExportObj } from "./cart.js";
 import { productDetailExportObj } from "./productDetail.js";
 import { handleTranslateCategoryProducts, translateCategoryTitle, translateFilters } from "./productList.js";
 import { userProfileExportObj } from "./userProfile.js";
+import { translateAboutUsContent } from "./aboutUs.js";
 
 export let settedLanguage = null;
 export let isInSpanish = true;
@@ -99,6 +100,9 @@ const handleChangeLanguage = async(param) => { //param es esp/eng
         case 'profile':
             userProfileExportObj.pageConstructor && userProfileExportObj.pageConstructor();
            break
+        case "aboutUs":
+            translateAboutUsContent();
+            break;
         default:
             break;
     }

@@ -16,6 +16,7 @@ import apiPhoneRouter from './routes/api/apiPhoneRouter.js';
 import apiCartRouter from './routes/api/apiCartRouter.js'
 import apiOrderRouter from './routes/api/apiOrderRouter.js';
 import apiTypeRouter from './routes/api/apiTypeRouter.js';
+import apiShippingRouter from './routes/api/apiShippingRouter.js';
 import { languageMiddleware } from './middlewares/language.js';
 import unverifiedUser from './middlewares/unverifiedUser.js';
 import apiVariationsRouter from './routes/api/apiVariationRouter.js';
@@ -54,6 +55,7 @@ app.use('/api/phone', apiPhoneRouter);
 app.use('/api/order', apiOrderRouter);
 app.use('/api/type', apiTypeRouter);
 app.use('/api/variation', apiVariationsRouter);
+app.use('/api/shipping', apiShippingRouter);
 app.use(unverifiedUser); //En todas las consultas de render
 app.use('/',mainRouter);
 app.use('/user',userRouter);

@@ -199,14 +199,14 @@ label {
   align-items: center;
   margin-left: 10px;
 }
-/* .loading {
+.loading-circle {
     width: 30px;
     height: 30px;
     border-radius: 50%;
     border: 5px solid #ddd;
     border-top-color: var(--light-red-color);
     animation: loading 1s linear infinite;
-  } */
+} 
 .remove-btn {
   position: absolute;
   top: 5px;

@@ -161,6 +161,14 @@ export async function setVariationsFromDB(id) {
       console.log(`Falle en setVariationsFromDB: ${error}`);
   }
 }
+
+export let shippingZones = [];
+export const setShippingZones = async () => {
+  const response = await fetch('/api/shipping/zones');
+  const responseJson = await response.json();
+  shippingZones = responseJson.data;
+}
+
 //busca y pinta el primer loader de un contenedor
 export function activateContainerLoader(cont,boolean){
     const loaderToPaint = cont.querySelector('.ui.dimmer')
@@ -720,4 +728,19 @@ export const sanitizeDate = (date) => {
   const mes = (fecha.getUTCMonth() + 1).toString().padStart(2, '0'); // Sumar 1 porque los meses van de 0 a 11
   const año = fecha.getUTCFullYear();
   return `${dia}-${mes}-${año}`;
+}
+
+export const handleUpdateZonePrices = async (pricesObject, zoneId) => {
+  const {usdPriceInputValue, arsPriceInputValue} = pricesObject;
+  const updateResponse = await fetch(`/api/shipping/zones/${zoneId}`, {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      usd_price: usdPriceInputValue,
+      ars_price: arsPriceInputValue
+    })
+  })
+  return updateResponse.ok;
 }
