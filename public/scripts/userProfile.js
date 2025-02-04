@@ -50,8 +50,8 @@ let userProfileExportObj = {
 window.addEventListener("load", async () => {
   const { pathname } = window.location;
   if (!pathname.endsWith("/perfil")) return;
-  if (!userLogged) return (window.location.href = "/");
-  typeOfPanel = userLogged.user_role_id;
+  // if (!userLogged) return (window.location.href = "/");
+  typeOfPanel = userLogged?.user_role_id ||1;
   await setOrderStatuses();
   // Obtén el parámetro `index` de la URL
   const urlParams = new URLSearchParams(window.location.search);

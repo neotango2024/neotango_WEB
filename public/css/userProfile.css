@@ -291,15 +291,17 @@
 }
 .product-table-list-content .modal-card-content-row {
   height: 5rem;
+  width: 100%;
 }
 .product-table-list-content .order-item-image {
-  width: auto;
+  width: 20%;
   height: 100%;
 }
 .product-table-list-content .order-item-description {
   width: 50%;
   display: flex;
   flex-direction: column;
+  align-content : space-between;
   font-size: small;
 }
 .order-detail-card-section {
@@ -342,6 +344,7 @@
   display: flex;
   align-items: center;
 }
+
 .card-shipping-detail .card-label-container,
 .card-billing-detail .card-label-container {
   flex-direction: column;
@@ -350,6 +353,9 @@
 }
 .card-billing-detail .card-label-container {
   align-items: center;
+}
+.card-billing-detail .card-label-container .card-desc {
+  text-align: center;
 }
 .card-label {
   font-size: medium;
@@ -436,6 +442,12 @@
   }
   .order-detail-card-section .ui.card {
     max-width: 400px;
+  }
+  .product-table-list-content .order-item-image {
+    width: fit-content;
+  }
+  .product-table-list-content .order-item-description {
+    width: 50%;
   }
 }
 @media (min-width: 1024px) {
