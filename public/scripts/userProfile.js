@@ -19,6 +19,7 @@ import {
   gendersFromDB,
   setOrderStatuses,
   setGenders,
+  statusesFromDB,
 } from "./getStaticTypesFromDB.js";
 import { paintUserIconOrLetter } from "./header.js";
 import { isInSpanish } from "./languageHandler.js";
@@ -38,6 +39,7 @@ import {
   activateContainerLoader,
   fetchDBProducts,
   displayBigNumbers,
+  minDecimalPlaces,
 } from "./utils.js";
 import { translations } from "../constants/constants.js";
 
@@ -553,8 +555,8 @@ const paintAdminProducts = async () => {
       sku,
       nombre: es_name,
       categoria: category.name.es,
-      dolares: usd_price,
-      pesos: ars_price,
+      dolares: displayBigNumbers(usd_price),
+      pesos: displayBigNumbers(ars_price),
       creado: sanitizeDate(createdAt),
     };
     rowsData.push(rowObject);
@@ -598,6 +600,7 @@ const handleOrderRowClick = async (order) => {
   let productsAlreadyFetchedSet = new Set(productsAlreadyFetched);
   idsToFetch = idsToFetch.filter((id) => !productsAlreadyFetchedSet.has(id));
   const modal = document.querySelector(".ui.modal");
+  // Esto es para pintar las imagenes de los productos
   if (idsToFetch.length) {
     activateContainerLoader(modal, true);
     //aca tengo que buscar esos productos
@@ -693,8 +696,18 @@ const handleChangeOrderStatus = async (e, order) => {
       },
       body: JSON.stringify({ order_status_id: newOrderStatus }),
     });
+    activateContainerLoader(modal, false);
+    
+    if(statusResponse.ok){
+      const orderIndexToModify = ordersFromDB.findIndex(ord=>ord.id == order.id);
+      const newOrderStatusObj = statusesFromDB.find(status=>status.id == newOrderStatus);
+      ordersFromDB[orderIndexToModify].orderStatus = newOrderStatusObj;
+      ordersFromDB[orderIndexToModify].order_status_id = newOrderStatus;      
+      return userProfileExportObj.pageConstructor();
+    }
   } catch (error) {
-    // TODO: - show result message
+    return console.log(error);
+    
   }
   activateContainerLoader(modal, false);
 };

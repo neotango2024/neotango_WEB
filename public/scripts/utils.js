@@ -628,7 +628,7 @@ export async function updatePhoneElements() {
 }
 export async function updateProductTable() {
   try {
-    // TODO:
+    userProfileExportObj.pageConstructor();
   } catch (error) {
     return console.log(error);
   }
@@ -706,14 +706,14 @@ export async function handleProductFetch(bodyData, method) {
     //Aca dio ok, entonces al ser de un usuario actualizo al usuarioLogged.phones
     if (method == "POST") {
       //Aca agrego
-      userLogged.phones?.push(response.phone);
+      productsFromDB?.push(response.product);
     } else if (method == "PUT") {
       //Aca modifico, tengo que modificar en el array de userlogged
-      let phoneToChangeIndex = userLogged.phones?.findIndex(
-        (phoneFromDB) => phoneFromDB.id == bodyData.id
+      let productToChangeIndex = productsFromDB?.findIndex(
+        (prodFromDB) => prodFromDB.id == bodyData.id
       );
-      if (phoneToChangeIndex < 0) return;
-      userLogged.phones[phoneToChangeIndex] = bodyData;
+      if (productToChangeIndex < 0) return;
+      productsFromDB[productToChangeIndex] = response.product;
     }
     let responseMsg = isInSpanish ? response.msg.es : response.msg.en;
     showCardMessage(true, responseMsg);

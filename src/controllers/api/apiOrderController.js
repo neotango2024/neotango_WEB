@@ -295,7 +295,7 @@ const controller = {
         },
       });
 
-      // Le  mando ok con el redirect al email verification view
+      // Le  mando ok
       return res.status(200).json({
         meta: {
           status: 200,
@@ -303,7 +303,7 @@ const controller = {
           method: "PUT",
         },
         ok: true,
-        msg: systemMessages.orderMsg.updateSuccesfull.es, //TODO: ver tema idioma
+        msg: systemMessages.orderMsg.updateSuccesfull, 
       });
     } catch (error) {
       console.log(`Falle en apiOrderController.updateOrder`);
@@ -326,7 +326,7 @@ const controller = {
           id: orderId
         }
       })
-      return res.status(204).json({
+      return res.status(200).json({
         ok: true
       })
     } catch (error) {

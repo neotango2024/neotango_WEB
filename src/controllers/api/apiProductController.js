@@ -12,6 +12,7 @@ import getDeepCopy from '../../utils/helpers/getDeepCopy.js';
 import tacos from '../../utils/staticDB/tacos.js';
 import sizes from '../../utils/staticDB/sizes.js';
 import {categories} from '../../utils/staticDB/categories.js';
+import minDecimalPlaces from '../../utils/helpers/minDecimalPlaces.js';
 
 const {productMsg} = systemMessages;
 const { fetchFailed, notFound, fetchSuccessfull, createFailed, updateFailed, deleteSuccess, createSuccessfull, deleteFailed } = productMsg;
@@ -123,11 +124,11 @@ const controller = {
                 }
             }
             
-            
+            let productToReturn = await findProductsInDb(newProductId,null,true)
             return res.status(200).json({
                 ok: true,
                 msg: createSuccessfull.en,
-                data: newProductId
+                product: productToReturn
             })
         } catch (error) {
             console.log(`Error in handleCreateProduct: ${error}`);
@@ -264,9 +265,11 @@ const controller = {
                     ok: false,
                     msg: createFailed.es
                 });
-            }
+            };
+        let productToReturn = await findProductsInDb(productId,null,true)
         return res.status(200).json({
             ok: true,
+            product: productToReturn
         })
     },
     handleDeleteProduct: async (req, res) => {
@@ -465,7 +468,8 @@ try {
     //Le seteo la categoria
     prod.category = categories.find(cat=>cat.id == prod.category_id);
     prod.variations = populateVariations(prod.variations);
-
+    prod.ars_price = minDecimalPlaces(prod.ars_price);
+    prod.usd_price = minDecimalPlaces(prod.usd_price);
     if(withImages && prod.files?.length){
         await getFilesFromAWS({
             folderName: 'products',

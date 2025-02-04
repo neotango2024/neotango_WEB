@@ -1984,9 +1984,9 @@ function listenProductModalCategorySelect() {
   });
 }
 
-async function setFilesThumb(product) {
+async function setFilesThumb(product=undefined) {
   try {
-    product = getDeepCopy(product); //No quiero alterar el que llega
+    product = product && getDeepCopy(product) || undefined; //No quiero alterar el que llega
     // Obtener input de archivos
     let fileInput = document.querySelector(".ui.modal input[type=file]");
     let divContainer = document.querySelector(".ui.modal .files_thumb_field");
