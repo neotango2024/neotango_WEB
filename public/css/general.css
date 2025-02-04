@@ -94,9 +94,15 @@ body {
 .number_button * {
   color: #000;
 }
+textarea{
+  resize: none;
+}
 .disabled {
   opacity: 0.4;
   pointer-events: none;
+}
+option[disabled]{
+  color: #aaa;
 }
 .margin-field {
   margin: 10px;
@@ -184,6 +190,9 @@ label {
 }
 .green {
   color: #0c970c !important;
+}
+.bold{
+  font-weight: bold;
 }
 .ui.toggle.checkbox input:checked ~ .box:before,
 .ui.toggle.checkbox input:checked ~ label:before {

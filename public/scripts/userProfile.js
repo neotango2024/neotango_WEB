@@ -17,7 +17,7 @@ import {
 } from "./componentRenderer.js";
 import {
   gendersFromDB,
-  getOrderStatuses,
+  setOrderStatuses,
   setGenders,
 } from "./getStaticTypesFromDB.js";
 import { paintUserIconOrLetter } from "./header.js";
@@ -28,18 +28,21 @@ import {
   productsFromDB,
   sanitizeDate,
   setProductsFromDB,
-  setOrdersFromDb,
+  setOrdersFromDB,
   showCardMessage,
-  ordersFromDb,
+  ordersFromDB,
   handlePageModal,
   setShippingZones,
-  shippingZones,
-  handleUpdateZonePrices
+  shippingZonesFromDB,
+  handleUpdateZonePrices,
+  activateContainerLoader,
+  fetchDBProducts,
+  displayBigNumbers,
 } from "./utils.js";
 import { translations } from "../constants/constants.js";
 
 let activeIndexSelected = 0; //index del array "items"
-let typeOfPanel; //Admin 1 | User 2 
+let typeOfPanel; //Admin 1 | User 2
 let userProfileExportObj = {
   pageConstructor: null,
 };
@@ -49,7 +52,7 @@ window.addEventListener("load", async () => {
   if (!pathname.endsWith("/perfil")) return;
   if (!userLogged) return (window.location.href = "/");
   typeOfPanel = userLogged.user_role_id;
-  const orderStatuses = await getOrderStatuses();
+  await setOrderStatuses();
   // Obtén el parámetro `index` de la URL
   const urlParams = new URLSearchParams(window.location.search);
   const indexFromURL = urlParams.get("index");
@@ -57,11 +60,6 @@ window.addEventListener("load", async () => {
   // esto es por si toca desde el dropdown
   if (indexFromURL !== null) {
     activeIndexSelected = parseInt(indexFromURL, 10); //El 10 es por algo tecnico del parseInt
-  }
-  if (typeOfPanel === 1) {
-    await setProductsFromDB();
-    await setOrdersFromDb();
-    await setShippingZones();
   }
   let userOrders = [];
   // return
@@ -98,7 +96,7 @@ window.addEventListener("load", async () => {
     menuBtnConstructor(); //Pinto las opciones
     await contentConstructorHandler();
   };
-  
+
   userProfileExportObj.pageConstructor();
 
   //Esta funcion define que pintar (dependiendo que esta seleccionado, y si es admin/user)
@@ -109,15 +107,13 @@ window.addEventListener("load", async () => {
       //esta funcion dependiendo que viene invoca a la funcion que pinta/despinta las cosas
       switch (activeIndexSelected) {
         case 0: //Profile | Ventas
-          typeOfPanel === 2
-            ? paintUserProfile()
-            : paintAdminSales(orderStatuses);
+          typeOfPanel === 2 ? paintUserProfile() : await paintAdminSales();
           break;
         case 1: //Addresses | Products
-          typeOfPanel === 2 ? paintUserAddresses() : paintAdminProducts();
+          typeOfPanel === 2 ? paintUserAddresses() : await paintAdminProducts();
           break;
         case 2: //Phones | shippings
-          typeOfPanel === 2 ? paintUserPhones() : paintAdminShippings(); 
+          typeOfPanel === 2 ? paintUserPhones() : await paintAdminShippings();
           break;
         case 3: //Order History | ??
           typeOfPanel === 2 ? paintUserOrders() : null;
@@ -248,11 +244,11 @@ window.addEventListener("load", async () => {
     if (!userOrders.length) userOrders = await getUserOrders();
     userOrders.forEach((order) => {
       const orderCardElement = orderCard(order);
-      orderCardElement.addEventListener('click',()=>{
+      orderCardElement.addEventListener("click", () => {
         let orderModalElement = generateOrderDetailModal(order);
         document.body.appendChild(orderModalElement);
         handlePageModal(true);
-      })
+      });
       mainContentWrapper.appendChild(orderCardElement);
     });
   }
@@ -350,7 +346,8 @@ window.addEventListener("load", async () => {
 const orderLimit = 8;
 let offset = 0;
 
-const paintAdminSales = async (orderStatuses) => {
+const paintAdminSales = async () => {
+  if (!ordersFromDB.length) await setOrdersFromDB();
   const mainWrapper = document.querySelector(".main-content-wrapper");
   const h1Element = document.createElement("h1");
   h1Element.className = "page-title red";
@@ -377,7 +374,7 @@ const paintAdminSales = async (orderStatuses) => {
   gridTable.id = "myGrid";
   mainWrapper.appendChild(gridTable);
   const rowsData = [];
-  ordersFromDb.forEach((order) => {
+  ordersFromDB.forEach((order) => {
     const rowObject = {
       identificador: order.tra_id,
       nombre: order.first_name,
@@ -399,10 +396,10 @@ const paintAdminSales = async (orderStatuses) => {
     ],
     domLayout: "autoHeight",
     onRowClicked: (event) => {
-      const order = ordersFromDb.find(
+      const order = ordersFromDB.find(
         (order) => order.tra_id === event.data.identificador
       );
-      handleOrderRowClick(order, orderStatuses);
+      handleOrderRowClick(order);
     },
   };
   gridData.rowData = rowsData;
@@ -435,7 +432,7 @@ const handleTotalPeriodChange = (eventValue) => {
   startDate.setDate(startDate.getDate() - eventValue);
 
   const filteredOrders = filterOrdersByDateRange(
-    ordersFromDb,
+    ordersFromDB,
     startDate,
     currentDate
   );
@@ -488,7 +485,7 @@ const constructTotalSalesCashSquares = () => {
   const endDate = today.toISOString();
 
   const filteredOrders = filterOrdersByDateRange(
-    ordersFromDb,
+    ordersFromDB,
     startDate,
     endDate
   );
@@ -531,6 +528,7 @@ const getTotalUsdAndPesosAccumulators = (orders) => {
 };
 
 const paintAdminProducts = async () => {
+  if (!productsFromDB.lenght) await setProductsFromDB();
   const mainWrapper = document.querySelector(".main-content-wrapper");
   const titleAddProductContainer = document.createElement("div");
   titleAddProductContainer.className = "title-add-product-container";
@@ -548,7 +546,8 @@ const paintAdminProducts = async () => {
 
   const rowsData = [];
   productsFromDB.forEach((prod) => {
-    const {id, sku, es_name, category, createdAt, usd_price, ars_price } = prod;
+    const { id, sku, es_name, category, createdAt, usd_price, ars_price } =
+      prod;
     const rowObject = {
       id,
       sku,
@@ -569,11 +568,11 @@ const paintAdminProducts = async () => {
       { field: "pesos", flex: 0.5, filter: "agTextColumnFilter" },
       { field: "creado", flex: 0.4, filter: "agDateColumnFilter" },
     ],
-    onRowClicked: (event) => {
+    onRowClicked: async (event) => {
       const product = productsFromDB.find(
         (product) => product.id === event.data.id
       );
-      handleProductRowClick(product);
+      await handleProductRowClick(product);
     },
   };
   gridData.rowData = rowsData;
@@ -583,109 +582,88 @@ const paintAdminProducts = async () => {
   listenToAddProductBtn();
 };
 
-const handleProductRowClick = (product) => {
-  console.log(product)
-}
+const handleProductRowClick = async (product) => {
+  await createProductModal(product);
+};
 
-const handleOrderRowClick = async (order, orderStatuses) => {
+const handleOrderRowClick = async (order) => {
   destroyExistingModal();
-  const modal = document.createElement("div");
-  modal.className = "ui tiny order-modal modal";
-
-  const closeButtonContainer = document.createElement("div");
-  closeButtonContainer.className = "close-button-container";
-  modal.appendChild(closeButtonContainer);
-  const closeBtn = document.createElement("i");
-  closeBtn.className = "bx bx-x close-btn";
-  closeBtn.onclick = closeModal();
-  closeButtonContainer.appendChild(closeBtn);
-
-  // Contenido del modal
-  const content = document.createElement("div");
-  const {
-    tra_id,
-    first_name,
-    last_name,
-    shipping_address_city,
-    shipping_address_country_name,
-    shipping_address_detail,
-    shipping_address_province,
-    shipping_address_street,
-    shipping_address_zip_code,
-    orderItems,
-    currency,
-    total,
-  } = order;
-  const loadingSpinner = createLoadingSpinner("hidden");
-  content.className = "content";
-  content.innerHTML = `
-      <h2>Detalle de orden</h2>
-      <div class="order-label-text-container">
-        <p class="order-label">Identificador de orden</p>
-        <p class="order-text"> ${tra_id} </p>
-      </div>
-      <div class="order-label-text-container">
-        <p class="order-label">Cliente</p>
-        <p class="order-text"> ${first_name} ${last_name} </p>
-      </div>
-      <div class="order-label-text-container">
-        <p class="order-label">Estado</p>
-        <div class="select-loading-container">
-          <select id="orderStatusSelect">
-          ${orderStatuses
-            .map(
-              (status) => `
-            <option value="${status.id}" ${
-                status.id === order.orderStatus.id ? "selected" : ""
-              }>
-              ${status.status.es}
-            </option>
-          `
-            )
-            .join("")}
-        </div>
-      </select>
-      </div>
-      <div class="order-label-text-container">
-        <p class="order-label">Envío</p>
-        <p class="order-text"> ${shipping_address_street} ${shipping_address_detail} </p>
-        <p class="order-text"> ${shipping_address_city} ${shipping_address_province} </p>
-        <p class="order-text"> ${shipping_address_zip_code} ${shipping_address_country_name} </p>
-      </div>
-      <div class="order-label-text-container">
-        <p class="order-label">Productos</p>
-        ${orderItems
-          .map(
-            (item) => `
-          <p class="order-text"> ${item.es_name} - talle: ${item.size} - taco: ${item.taco} - cantidad: ${item.quantity} - precio unitario ${item.price} </p>  
-        `
-          )
-          .join("")}
-      </div>
-      <div class="order-label-text-container">
-        <p class="order-label">Total</p>
-        <p class="order-text"> ${total} ${currency.currency}  </p>
-      </div>
-  `;
-
-  modal.appendChild(content);
-
-  document.body.appendChild(modal);
-  const loadingSelectContainer = document.querySelector(
-    ".select-loading-container"
-  );
-  loadingSelectContainer.appendChild(loadingSpinner);
-
+  const orderModalElement = generateOrderDetailModal(order, true);
+  document.body.appendChild(orderModalElement);
+  handlePageModal(true);
   addOrderStatusSelectEventListener(order);
+  // Ahora busco los orderItems y sus fotos
+  let idsToFetch = order.orderItems?.map((item) => item.product_id);
+  let productsAlreadyFetched = productsFromDB?.map((prod) => prod.id);
+  let productsAlreadyFetchedSet = new Set(productsAlreadyFetched);
+  idsToFetch = idsToFetch.filter((id) => !productsAlreadyFetchedSet.has(id));
+  const modal = document.querySelector(".ui.modal");
+  if (idsToFetch.length) {
+    activateContainerLoader(modal, true);
+    //aca tengo que buscar esos productos
+    const fetchedProductsFromDB = await fetchDBProducts({ id: idsToFetch });
+    activateContainerLoader(modal, false);
+    //Los agrego al array de productos
+    fetchedProductsFromDB.forEach((prod) => productsFromDB.push(prod));
+  }
+  //Aca ya lo tengo en productsFromDB ==> Lo busco por el id de cada item y lo seteo
+  // Crear un Map para acceso rápido por ID
+  const productsMap = new Map(productsFromDB.map((prod) => [prod.id, prod]));
 
-  $(modal)
-    .modal({
-      onHidden: function () {
-        removeOrderStatusSelectEventListener();
-        modal.remove();
-      },
-    })
-    .modal("show");
+  // Asignar el producto a cada orderItem y pintar en el wrapper de la lista
+  const orderItemsListInTable = modal.querySelector(
+    ".content.product-table-list-content"
+  );
+  //Ahora pinto en la tabla de products
+  order.orderItems.forEach((orderItem) => {
+    orderItem.product = productsMap.get(orderItem.product_id) || null;
+    // Armo el html de la fila
+    // Obtener la imagen del producto o la default
+    let productImage = "./img/product/default.png";
+    let srcset = "";
+
+    if (orderItem.product?.files?.length) {
+      const firstFile = orderItem.product.files[0];
+      productImage =
+        firstFile.file_urls.find((urlObj) => urlObj.size == "1x")?.url ||
+        firstFile.file_urls[0].url;
+      srcset = firstFile.file_urls
+        .map((urlObj) => `${urlObj.url} ${urlObj.size}`)
+        .join(", ");
+    }
+
+    // Calcular precio total
+    let totalPrice = displayBigNumbers(orderItem.price * orderItem.quantity);
+
+    // Crear el HTML de la fila
+    let orderItemRow = `
+        <div class="modal-card-content-row order-item-row">
+            <!-- Columna Imagen -->
+            <div class="order-item-image">
+                <img src="${productImage}" srcset="${srcset}" alt="${
+      orderItem.es_name
+    }" class="product-image">
+            </div>
+            
+            <!-- Columna Descripción -->
+            <div class="order-item-description">
+                <span class="product-name">${orderItem.es_name}</span>
+                <span class="product-details grey">${orderItem.taco} - ${
+      orderItem.size
+    }</span>
+                <span class="product-quantity grey">${
+                  isInSpanish ? "Cantidad" : "Quantity"
+                }: ${orderItem.quantity}</span>
+            </div>
+
+            <!-- Columna Precio -->
+            <div class="order-item-price">
+                <span class="total-price">$${totalPrice}</span>
+            </div>
+        </div>
+    `;
+    orderItemsListInTable.innerHTML += orderItemRow;
+  });
 };
 
 const handleChangeOrderStatusWrapper = async (e, order) => {
@@ -703,23 +681,11 @@ const addOrderStatusSelectEventListener = (order) => {
   select.addEventListener("change", select._handleChangeOrderStatusWrapper);
 };
 
-const removeOrderStatusSelectEventListener = () => {
-  const select = document.getElementById("orderStatusSelect");
-
-  // el select debería tener la propiedad declarada antes
-  if (select._handleChangeOrderStatusWrapper) {
-    select.removeEventListener(
-      "change",
-      select._handleChangeOrderStatusWrapper
-    );
-    delete select._handleChangeOrderStatusWrapper;
-  }
-};
 const handleChangeOrderStatus = async (e, order) => {
-  const loadingSpinner = document.querySelector(".loading-state");
+  const modal = document.querySelector(".ui.modal");
   try {
     const newOrderStatus = e.target.value;
-    loadingSpinner.classList.remove("hidden");
+    activateContainerLoader(modal, true);
     const statusResponse = await fetch(`/api/order/order-status/${order.id}`, {
       method: "PUT",
       headers: {
@@ -728,9 +694,9 @@ const handleChangeOrderStatus = async (e, order) => {
       body: JSON.stringify({ order_status_id: newOrderStatus }),
     });
   } catch (error) {
-    // TODO - show result message
+    // TODO: - show result message
   }
-  loadingSpinner.classList.add("hidden");
+  activateContainerLoader(modal, false);
 };
 
 const getAllProducts = async () => {
@@ -772,121 +738,123 @@ async function listenToAddProductBtn() {
   }
 }
 
-const paintAdminShippings = () => {
-  const mainWrapper = document.querySelector('.main-content-wrapper');
-  if(window.screen.width > 1024){
-    mainWrapper.style.alignItems = "flex-start"
+const paintAdminShippings = async () => {
+  if (shippingZonesFromDB) await setShippingZones();
+  const mainWrapper = document.querySelector(".main-content-wrapper");
+  if (window.screen.width > 1024) {
+    mainWrapper.style.alignItems = "flex-start";
   }
-  const h1Element = document.createElement('h1');
+  const h1Element = document.createElement("h1");
   h1Element.className = "page-title red";
   h1Element.textContent = "Envíos";
-  mainWrapper.appendChild(h1Element)
-  const zonesContainer = document.createElement('div');
+  mainWrapper.appendChild(h1Element);
+  const zonesContainer = document.createElement("div");
   zonesContainer.className = "zones-container";
   mainWrapper.appendChild(zonesContainer);
 
-  shippingZones.forEach(zone => {
-    const {name, price} = zone;
-    const zoneContainer = document.createElement('div');
-    zoneContainer.className = 'zone-container';
+  shippingZonesFromDB.forEach((zone) => {
+    const { name, price } = zone;
+    const zoneContainer = document.createElement("div");
+    zoneContainer.className = "zone-container";
     zoneContainer.innerHTML = `
       <p class="zone-name red">${name.es}<p>
     `;
-    
-  const form = document.createElement('form');
-  form.className = 'zone-form';
 
-  const usdLabelInputContainer = document.createElement('div');
-  usdLabelInputContainer.className = "shipping-label-input-container";
-  const labelUSD = document.createElement('label');
-  labelUSD.textContent = 'Precio en USD';
-  labelUSD.htmlFor = 'usd-price';
+    const form = document.createElement("form");
+    form.className = "zone-form";
 
-  const inputUSD = document.createElement('input');
-  inputUSD.type = 'number';
-  inputUSD.value = price.usd_price;
-  inputUSD.className = 'usd-price-input';
-  inputUSD.id = 'usd-price';
+    const usdLabelInputContainer = document.createElement("div");
+    usdLabelInputContainer.className = "shipping-label-input-container";
+    const labelUSD = document.createElement("label");
+    labelUSD.textContent = "Precio en USD";
+    labelUSD.htmlFor = "usd-price";
 
-  usdLabelInputContainer.appendChild(labelUSD);
-  usdLabelInputContainer.appendChild(inputUSD);
+    const inputUSD = document.createElement("input");
+    inputUSD.type = "number";
+    inputUSD.value = price.usd_price;
+    inputUSD.className = "usd-price-input";
+    inputUSD.id = "usd-price";
 
-  const arsLabelInputContainer = document.createElement('div');
-  arsLabelInputContainer.className = "shipping-label-input-container";
-  const labelARS = document.createElement('label');
-  labelARS.textContent = 'Precio en ARS';
-  labelARS.htmlFor = 'ars-price';
+    usdLabelInputContainer.appendChild(labelUSD);
+    usdLabelInputContainer.appendChild(inputUSD);
 
-  const inputARS = document.createElement('input');
-  inputARS.type = 'number';
-  inputARS.value = price.ars_price;
-  inputARS.className = 'ars-price-input';
-  inputARS.id = 'ars-price';
+    const arsLabelInputContainer = document.createElement("div");
+    arsLabelInputContainer.className = "shipping-label-input-container";
+    const labelARS = document.createElement("label");
+    labelARS.textContent = "Precio en ARS";
+    labelARS.htmlFor = "ars-price";
 
-  arsLabelInputContainer.appendChild(labelARS);
-  arsLabelInputContainer.appendChild(inputARS);
+    const inputARS = document.createElement("input");
+    inputARS.type = "number";
+    inputARS.value = price.ars_price;
+    inputARS.className = "ars-price-input";
+    inputARS.id = "ars-price";
 
-  const buttonProps = {
-    width: 70,
-    text: 'Guardar'
-  }
-  const buttonCreated = button(buttonProps);
+    arsLabelInputContainer.appendChild(labelARS);
+    arsLabelInputContainer.appendChild(inputARS);
 
-  form.appendChild(usdLabelInputContainer);
-  form.appendChild(arsLabelInputContainer);
-  form.appendChild(buttonCreated);
-  form.dataset.zoneId = zone.id;
+    const buttonProps = {
+      width: 70,
+      text: "Guardar",
+    };
+    const buttonCreated = button(buttonProps);
 
-  zoneContainer.appendChild(form);
-  zonesContainer.appendChild(zoneContainer);
-  listenForZoneFormSubmit(form);
-  })
-}
+    form.appendChild(usdLabelInputContainer);
+    form.appendChild(arsLabelInputContainer);
+    form.appendChild(buttonCreated);
+    form.dataset.zoneId = zone.id;
+
+    zoneContainer.appendChild(form);
+    zonesContainer.appendChild(zoneContainer);
+    listenForZoneFormSubmit(form);
+  });
+};
 
 const listenForZoneFormSubmit = (form) => {
-  form.addEventListener('submit', async (e) => {
+  form.addEventListener("submit", async (e) => {
     e.preventDefault();
-    const usdPriceInput = form.querySelector('.usd-price-input');
-    if(!usdPriceInput.value){
-      usdPriceInput.classList.add('input-error');
+    const usdPriceInput = form.querySelector(".usd-price-input");
+    if (!usdPriceInput.value) {
+      usdPriceInput.classList.add("input-error");
       return;
     }
-    if(usdPriceInput.classList.contains('input-error')) usdPriceInput.classList.remove('input-error');
-    const arsPriceInput = form.querySelector('.ars-price-input');
-    if(!arsPriceInput.value){
-      arsPriceInput.classList.add('input-error');
+    if (usdPriceInput.classList.contains("input-error"))
+      usdPriceInput.classList.remove("input-error");
+    const arsPriceInput = form.querySelector(".ars-price-input");
+    if (!arsPriceInput.value) {
+      arsPriceInput.classList.add("input-error");
       return;
     }
-    if(arsPriceInput.classList.contains('input-error')) arsPriceInput.classList.remove('input-error');
+    if (arsPriceInput.classList.contains("input-error"))
+      arsPriceInput.classList.remove("input-error");
     const zoneId = form.dataset.zoneId;
-    const loadingSpinner = createLoadingSpinner('zone-loading-spinner');
-    const button = form.querySelector('button');
+    const loadingSpinner = createLoadingSpinner("zone-loading-spinner");
+    const button = form.querySelector("button");
     button.style.display = "none";
     form.appendChild(loadingSpinner);
     const pricesObject = {
       usdPriceInputValue: usdPriceInput.value,
-      arsPriceInputValue: arsPriceInput.value
-    }
+      arsPriceInputValue: arsPriceInput.value,
+    };
     const okResponse = await handleUpdateZonePrices(pricesObject, zoneId);
     loadingSpinner.remove();
     button.style.display = "block";
-  })
-}
+  });
+};
 
 export const translateUserLabels = () => {
-  const {user_role_id} = userLogged;
-  if(user_role_id === 2){
-    const lang = isInSpanish ? 'esp' : 'eng';
-    const items = document.querySelectorAll('.item');
-    items.forEach(item => {
-      if(item.dataset.label){
+  const { user_role_id } = userLogged;
+  if (user_role_id === 2) {
+    const lang = isInSpanish ? "esp" : "eng";
+    const items = document.querySelectorAll(".item");
+    items.forEach((item) => {
+      if (item.dataset.label) {
         const translation = translations.userLogged[item.dataset.label][lang];
-        const span = item.querySelector('span');
+        const span = item.querySelector("span");
         span.textContent = translation;
       }
-    })
+    });
   }
-}
-
+};
 
 export { userProfileExportObj };

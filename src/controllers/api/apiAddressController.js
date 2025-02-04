@@ -44,7 +44,16 @@ const controller = {
         });
       }
       let addressObjToDB = generateAddressObject(req.body);
-      
+      // Si llega por default entonces actualizo todas las otras
+      if(addressObjToDB.default){
+        await db.Address.update({
+          default: 0
+        },{
+          where: {
+            user_id: addressObjToDB.user_id
+          }
+        })
+      }
       let createdAddress = await insertAddressToDB(addressObjToDB);
       
       if(!createdAddress)
@@ -88,7 +97,7 @@ const controller = {
         });
       }
       // Datos del body
-      let { id, street, label, detail, zip_code, city, province, country_id,} = req.body;
+      let { id, street, label, detail, zip_code, city, province, country_id, defaultAddress } = req.body;
       
       let keysToUpdate = {
         street,
@@ -98,8 +107,18 @@ const controller = {
         city,
         province,
         country_id,
+        default: defaultAddress
       };
-      
+      if(keysToUpdate.default){
+        const { user_id } =  req.body
+        await db.Address.update({
+          default: 0
+        },{
+          where: {
+            user_id
+          }
+        })
+      }
       await updateAddressFromDB(keysToUpdate,id)
 
       // Le  mando ok con el redirect al email verification view
@@ -132,7 +151,7 @@ const controller = {
           method: "DELETE",
         },
         ok: true,
-        msg: systemMessages.addressMsg.destroySuccesfull.es, //TODO: ver tema idioma
+        msg: systemMessages.addressMsg.destroySuccesfull,
         redirect: "/",
       });
     } catch (error) {
@@ -211,14 +230,8 @@ export async function getUserAddressesFromDB(id) {
 
 export function generateAddressObject(address) {
   // objeto para armar la address
-  let { user_id, street, label, detail, zip_code, city, province, country_id, first_name, last_name } = address;
-        
-  // return console.log(bcrypt.hashSync('admin123', 10));
-
-  // //Nombres y apellidos van capitalziados
-  // first_name = capitalizeFirstLetterOfEachWord(first_name, true);
-  // last_name = capitalizeFirstLetterOfEachWord(last_name, true);
-
+  let { user_id, street, label, detail, zip_code, city, province, country_id, defaultAddress } = address;
+      
   let dataToDB = {
     id: uuidv4(),
     user_id,
@@ -229,8 +242,7 @@ export function generateAddressObject(address) {
     city,
     province,
     country_id,
-    // first_name,
-    // last_name,
+    default: defaultAddress
   };
   return dataToDB
 }

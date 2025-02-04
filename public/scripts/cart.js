@@ -16,6 +16,7 @@ import { isInSpanish, settedLanguage } from "./languageHandler.js";
 import { deleteLocalStorageItem, getLocalStorageItem, setLocalStorageItem } from "./localStorage.js";
 import {
   activateContainerLoader,
+  displayBigNumbers,
   handleNewAddressButtonClick,
   handleNewPhoneButtonClick,
   handlePageModal,
@@ -182,7 +183,7 @@ window.addEventListener("DOMContentLoaded", async () => {
             removeBtn.classList.add("hidden");
           }
           cardPrice.innerHTML = `$${
-            parseInt(actualQuantitySpan.innerHTML) * productPrice
+            displayBigNumbers(parseInt(actualQuantitySpan.innerHTML) * productPrice)
           }`;
           modifyDetailList();
         });
@@ -196,7 +197,7 @@ window.addEventListener("DOMContentLoaded", async () => {
             removeBtn.classList.remove("hidden");
           }
           cardPrice.innerHTML = `$${
-            parseInt(actualQuantitySpan.innerHTML) * productPrice
+            displayBigNumbers(parseInt(actualQuantitySpan.innerHTML) * productPrice)
           }`;
           modifyDetailList();
         });
@@ -260,8 +261,8 @@ window.addEventListener("DOMContentLoaded", async () => {
       productLengthElement.innerHTML = `${productLength} producto${
         productLength == 1 ? "" : "s"
       }`;
-      productCostElement.innerHTML = `$${productCost}`;
-      totalCostElement.innerHTML = `$${totalCost}`;
+      productCostElement.innerHTML = `$${displayBigNumbers(productCost)}`;
+      totalCostElement.innerHTML = `$${displayBigNumbers(totalCost)}`;
     }
     //Genera el formulario de pago
     async function generateCheckoutForm (){
@@ -429,7 +430,7 @@ window.addEventListener("DOMContentLoaded", async () => {
       button.type = "button";
       button.textContent = buttonText;
       button.className = 'add-new-field-btn'
-      button.addEventListener('click', await cb)
+      button.addEventListener('click',async ()=> await cb())
       // Buscar el input dentro del container para posicionar el botón antes
         const input = container.querySelector("input, select, textarea"); // Busca el input, select o textarea
         if (input) {
@@ -542,7 +543,7 @@ window.addEventListener("DOMContentLoaded", async () => {
         const itemQuantity = cartItem.quantity;
         productsCost += parseFloat(productPrice) * parseInt(itemQuantity)
       });
-      const totalCost = productsCost;
+      const totalCost = displayBigNumbers(productsCost);
 
       // Crear contenedor principal
       const container = document.createElement("div");
@@ -569,7 +570,7 @@ window.addEventListener("DOMContentLoaded", async () => {
   
       const productCost = document.createElement("p");
       productCost.className = "detail-row-p detail-row-product-cost";
-      productCost.textContent = `$${productsCost}`;
+      productCost.textContent = `$${displayBigNumbers(productsCost)}`;
       productRow.appendChild(productCost);
   
       detailListContainer.appendChild(productRow);

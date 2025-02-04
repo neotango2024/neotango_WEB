@@ -138,16 +138,19 @@ const controller = {
         }
     },
     handleUpdateProduct: async (req, res) => {
+        // return console.log(req.body);
+        
         const errors = validationResult(req);
         if(!errors.isEmpty()){
             return res.status(404).json({
                 ok: false,
-                msg: createFailed.es,
+                msg: createFailed,
                 errors: errors.mapped()
             })
         }
-        const productId = req.params.productId;
         const body = req.body;
+        const  { id: productId } = body;
+        
         const isUpdateSuccessful = await updateProductInDb(body, productId);
         if(!isUpdateSuccessful){
             return res.status(500).json({
@@ -156,7 +159,8 @@ const controller = {
             })
         }
         const variationsInDb = await findProductVariations(productId);
-        const { variations } = req.body;
+        let { variations } = req.body;
+        variations = JSON.parse(req.body.variations);
         const variationsToDelete = getVariationsToDelete(variations, variationsInDb, productId);
         const deleteVariationsPromises = variationsToDelete.map(async variationToDelete => {
             const isDeleteSuccessful = await deleteVariationInDb(variationToDelete);
@@ -179,7 +183,8 @@ const controller = {
             });
         }
         const imagesInDb = await findFilesInDb(productId);
-        const imagesToKeep = req.body.current_images;
+        let imagesToKeep = req.body.current_images;
+        imagesToKeep = JSON.parse(imagesToKeep);
         // current_images
         // [
             // id: fileid
@@ -194,7 +199,7 @@ const controller = {
         // req.files
         let imagesToDelete;
         if(imagesToKeep && imagesToKeep.length > 0){
-            imagesToDelete = imagesInDb.filter(img => !imagesToKeep.includes(img.filename));
+            imagesToDelete = imagesInDb.filter(img => !imagesToKeep.map(img=>img.filename).includes(img.filename));
         } else {
             imagesToDelete = imagesInDb;
         }
@@ -227,7 +232,8 @@ const controller = {
         }));
         if(req.files){
             const files = req.files;
-            const { filesFromArray } = body;
+            let { filesFromArray } = body;
+            filesFromArray = JSON.parse(filesFromArray);
             files.forEach(multerFile => {
                 const fileFromFilesArrayFiltered = filesFromArray.find(arrFile => arrFile.filename === multerFile.originalname)
                 multerFile.file_types_id = getFileType(multerFile);
@@ -286,6 +292,7 @@ const controller = {
             })
         } catch (error) {
             console.log(`Error handling product deletion: ${error}`);
+            console.log(error);
             return res.status(500).json({
                 ok: false,
                 msg: deleteFailed.es

@@ -390,7 +390,6 @@ export async function getOrdersFromDB({ id, limit, offset, user_id }) {
     ordersToReturn = getDeepCopy(ordersToReturn);
     ordersToReturn?.forEach(orderToReturn=> {
       setOrderKeysToReturn(orderToReturn);
-      populateCurrencies(orderToReturn);
     });
 
     return ordersToReturn;
@@ -400,9 +399,7 @@ export async function getOrdersFromDB({ id, limit, offset, user_id }) {
   }
 }
 
-const populateCurrencies = (order) => {
-  order.currency = currencies.find(currency => currency.id === order.currency_id)
-}
+
 
 //Esta funcion toma el objeto y le hace una "foto" de las entidades que luego pueden cambiar
 //En db necesitamos almacenar los datos que perduren, ej si se cambia la address tiene que

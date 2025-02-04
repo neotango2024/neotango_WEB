@@ -33,6 +33,11 @@
 .default_marker_active{
     background-color: var(--red-color);
 }
+.default_absolute_marker {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+}
 .card.card_empty{
     justify-content: center;
     align-items: center;

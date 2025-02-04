@@ -201,7 +201,6 @@ const controller = {
     try {
       let { userLoggedId } = req.query;
       let userOrders = await getOrdersFromDB({user_id: userLoggedId}) || [];
-      console.log(userOrders?.length);
       
       // return res.send(ordersToPaint);
       //Una vez tengo todas las ordenes, obtengo todos los productos que quiero mostrar, y por cada uno hago el setKeysToReturn
