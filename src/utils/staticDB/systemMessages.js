@@ -94,12 +94,16 @@ export default {
             en: 'There was an error creating the product, try again later',
             es: 'Hubo un problema al crear el producto, intenta nuevamente!'
         },
+        updateSuccessfull: {
+            en: 'Product succesfully updated',
+            es: 'Producto actualizado correctamente'
+        },
         updateFailed: {
             en: 'There was an error updating the product, try again later',
             es: 'Hubo un problema al actualizar el producto, intenta nuevamente!'
         },
         deleteSuccess: {
-            es: 'Product eliminado satisfactoriamente',
+            es: 'Producto eliminado satisfactoriamente',
             en: 'Product successfully deleted'
         },
         deleteFailed: {

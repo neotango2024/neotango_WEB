@@ -390,12 +390,13 @@ export async function handleModalCreation({
       }
       return;
     }
+    let fetchResponse = true;
     if (userLogged) {
       //Aca esta loggeado, lo creo en db
       bodyData.user_id = userLogged.id;
       if (postToDatabase) {
         try {
-          await postToDatabase(bodyData, method);
+          fetchResponse = await postToDatabase(bodyData, method);
         } catch (error) {
           console.error(`Error posting ${entityType} to database`, error);
           submitButton.classList.remove("loading");
@@ -406,36 +407,40 @@ export async function handleModalCreation({
       //Aca es un guest, lo creo en session
       // Invitado: guardar en sessionStorage
       saveGuestEntity(bodyData);
-    }
-    // Cierro el modal
-    handlePageModal(false);
-    if (updateElements) {
-      if (userLogged && (entityType == "address" || entityType == "phone")) {
-        //Aca me fijo si marco default y lo hago "Manual"
-        if ( bodyData.defaultAddress) {
-          //ACa se que activo el default de la direc, cambio el de todos
-          userLogged.addresses.forEach(
-            (dbAddress) =>
-              (dbAddress.default = dbAddress.id == bodyData?.id ? true : false)
-          );
-          //Esto es porque si es post no llega bodyData.id, entonces deschequea todos
-          if (method == "POST")
-            userLogged.addresses[
-              userLogged.addresses.length - 1
-            ].default = true;
-        } else if (bodyData.defaultPhone) {
-          //aca se que activo el default del phone, hago lo mismo
-          userLogged.phones.forEach(
-            (dbPhone) =>
-              (dbPhone.default = dbPhone.id == bodyData?.id ? true : false)
-          );
-          //Esto es porque si es post no llega bodyData.id, entonces deschequea todos
-          if (method == "POST")
-            userLogged.phones[userLogged.phones.length - 1].default = true;
+    }    
+    // Si dio true el fetch, o no habia usuario
+    if (fetchResponse) {
+      // Cierro el modal
+      handlePageModal(false);
+      if (updateElements) {
+        if (userLogged && (entityType == "address" || entityType == "phone")) {
+          //Aca me fijo si marco default y lo hago "Manual"
+          if (bodyData.defaultAddress) {
+            //ACa se que activo el default de la direc, cambio el de todos
+            userLogged.addresses.forEach(
+              (dbAddress) =>
+                (dbAddress.default =
+                  dbAddress.id == bodyData?.id ? true : false)
+            );
+            //Esto es porque si es post no llega bodyData.id, entonces deschequea todos
+            if (method == "POST")
+              userLogged.addresses[
+                userLogged.addresses.length - 1
+              ].default = true;
+          } else if (bodyData.defaultPhone) {
+            //aca se que activo el default del phone, hago lo mismo
+            userLogged.phones.forEach(
+              (dbPhone) =>
+                (dbPhone.default = dbPhone.id == bodyData?.id ? true : false)
+            );
+            //Esto es porque si es post no llega bodyData.id, entonces deschequea todos
+            if (method == "POST")
+              userLogged.phones[userLogged.phones.length - 1].default = true;
+          }
         }
+        //Ahora deberia actualizar dependiendo donde este
+        await updateElements();
       }
-      //Ahora deberia actualizar dependiendo donde este
-      await updateElements();
     }
 
     return;
@@ -690,36 +695,43 @@ export async function handleAddressFetch(bodyData, method) {
     showCardMessage(true, responseMsg);
     return true;
   }
+  let msg = isInSpanish
+    ? "Ha ocurrido un error, intente nuevamente"
+    : "There was an error processing your request, please try again";
+  showCardMessage(false, msg);
   return false;
 }
 
 export async function handleProductFetch(bodyData, method) {
-  // return console.log(bodyData);
-
-  let response = await fetch(`/api/product`, {
-    method: method,
-    body: bodyData,
-  });
-
-  if (response.ok) {
-    response = response.ok && (await response.json());
-    //Aca dio ok, entonces al ser de un usuario actualizo al usuarioLogged.phones
-    if (method == "POST") {
-      //Aca agrego
-      productsFromDB?.push(response.product);
-    } else if (method == "PUT") {
-      //Aca modifico, tengo que modificar en el array de userlogged
-      let productToChangeIndex = productsFromDB?.findIndex(
-        (prodFromDB) => prodFromDB.id == bodyData.id
-      );
-      if (productToChangeIndex < 0) return;
-      productsFromDB[productToChangeIndex] = response.product;
+  try {
+    let response = await fetch(`/api/product`, {
+      method: method,
+      body: bodyData,
+    });    
+    if (response.ok) {
+      response = await response.json()
+      //Aca dio ok, entonces al ser de un usuario actualizo al usuarioLogged.phones
+      if (method == "POST") {
+        //Aca agrego
+        productsFromDB?.push(response.product);
+      } else if (method == "PUT") {
+        //Aca modifico, tengo que modificar en el array de userlogged
+        let productToChangeIndex = productsFromDB?.findIndex(
+          (prodFromDB) => prodFromDB.id == response?.product?.id
+        );
+        if (productToChangeIndex < 0) return;
+        productsFromDB[productToChangeIndex] = response.product;
+      }
+      let responseMsg = response.msg.es;
+      showCardMessage(true, responseMsg);
+      return true;
     }
-    let responseMsg = isInSpanish ? response.msg.es : response.msg.en;
-    showCardMessage(true, responseMsg);
-    return true;
+    let msg = "Ha ocurrido un error inesperado, intente nuevamente";
+    showCardMessage(false, msg);
+    return false;
+  } catch (error) {
+    return console.log(error);
   }
-  return false;
 }
 
 export async function handleUserLoginFetch(bodyData) {
@@ -730,22 +742,21 @@ export async function handleUserLoginFetch(bodyData) {
   });
   if (response.ok) {
     response = response.ok ? await response.json() : null;
-
     if (response.ok) {
       //Esta es la respuesta de las credenciales
       //Aca dio ok, entonces al ser de un usuario actualizo al usuarioLogged.phones
       showCardMessage(true, isInSpanish ? response.msg.es : response.msg);
       await checkForUserLogged();
-      const bodyName = document.querySelector('body').dataset.page_name; 
+      const bodyName = document.querySelector("body").dataset.page_name;
       // Esto es porque si pasa de no estar logeado a estarlo, pinto los productos del carro
-      if(bodyName == 'cart') await cartExportObj.pageConstructor();
+      if (bodyName == "cart") await cartExportObj.pageConstructor();
       return true;
     }
     showCardMessage(false, isInSpanish ? response.msg.es : response.msg);
     return false;
   }
   let msg = isInSpanish
-    ? "Ha ocuriddo un error inesperado, intente nuevamente"
+    ? "Ha ocurrido un error inesperado, intente nuevamente"
     : "There was an unexpected error, please try again";
   showCardMessage(false, msg);
   return false;
@@ -766,7 +777,7 @@ export async function handleUserSignUpFetch(bodyData) {
     return;
   }
   let msg = isInSpanish
-    ? "Ha ocuriddo un error inesperado, intente nuevamente"
+    ? "Ha ocurrido un error inesperado, intente nuevamente"
     : "There was an unexpected error, please try again";
   showCardMessage(false, msg);
   return false;
@@ -1050,12 +1061,14 @@ export function getLastParamFromURL() {
   return pathSegments[pathSegments.length - 1];
 }
 
-export function handleInputFileFromModal({show}){
-  const containerToShow = document.querySelector('.ui.modal .input-file-container');
-  if(show)return containerToShow.classList.remove('hidden');
-  return containerToShow.classList.add('hidden');
+export function handleInputFileFromModal({ show }) {
+  const containerToShow = document.querySelector(
+    ".ui.modal .input-file-container"
+  );
+  if (show) return containerToShow.classList.remove("hidden");
+  return containerToShow.classList.add("hidden");
 }
 
-export function getDeepCopy (arg){
+export function getDeepCopy(arg) {
   return JSON.parse(JSON.stringify(arg));
 }

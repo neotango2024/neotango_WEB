@@ -38,6 +38,9 @@ import {
   handleInputFileFromModal,
   toggleInputPasswordType,
   getDeepCopy,
+  productsFromDB,
+  updateProductTable,
+  showCardMessage,
 } from "./utils.js";
 const SCREEN_WIDTH = window.screen.width;
 
@@ -816,7 +819,7 @@ export async function createPhoneModal(phone) {
           label: isInSpanish ? "Telefono Predeterminado" : "Default Phone",
           type: "toggle",
           name: "phone_default",
-          containerClassName: `${!userLogged ? "hidden" : ''}`,
+          containerClassName: `${!userLogged ? "hidden" : ""}`,
           required: true,
           checked: phone ? phone.default : !userLogged?.phones?.length,
         },
@@ -867,7 +870,7 @@ export async function createAddressModal(address = undefined) {
       buttonText = isInSpanish ? "Crear" : "Create";
       headerText = isInSpanish ? "Agregar Direccion" : "Add Address";
     }
-    
+
     createModal({
       headerTitle: headerText,
       formFields: [
@@ -945,7 +948,7 @@ export async function createAddressModal(address = undefined) {
           label: isInSpanish ? "Direccion predeterminada" : "Default Address",
           type: "toggle",
           name: "address-default",
-          containerClassName: `${!userLogged ? "hidden" : ''}`,
+          containerClassName: `${!userLogged ? "hidden" : ""}`,
           required: true,
           checked: address ? address.default : !userLogged?.addresses?.length,
         },
@@ -1010,7 +1013,7 @@ export async function createUserLoginModal() {
       buttons: [
         {
           text: isInSpanish ? "Iniciar Sesión" : "login",
-          type:'button',
+          type: "button",
           className: "ui button submit negative send-modal-form-btn",
           onClick: async () => await handleUserLoginModal(),
         },
@@ -1023,14 +1026,13 @@ export async function createUserLoginModal() {
       ],
     });
     // Armo el event listener
-    document.querySelector(".ui.modal").addEventListener("keydown", async(event) => {
-      if (event.key === "Enter") {
-        await handleUserLoginModal()
-      }
-  });
-  
-
-  
+    document
+      .querySelector(".ui.modal")
+      .addEventListener("keydown", async (event) => {
+        if (event.key === "Enter") {
+          await handleUserLoginModal();
+        }
+      });
   } catch (error) {
     console.log("falle");
     return console.log(error);
@@ -1867,6 +1869,13 @@ export async function createProductModal(product = undefined) {
         text: product ? "Edit" : "Create",
         onClick: async () => await handleProductModalActions(product),
       },
+      {
+        text: "Eliminar",
+        className: `ui button right floated basic black submit black sign-up-btn ${
+          !product ? "hidden" : ""
+        }`,
+        onClick: async () => createDisableProductModal(product),
+      },
     ],
     id: product?.id || undefined,
   });
@@ -1916,6 +1925,37 @@ export async function createProductModal(product = undefined) {
   setupSelectListeners(); //EScuchas para los tacos&sizes
 }
 
+export async function createDisableProductModal(product) {
+  disableProductModal(product);
+  handlePageModal(true);
+  const form = document.querySelector(".ui.form");
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const idToSend = product.id;
+    // Hago el fetch para borrar
+    let response = await fetch(`/api/product/${idToSend}`, {
+      method: "DELETE",
+      headers: {
+        "Content-Type": "application/json",
+      }
+    });
+    if (response.ok) {
+      response = await response.json();
+      const productIndexFromList = productsFromDB?.findIndex(
+        (dbProd) => dbProd.id == idToSend
+      );
+      if (productIndexFromList !== -1) {
+        productsFromDB.splice(productIndexFromList, 1);
+      }
+      closeModal();
+      showCardMessage(true, response.msg.es);
+      return updateProductTable();
+    }
+    let msg = "Ha ocurrido un error";
+    showCardMessage(false, msg);
+    return
+  });
+}
 function listenToProductModalBtns() {
   const addVariationBtn = document.querySelector(
     ".ui.modal .add-variation-btn"
@@ -1993,9 +2033,9 @@ function listenProductModalCategorySelect() {
   });
 }
 
-async function setFilesThumb(product=undefined) {
+async function setFilesThumb(product = undefined) {
   try {
-    product = product && getDeepCopy(product) || undefined; //No quiero alterar el que llega
+    product = (product && getDeepCopy(product)) || undefined; //No quiero alterar el que llega
     // Obtener input de archivos
     let fileInput = document.querySelector(".ui.modal input[type=file]");
     let divContainer = document.querySelector(".ui.modal .files_thumb_field");
@@ -2209,11 +2249,12 @@ export function generateOrderDetailModal(order, isAdminModal = false) {
           <div class="modal-card-header-span border-left align-end">#${
             order.tra_id
           }</div>
-      </div>`
-     if(isAdminModal){
-      orderCard.innerHTML += '<div class="content product-table-list-content"></div>'; //Esto es para pitnar los orderItems
-      } else{
-        orderCard.innerHTML += `
+      </div>`;
+  if (isAdminModal) {
+    orderCard.innerHTML +=
+      '<div class="content product-table-list-content"></div>'; //Esto es para pitnar los orderItems
+  } else {
+    orderCard.innerHTML += `
         <div class="content">
         <div class="modal-card-content-row">
             <span class="modal-card-content-span">${
@@ -2223,9 +2264,9 @@ export function generateOrderDetailModal(order, isAdminModal = false) {
               order.orderItemsPurchasedPrice
             }</span>
         </div>
-        </div>`
-      }
-          orderCard.innerHTML += `
+        </div>`;
+  }
+  orderCard.innerHTML += `
           <div class="content">
           <div class="modal-card-content-row no-margin">
               <span class="modal-card-content-span">${
@@ -2390,7 +2431,7 @@ export function generateOrderDetailModal(order, isAdminModal = false) {
   modal.appendChild(content);
   modal.innerHTML += `<div class="ui dimmer">
     <div class="ui loader"></div>
-  </div>`
+  </div>`;
   // Agrego el closemodal even
   modal
     .querySelector(".close-modal-btn")
@@ -2547,5 +2588,76 @@ export function disablePhoneModal(phone) {
   // Agregar el modal al cuerpo del documento
   document.body.appendChild(modal);
 
+  return modal;
+}
+export function disableProductModal(product) {
+  destroyExistingModal();
+  // Crear el contenedor principal
+  const modal = document.createElement("div");
+  modal.className = "ui small modal";
+
+  // Crear el header del modal
+  const header = document.createElement("div");
+  header.className = "header";
+  header.innerHTML = `Deshabilitar Producto <i class='bx bx-x close-modal-btn'></i>`;
+  modal.appendChild(header);
+
+  const closeModalBtn = modal.querySelector(".close-modal-btn");
+  closeModalBtn.addEventListener("click", () => createProductModal(product));
+
+  // Crear el contenido del modal
+  const content = document.createElement("div");
+  content.className = "content";
+
+  // Crear el formulario
+  const form = document.createElement("form");
+  form.className = "ui form destroy-form";
+
+  // Crear el encabezado dentro del formulario
+  const headerText = document.createElement("h4");
+  headerText.className = "ui dividing header required";
+  headerText.innerHTML = `¿Estas seguro que quieres deshabilitar "${product.es_name}"?`;
+  form.appendChild(headerText);
+
+  // Crear el contenedor de botones
+  const buttonFields = document.createElement("div");
+  buttonFields.className = "two fields";
+
+  // Botón de cancelación
+  const cancelField = document.createElement("div");
+  cancelField.className = "field";
+  const cancelButton = document.createElement("button");
+  cancelButton.className = "ui basic grey button";
+  cancelButton.type = "button";
+  cancelButton.textContent = "Cancelar";
+  cancelField.appendChild(cancelButton);
+  buttonFields.appendChild(cancelField);
+
+  cancelButton.addEventListener("click", () => createProductModal(product));
+
+  // Botón de confirmación
+  const confirmField = document.createElement("div");
+  confirmField.className = "field";
+  const confirmButton = document.createElement("button");
+  confirmButton.className = "ui basic red button";
+  confirmButton.textContent = isInSpanish ? "Confirmar" : "Confirm";
+  confirmButton.type = "submit";
+  confirmField.appendChild(confirmButton);
+  buttonFields.appendChild(confirmField);
+
+  confirmButton.addEventListener("click", () =>
+    confirmButton.classList.add("loading")
+  );
+  // Agregar los botones al formulario
+  form.appendChild(buttonFields);
+
+  // Agregar el formulario al contenido
+  content.appendChild(form);
+
+  // Agregar el contenido al modal
+  modal.appendChild(content);
+
+  // Agregar el modal al cuerpo del documento
+  document.body.appendChild(modal);
   return modal;
 }

@@ -269,7 +269,8 @@ const controller = {
         let productToReturn = await findProductsInDb(productId,null,true)
         return res.status(200).json({
             ok: true,
-            product: productToReturn
+            product: productToReturn,
+            msg: systemMessages.productMsg.updateSuccessfull
         })
     },
     handleDeleteProduct: async (req, res) => {
@@ -290,7 +291,7 @@ const controller = {
             }
             return res.status(200).json({
                 ok: true,
-                msg: deleteSuccess.es,
+                msg: deleteSuccess,
                 data: productId
             })
         } catch (error) {
@@ -368,12 +369,13 @@ async function deleteProductInDb (productId) {
     try {
         const rowsAffected = await Product.destroy({
             where: {
-                product_id: productId
+                id: productId
             }
         })
         return rowsAffected > 0;
     } catch (error) {
         console.log(`error deleting product in db: ${error}`);
+        console.log(error);
         return null;
     }
 }  
