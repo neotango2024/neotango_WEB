@@ -8,6 +8,7 @@ import { productDetailExportObj } from "./productDetail.js";
 import { handleTranslateCategoryProducts, translateCategoryTitle, translateFilters } from "./productList.js";
 import { translateUserLabels, userProfileExportObj } from "./userProfile.js";
 import { translateAboutUsContent } from "./aboutUs.js";
+import { translateFaqContent } from "./faq.js";
 
 export let settedLanguage = null;
 export let isInSpanish = true;
@@ -64,7 +65,7 @@ const decideLanguageInsertion = () => {
 
 //Agarra los src de las imagenes del modal
 const handleChangeLanguage = async(param) => { //param es esp/eng
-    updateLanguage(param); //Updateo tanto en localStorage como en la variable que se comparte 
+    await updateLanguage(param); //Updateo tanto en localStorage como en la variable que se comparte 
     //Agarro las banderas del modal
     const modalImgs = document.querySelectorAll('.modal-flag-container img');
     modalImgs.forEach(img => {
@@ -104,6 +105,9 @@ const handleChangeLanguage = async(param) => { //param es esp/eng
         case "aboutUs":
             translateAboutUsContent();
             break;
+        case "faq":
+            translateFaqContent();
+            break;
         default:
             break;
     }
@@ -118,10 +122,19 @@ const toggleLanguagesModalClasses = () => {
 }
 
 //Cambia las variables
-const updateLanguage = (lang)=>{
-    setLocalStorageItem('language', lang); //Seteo en base al parametro el lenguaje
+const updateLanguage = async (lang)=>{
+    setLocalStorageItem('language', lang); 
     settedLanguage = lang;
     isInSpanish = settedLanguage == 'esp';
+    if(userLogged && (userLogged.preffered_language === null || userLogged.preffered_language !== lang)){
+        await fetch(`/api/user/language/${userLogged.id}`, {
+            method: 'PUT',
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                language: lang
+            })
+        })
+    }
 }
 
 export const translateProductCards = (container) => {

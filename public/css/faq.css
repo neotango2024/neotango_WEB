@@ -40,3 +40,51 @@
 .page-title {
     margin: 0;
 }
+
+.faq-title, .faq-description, .additional-faq-description {
+    margin: 0;
+}
+
+.faq-container {
+    margin-top: 15px;
+    border: 2px solid var(--light-red-color);
+    padding: 10px;
+    max-width: 500px;
+}
+
+.faq-description {
+    margin-top: 10px;
+}
+
+@media(min-width: 768px){
+    .faqs-container {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+    .faq-container {
+        width: 80%;
+        margin-top: 20px;
+    }
+    .faq-title {
+        font-size: 20px;
+    }
+    .faq-description, .additional-faq-description {
+        font-size: 18px;
+    }
+}
+
+@media(min-width: 1024px){
+    .faq-main {
+        max-width: 950px;
+    }
+    .faq-title {
+        font-size: 22px;
+    }
+    .faq-description, .additional-faq-description {
+        font-size: 20px;
+    }
+    .faq-container {
+        padding: 15px;
+    }
+}

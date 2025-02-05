@@ -50,7 +50,7 @@ export const translations = {
     },
     faq: {
         title: {eng: 'Frequently asked questions', esp: 'Preguntas frecuentes'},
-        firstFaq: {
+        0: {
             title: {
                 eng: 'Payment methods',
                 esp: 'Métodos de pago'
@@ -60,7 +60,7 @@ export const translations = {
                 esp: 'Para las compras de Argentina tenemos las siguientes formas de pago: Depósito o transferencia bancaria, o tarjeta de crédito'
             }
         },
-        secondFaq: {
+        1: {
             title: {
                 eng: 'Shipping',
                 esp: 'Envíos'
@@ -69,8 +69,43 @@ export const translations = {
                 eng: 'The products are shipped by Correo Argentino',
                 esp: 'Los productos son enviados a través de Correo Argentino'
             }
+        },
+        2: {
+            title: {
+                eng: 'Returns',
+                esp: 'Cambios',
+            },
+            description: {
+                eng: 'In case you have purchased a defective item, Customer Service will process the change in the most accessible way according to the circumstances.',
+                esp: 'En el caso en que hayas adquirido un artículo defectuoso, el Servicio de atención al cliente procesará el cambio de la manera mas accesible de acuerdo a las circunstancias.'
+            },
+            espDescription: {
+                esp: 'El cambio del artículo estará disponible para todos los clientes de Argentina siempre y cuando el artículo se devuelva en perfecto estado, sin haber sido utilizado, dentro de un plazo de 30 días a partir de la fecha de compra.'
+            }
         }
-    }
+    },
+    contact: {
+        title: {
+            eng: 'Contact us',
+            esp: 'Contactános'
+        },
+        0: {
+            eng: 'Name',
+            esp: 'Nombre'
+        },
+        1: {
+            eng: 'Email',
+            esp: 'Email'
+        },
+        2: {
+            eng: 'Message',
+            esp: 'Mensaje'
+        },
+        button: {
+            eng: 'Submit',
+            esp: 'Enviar'
+        }
+    },
 };
 
 export const languages = {

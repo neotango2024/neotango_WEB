@@ -238,6 +238,10 @@ label {
 .input-error {
   border: 1px solid red!important;
 }
+.disabled {
+  background-color: grey;
+  pointer-events: none;
+}
 @keyframes loading {
   to {
     transform: rotate(360deg);
