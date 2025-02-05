@@ -89,15 +89,17 @@ export async function setGenders(){
     }
 }
 
-export async function getOrderStatuses(){
+export let statusesFromDB = [];
+export async function setOrderStatuses(){
     try {
         const orderStatusesResponse = await fetch(`${window.location.origin}/api/type/order-statuses`);
         const orderStatusesJson = await orderStatusesResponse.json();
-        return orderStatusesJson.data;
+        statusesFromDB =  orderStatusesJson.data;
     } catch (error) {
         console.log("Falle");
         return console.log(error);        
     }
 }
+
 
 

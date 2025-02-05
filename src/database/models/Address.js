@@ -16,8 +16,7 @@ export default (sequelize, dataTypes) => {
         city: { type: dataTypes.STRING(100) },
         province: { type: dataTypes.STRING(100) },
         country_id: { type: dataTypes.STRING(36)},
-        first_name: { type: dataTypes.STRING(255) },
-        last_name: { type: dataTypes.STRING(255) },
+        default: { type: dataTypes.BOOLEAN },
     }
 
     let config = {

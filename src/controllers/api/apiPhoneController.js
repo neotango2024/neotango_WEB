@@ -30,26 +30,37 @@ const controller = {
       let errors = validationResult(req);
 
       if (!errors.isEmpty()) {
-        let {errorsParams,errorsMapped} = getMappedErrors(errors);
+        let { errorsParams, errorsMapped } = getMappedErrors(errors);
         return res.status(422).json({
-            meta: {
-                status: 422,
-                url: '/api/phone',
-                method: "POST"
-            },
-            ok: false,
-            errors: errorsMapped,
-            params: errorsParams,
-            msg: systemMessages.formMsg.validationError.es
+          meta: {
+            status: 422,
+            url: "/api/phone",
+            method: "POST",
+          },
+          ok: false,
+          errors: errorsMapped,
+          params: errorsParams,
+          msg: systemMessages.formMsg.validationError.es,
         });
       }
       let phoneObjToDB = generatePhoneObject(req.body);
-      
-      let createdPhone = await insertPhoneToDB(phoneObjToDB);
-      
-      if(!createdPhone)
-      return res.status(502).json();
-      
+
+      if (phoneObjToDB.default) {
+        await db.Phone.update(
+          {
+            default: 0,
+          },
+          {
+            where: {
+              user_id: phoneObjToDB.user_id,
+            },
+          }
+        );
+      }
+      let createdPhone = getDeepCopy(await insertPhoneToDB(phoneObjToDB));
+
+      if (!createdPhone) return res.status(502).json();
+      createdPhone.country = countries.find(country=> country.id == createdPhone.country_id);
       // Le  mando ok con el redirect al email verification view
       return res.status(201).json({
         meta: {
@@ -73,39 +84,54 @@ const controller = {
       let errors = validationResult(req);
       if (!errors.isEmpty()) {
         // Traigo errores
-        let {errorsParams,errorsMapped} = getMappedErrors(errors);
-          return res.status(422).json({
-              meta: {
-                  status: 422,
-                  url: '/api/user',
-                  method: "PUT"
-              },
-              ok: false,
-              errors: errorsMapped,
-              params: errorsParams,
-              msg: systemMessages.formMsg.validationError.es
-          });
+        let { errorsParams, errorsMapped } = getMappedErrors(errors);
+        return res.status(422).json({
+          meta: {
+            status: 422,
+            url: "/api/user",
+            method: "PUT",
+          },
+          ok: false,
+          errors: errorsMapped,
+          params: errorsParams,
+          msg: systemMessages.formMsg.validationError.es,
+        });
       }
       // Datos del body
-      let { country_id, phone_number, id } = req.body;
-            
+      let { country_id, phone_number, id, defaultPhone } = req.body;
+
       let keysToUpdate = {
         phone_number,
         country_id,
+        default: defaultPhone,
       };
-      
-      await updatePhoneFromDB(keysToUpdate,id)
+      if (keysToUpdate.default) {
+        const { user_id } = req.body;
+        await db.Phone.update(
+          {
+            default: 0,
+          },
+          {
+            where: {
+              user_id,
+            },
+          }
+        );
+      }
 
+      await updatePhoneFromDB(keysToUpdate, id);
+      let updatedPhone = getPhonesFromDB(id)
       // Le  mando ok con el redirect al email verification view
       return res.status(200).json({
         meta: {
           status: 200,
           url: "/api/phone",
           method: "PUT",
-          redirect: "/user/phone"
+          redirect: "/user/phone",
         },
         ok: true,
         msg: systemMessages.phoneMsg.updateSuccesfull,
+        updatedPhone
       });
     } catch (error) {
       console.log(`Falle en apiPhoneController.updatePhone`);
@@ -118,7 +144,7 @@ const controller = {
       let { phone_id } = req.body;
       // Lo borro de db
       let response = destroyPhoneFromDB(phone_id);
-      if(!response)return res.status(502).json();
+      if (!response) return res.status(502).json();
       return res.status(200).json({
         meta: {
           status: 201,
@@ -126,7 +152,7 @@ const controller = {
           method: "DELETE",
         },
         ok: true,
-        msg: systemMessages.phoneMsg.destroySuccesfull.es, //TODO: ver tema idioma
+        msg: systemMessages.phoneMsg.destroySuccesfull, 
         redirect: "/",
       });
     } catch (error) {
@@ -139,92 +165,92 @@ const controller = {
 
 export default controller;
 
-let phoneIncludeArray = ["user"]
+let phoneIncludeArray = ["user"];
 export async function insertPhoneToDB(obj) {
   try {
     //Lo creo en db
     let createdPhone = await db.Phone.create(obj);
-    return createdPhone || undefined
+    return createdPhone || undefined;
   } catch (error) {
     console.log(`Falle en insertPhoneToDB`);
     console.log(error);
-    return undefined
+    return undefined;
   }
 }
-export async function updatePhoneFromDB(obj,id) {
+export async function updatePhoneFromDB(obj, id) {
   try {
-    if(!obj || !id)return undefined
+    if (!obj || !id) return undefined;
 
     //Lo updateo en db
-    await db.Phone.update(obj,{
+    await db.Phone.update(obj, {
       where: {
-        id
-      }
+        id,
+      },
     });
-    return true
+    return true;
   } catch (error) {
     console.log(`Falle en updatePhoneToDB`);
     console.log(error);
-    return undefined
+    return undefined;
   }
 }
 export async function destroyPhoneFromDB(id) {
   try {
-    if(!id)return undefined
+    if (!id) return undefined;
 
     //Lo borro de db
     await db.Phone.destroy({
       where: {
-        id
-      }
+        id,
+      },
     });
-    return true
+    return true;
   } catch (error) {
     console.log(`Falle en updatePhoneToDB`);
     console.log(error);
-    return undefined
+    return undefined;
   }
 }
 export async function getUserPhonesFromDB(id) {
   try {
     let phones = await db.Phone.findAll({
       where: {
-        user_id: id
+        user_id: id,
       },
-      include: phoneIncludeArray
+      include: phoneIncludeArray,
     });
     phones = getDeepCopy(phones);
 
-    return phones
+    return phones;
   } catch (error) {
     console.log(`Falle en getUserPhonesFromDB`);
     console.log(error);
-    return undefined
+    return undefined;
   }
 }
 
 export function generatePhoneObject(phone) {
   // objeto para armar la phone
-  let { user_id, country_id, phone_number } = phone;
-        
+  let { user_id, country_id, phone_number, defaultPhone } = phone;
+
   let dataToDB = {
     id: uuidv4(),
     user_id,
     country_id,
     phone_number,
+    default: defaultPhone,
   };
-  return dataToDB
+  return dataToDB;
 }
 
-export async function getPhonesFromDB(id){
+export async function getPhonesFromDB(id) {
   try {
-  
     // Condición si id es un string
     if (typeof id === "string") {
-      let phoneToReturn = await db.Phone.findByPk(id,{
-        include: phoneIncludeArray
+      let phoneToReturn = await db.Phone.findByPk(id, {
+        include: phoneIncludeArray,
       });
-      if(!phoneToReturn)return null
+      if (!phoneToReturn) return null;
       phoneToReturn = phoneToReturn && getDeepCopy(phoneToReturn);
       return phoneToReturn;
     }
@@ -235,9 +261,9 @@ export async function getPhonesFromDB(id){
         where: {
           id: id, // id es un array, se hace un WHERE id IN (id)
         },
-        include: phoneIncludeArray
+        include: phoneIncludeArray,
       });
-      if(!phonesToReturn || !phonesToReturn.length)return null
+      if (!phonesToReturn || !phonesToReturn.length) return null;
       phonesToReturn = getDeepCopy(phonesToReturn);
       return phonesToReturn;
     }
@@ -245,9 +271,9 @@ export async function getPhonesFromDB(id){
     // Condición si id es undefined
     if (id === undefined) {
       let phonesToReturn = await db.Phone.findAll({
-        include: phoneIncludeArray
+        include: phoneIncludeArray,
       });
-      if(!phonesToReturn || !phonesToReturn.length)return null
+      if (!phonesToReturn || !phonesToReturn.length) return null;
       phonesToReturn = getDeepCopy(phonesToReturn);
       return phonesToReturn;
     }

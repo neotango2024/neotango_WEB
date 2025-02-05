@@ -93,7 +93,7 @@ const controller = {
       res.cookie("userAccessToken", token, {
         maxAge: cookieTime,
         httpOnly: true,
-        secure: true,
+        secure: process.env.NODE_ENV == "production",
         sameSite: "strict",
       });
       console.log(req.cookies.userAccessToken)
@@ -204,7 +204,6 @@ const controller = {
     try {
       let { userLoggedId } = req.query;
       let userOrders = await getOrdersFromDB({user_id: userLoggedId}) || [];
-      console.log(userOrders?.length);
       
       // return res.send(ordersToPaint);
       //Una vez tengo todas las ordenes, obtengo todos los productos que quiero mostrar, y por cada uno hago el setKeysToReturn
@@ -422,7 +421,7 @@ const controller = {
           res.cookie("userAccessToken", token, {
             maxAge: cookieTime,
             httpOnly: true,
-            secure: true,
+            secure: process.env.NODE_ENV == "production",
             sameSite: "strict",
           });
           // Si es admin armo una cookie con el token de admin
@@ -433,10 +432,10 @@ const controller = {
               expiresIn: "4h",
             });
             cookieTime = 1000 * 60 * 60 * 4; //4 horas
-            res.cookie("adminToken", adminToken, {
+            res.cookie("adminAuth", adminToken, {
               maxAge: cookieTime,
               httpOnly: true,
-              secure: true,
+              secure: process.env.NODE_ENV == "production",
               sameSite: "strict",
             });
           }

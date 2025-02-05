@@ -7,6 +7,7 @@ import {
   setSizes,
   setTacos,
   sizesFromDB,
+  statusesFromDB,
   tacosFromDB,
 } from "./getStaticTypesFromDB.js";
 import { isInSpanish, settedLanguage } from "./languageHandler.js";
@@ -18,7 +19,11 @@ import {
   handleUserSignUpModal,
 } from "./modalHandlers.js";
 import {
+  activateCheckboxTogglers,
   activateDropdown,
+  checkForSizeSelects,
+  checkForVariationsSelects,
+  displayBigNumbers,
   generateRandomString,
   getDateString,
   getProductImageSizeUrl,
@@ -26,8 +31,16 @@ import {
   handleNewAddressButtonClick,
   handleNewPhoneButtonClick,
   handlePageModal,
+  handleRemoveAddressButtonClick,
+  handleRemovePhoneButtonClick,
   handleUserSignUpClick,
+  setupSelectListeners,
+  handleInputFileFromModal,
   toggleInputPasswordType,
+  getDeepCopy,
+  productsFromDB,
+  updateProductTable,
+  showCardMessage,
 } from "./utils.js";
 const SCREEN_WIDTH = window.screen.width;
 
@@ -100,9 +113,9 @@ export function checkoutCard(props) {
   // Price
   const priceSpan = document.createElement("span");
   priceSpan.className = "card-price";
-  priceSpan.textContent = `$${
+  priceSpan.textContent = `$${displayBigNumbers(
     parseInt(props.quantity) * parseFloat(productPrice)
-  }`;
+  )}`;
 
   // Amount container
   const amountContainer = document.createElement("div");
@@ -186,8 +199,8 @@ export function addressCard(props) {
 
   const defaultAddressMarker = document.createElement("div");
   defaultAddressMarker.className = `default_address_marker ${
-    props.default ? "default_address_marker_active" : ""
-  }`;
+    props.default ? "default_marker_active" : ""
+  } default_marker default_absolute_marker`;
 
   cardTopContent.appendChild(cardHeader);
   cardTopContent.appendChild(defaultAddressMarker);
@@ -237,6 +250,10 @@ export function addressCard(props) {
   const deleteLink = document.createElement("p");
   deleteLink.className = "card_link destroy_address_card_btn";
   deleteLink.textContent = isInSpanish ? "Eliminar" : "Remove";
+  deleteLink.addEventListener(
+    "click",
+    async () => await handleRemoveAddressButtonClick(props)
+  );
 
   cardBottomContainer.appendChild(editLink);
   cardBottomContainer.appendChild(deleteLink);
@@ -277,8 +294,8 @@ export function phoneCard(props) {
   // Crear el marcador de teléfono predeterminado
   const defaultPhoneMarker = document.createElement("div");
   defaultPhoneMarker.className = `default_phone_marker default_marker ${
-    props.default ? "default_phone_marker_active" : ""
-  }`;
+    props.default ? "default_marker_active" : ""
+  } default_absolute_marker`;
 
   // Crear la sección de contenido de la tarjeta
   const cardContent = document.createElement("div");
@@ -310,6 +327,10 @@ export function phoneCard(props) {
   const deleteLink = document.createElement("p");
   deleteLink.className = "card_link destroy_phone_card_btn";
   deleteLink.textContent = isInSpanish ? "Eliminar" : "Remove";
+  deleteLink.addEventListener(
+    "click",
+    async () => await handleRemovePhoneButtonClick(props)
+  );
 
   cardBottomContainer.appendChild(editLink);
   cardBottomContainer.appendChild(deleteLink);
@@ -794,6 +815,14 @@ export async function createPhoneModal(phone) {
             },
           ],
         },
+        {
+          label: isInSpanish ? "Telefono Predeterminado" : "Default Phone",
+          type: "toggle",
+          name: "phone_default",
+          containerClassName: `${!userLogged ? "hidden" : ""}`,
+          required: true,
+          checked: phone ? phone.default : !userLogged?.phones?.length,
+        },
       ],
       buttons: [
         {
@@ -804,6 +833,7 @@ export async function createPhoneModal(phone) {
       ],
       id: phone ? phone.id : undefined,
     });
+    activateCheckboxTogglers();
     //Una vez creado el modal, activo con los paises
     if (!countriesFromDB.length) {
       await setCountries();
@@ -840,6 +870,7 @@ export async function createAddressModal(address = undefined) {
       buttonText = isInSpanish ? "Crear" : "Create";
       headerText = isInSpanish ? "Agregar Direccion" : "Add Address";
     }
+
     createModal({
       headerTitle: headerText,
       formFields: [
@@ -913,6 +944,14 @@ export async function createAddressModal(address = undefined) {
           value: address ? address.country_id : "",
           placeHolder: isInSpanish ? "Elegi un pais" : "Select a country",
         },
+        {
+          label: isInSpanish ? "Direccion predeterminada" : "Default Address",
+          type: "toggle",
+          name: "address-default",
+          containerClassName: `${!userLogged ? "hidden" : ""}`,
+          required: true,
+          checked: address ? address.default : !userLogged?.addresses?.length,
+        },
       ],
 
       buttons: [
@@ -924,6 +963,7 @@ export async function createAddressModal(address = undefined) {
       ],
       id: address ? address.id : undefined,
     });
+    activateCheckboxTogglers();
     //Una vez creado el modal, activo con los paises
     if (!countriesFromDB.length) {
       await setCountries();
@@ -973,6 +1013,7 @@ export async function createUserLoginModal() {
       buttons: [
         {
           text: isInSpanish ? "Iniciar Sesión" : "login",
+          type: "button",
           className: "ui button submit negative send-modal-form-btn",
           onClick: async () => await handleUserLoginModal(),
         },
@@ -984,6 +1025,14 @@ export async function createUserLoginModal() {
         },
       ],
     });
+    // Armo el event listener
+    document
+      .querySelector(".ui.modal")
+      .addEventListener("keydown", async (event) => {
+        if (event.key === "Enter") {
+          await handleUserLoginModal();
+        }
+      });
   } catch (error) {
     console.log("falle");
     return console.log(error);
@@ -1169,190 +1218,190 @@ function createField(field) {
   // Crear el contenedor del campo
   const fieldContainer = document.createElement("div");
   fieldContainer.className = `field ${field.containerClassName || ""}`; // Usar containerClassName
-  
+
   // Agregar etiqueta si está presente
   if (field.label) {
-  const label = document.createElement("label");
-  label.textContent = field.label;
-  fieldContainer.appendChild(label);
+    const label = document.createElement("label");
+    label.textContent = field.label;
+    fieldContainer.appendChild(label);
   }
-  
+
   // Manejo de nestedFields (para soportar estructuras complejas)
   if (field.nestedFields) {
-  field.nestedFields.forEach((nestedField) => {
-  const nestedElement = createField(nestedField);
-  fieldContainer.appendChild(nestedElement);
-  });
+    field.nestedFields.forEach((nestedField) => {
+      const nestedElement = createField(nestedField);
+      fieldContainer.appendChild(nestedElement);
+    });
   }
-  
+
   // Manejo de togglers
   if (field.type === "toggle") {
-  const toggleWrapper = document.createElement("div");
-  toggleWrapper.className = "ui toggle checkbox";
-  
-  const input = document.createElement("input");
-  input.type = "checkbox";
-  input.name = field.name;
-  input.className = field.className || "hidden";
-  input.checked = field.checked;
-  
-  const label = document.createElement("label");
-  label.textContent = field.labelForToggle || "";
-  
-  toggleWrapper.appendChild(input);
-  toggleWrapper.appendChild(label);
-  fieldContainer.appendChild(toggleWrapper);
+    const toggleWrapper = document.createElement("div");
+    toggleWrapper.className = "ui toggle checkbox";
+
+    const input = document.createElement("input");
+    input.type = "checkbox";
+    input.name = field.name;
+    input.className = field.className || "hidden";
+    input.checked = field.checked;
+
+    const label = document.createElement("label");
+    label.textContent = field.labelForToggle || "";
+
+    toggleWrapper.appendChild(input);
+    toggleWrapper.appendChild(label);
+    fieldContainer.appendChild(toggleWrapper);
   }
-  
+
   // Manejo de tipo date
   if (field.type === "date") {
-  const input = document.createElement("input");
-  input.type = "date";
-  input.name = field.name;
-  input.className = field.className || "";
-  input.required = field.required || false;
-  
-  if (field.value) {
-  input.value = field.value;
+    const input = document.createElement("input");
+    input.type = "date";
+    input.name = field.name;
+    input.className = field.className || "";
+    input.required = field.required || false;
+
+    if (field.value) {
+      input.value = field.value;
+    }
+
+    fieldContainer.appendChild(input);
   }
-  
-  fieldContainer.appendChild(input);
-  }
-  
+
   // Manejo de select
   if (field.type === "select") {
-  const select = document.createElement("select");
-  select.name = field.name;
-  select.className = field.className || "ui dropdown";
-  select.required = field.required || false;
-  
-  if (field.dataAttributes) {
-  Object.entries(field.dataAttributes).forEach(([key, value]) => {
-  select.dataset[key] = value;
-  });
+    const select = document.createElement("select");
+    select.name = field.name;
+    select.className = field.className || "ui dropdown";
+    select.required = field.required || false;
+
+    if (field.dataAttributes) {
+      Object.entries(field.dataAttributes).forEach(([key, value]) => {
+        select.dataset[key] = value;
+      });
+    }
+
+    if (field.multiple) select.setAttribute("multiple", "");
+
+    if (!field.options?.length) {
+      const opt = document.createElement("option");
+      opt.value = "";
+      opt.textContent = "Loading...";
+      select.appendChild(opt);
+    }
+
+    (field.options || []).forEach((option) => {
+      const opt = document.createElement("option");
+      opt.value = option.value;
+      opt.textContent = option.label;
+      if (field.value && field.value === option.value) {
+        opt.selected = true;
+      }
+      select.appendChild(opt);
+    });
+
+    fieldContainer.appendChild(select);
   }
-  
-  if (field.multiple) select.setAttribute("multiple", "");
-  
-  if (!field.options?.length) {
-  const opt = document.createElement("option");
-  opt.value = "";
-  opt.textContent = "Loading...";
-  select.appendChild(opt);
-  }
-  
-  (field.options || []).forEach((option) => {
-  const opt = document.createElement("option");
-  opt.value = option.value;
-  opt.textContent = option.label;
-  if (field.value && field.value === option.value) {
-  opt.selected = true;
-  }
-  select.appendChild(opt);
-  });
-  
-  fieldContainer.appendChild(select);
-  }
-  
+
   // Manejo de radio-group
   if (field.type === "radio-group") {
-  const radioGroup = document.createElement("div");
-  radioGroup.className = "inline fields";
-  
-  (field.options || []).forEach((option, index) => {
-  const radioField = document.createElement("div");
-  radioField.className = "field";
-  
-  const radioDiv = document.createElement("div");
-  radioDiv.className = "ui radio checkbox";
-  
-  const input = document.createElement("input");
-  input.type = "radio";
-  input.name = field.name;
-  input.value = option.value;
-  input.checked = option.checked || index === 0;
-  input.required = field.required || false;
-  
-  const label = document.createElement("label");
-  label.textContent = option.label;
-  
-  radioDiv.appendChild(input);
-  radioDiv.appendChild(label);
-  radioField.appendChild(radioDiv);
-  radioGroup.appendChild(radioField);
-  });
-  
-  fieldContainer.appendChild(radioGroup);
+    const radioGroup = document.createElement("div");
+    radioGroup.className = "inline fields";
+
+    (field.options || []).forEach((option, index) => {
+      const radioField = document.createElement("div");
+      radioField.className = "field";
+
+      const radioDiv = document.createElement("div");
+      radioDiv.className = "ui radio checkbox";
+
+      const input = document.createElement("input");
+      input.type = "radio";
+      input.name = field.name;
+      input.value = option.value;
+      input.checked = option.checked || index === 0;
+      input.required = field.required || false;
+
+      const label = document.createElement("label");
+      label.textContent = option.label;
+
+      radioDiv.appendChild(input);
+      radioDiv.appendChild(label);
+      radioField.appendChild(radioDiv);
+      radioGroup.appendChild(radioField);
+    });
+
+    fieldContainer.appendChild(radioGroup);
   }
-  
+
   // Manejo de textarea
   if (field.type === "textarea") {
-  const textarea = document.createElement("textarea");
-  textarea.name = field.name;
-  textarea.placeholder = field.placeholder || "";
-  textarea.className = field.className || "";
-  textarea.required = field.required || false;
-  
-  if (field.value) {
-  textarea.value = field.value;
+    const textarea = document.createElement("textarea");
+    textarea.name = field.name;
+    textarea.placeholder = field.placeholder || "";
+    textarea.className = field.className || "";
+    textarea.required = field.required || false;
+
+    if (field.value) {
+      textarea.value = field.value;
+    }
+
+    fieldContainer.appendChild(textarea);
   }
-  
-  fieldContainer.appendChild(textarea);
-  }
-  
+
   // Manejo de input estándar (text, number, email, password)
   if (["text", "number", "email", "password"].includes(field.type)) {
-  const input = document.createElement("input");
-  input.type = field.type;
-  input.name = field.name;
-  input.placeholder = field.placeholder || "";
-  input.className = field.className || "";
-  input.required = field.required || false;
-  
-  if (field.value) {
-  input.value = field.value;
+    const input = document.createElement("input");
+    input.type = field.type;
+    input.name = field.name;
+    input.placeholder = field.placeholder || "";
+    input.className = field.className || "";
+    input.required = field.required || false;
+
+    if (field.value) {
+      input.value = field.value;
+    }
+
+    // Opcionalmente, puedes agregar atributos específicos para inputs de contraseña
+    if (field.type === "password") {
+      input.autocomplete = field.autocomplete || "off";
+    }
+
+    fieldContainer.appendChild(input);
   }
-  
-  // Opcionalmente, puedes agregar atributos específicos para inputs de contraseña
-  if (field.type === "password") {
-  input.autocomplete = field.autocomplete || "off";
-  }
-  
-  fieldContainer.appendChild(input);
-  }
-  
+
   // Manejo de input file con extensiones permitidas
   if (field.type === "file") {
-  const input = document.createElement("input");
-  input.type = "file";
-  input.name = field.name;
-  input.className = field.className || "";
-  input.required = field.required || false;
-  
-  if (field.multiple) {
-  input.setAttribute("multiple", "");
+    const input = document.createElement("input");
+    input.type = "file";
+    input.name = field.name;
+    input.className = field.className || "";
+    input.required = field.required || false;
+
+    if (field.multiple) {
+      input.setAttribute("multiple", "");
+    }
+
+    // Validar extensiones permitidas
+    if (
+      Array.isArray(field.allowedExtensions) &&
+      field.allowedExtensions.length > 0
+    ) {
+      input.accept = field.allowedExtensions.map((ext) => `.${ext}`).join(",");
+    }
+
+    fieldContainer.appendChild(input);
   }
-  
-  // Validar extensiones permitidas
-  if (
-  Array.isArray(field.allowedExtensions) &&
-  field.allowedExtensions.length > 0
-  ) {
-  input.accept = field.allowedExtensions.map((ext) => `.${ext}`).join(",");
-  }
-  
-  fieldContainer.appendChild(input);
-  }
-  
+
   // Manejo de extraContent (debe agregarse al final del contenedor principal)
   if (field.extraContent) {
-  const extraContentContainer = document.createElement("div");
-  extraContentContainer.innerHTML = field.extraContent;
-  fieldContainer.appendChild(extraContentContainer);
+    const extraContentContainer = document.createElement("div");
+    extraContentContainer.innerHTML = field.extraContent;
+    fieldContainer.appendChild(extraContentContainer);
   }
-  
+
   return fieldContainer;
-  }
+}
 
 export function destroyExistingModal() {
   const existingModal = document.querySelector(".ui.modal");
@@ -1424,8 +1473,14 @@ export function generateHeaderShopDropdown() {
   listDiv.className = "ui link list";
 
   const items = [
-    { text: isInSpanish ? "Zapatos de hombre" : "Men shoes", href: "#" },
-    { text: isInSpanish ? "Zapatos de Mujer" : "Women shoes", href: "#" },
+    {
+      text: isInSpanish ? "Zapatos de hombre" : "Men shoes",
+      href: "/categoria/2",
+    },
+    {
+      text: isInSpanish ? "Zapatos de Mujer" : "Women shoes",
+      href: "/categoria/1",
+    },
   ];
 
   items.forEach((item) => {
@@ -1528,7 +1583,8 @@ export const createLoadingSpinner = (optionalClassName) => {
   return loadingState;
 };
 
-export function generateVariationField() {
+export function generateVariationField(tacoVariations = []) {
+  const tacoId = tacoVariations.length ? tacoVariations[0].taco_id : null;
   // Crear el contenedor principal
   const container = document.createElement("div");
   container.classList.add(
@@ -1572,6 +1628,8 @@ export function generateVariationField() {
 
   variationHeaderField.appendChild(label);
   variationHeaderField.appendChild(select);
+  // Le pongo el valor del taco si es que tiene
+  select.value = tacoId || "";
 
   // Crear el botón "Add Size"
   const addSizeButtonField = document.createElement("div");
@@ -1583,7 +1641,7 @@ export function generateVariationField() {
 
   const addButton = document.createElement("button");
   addButton.classList.add("ui", "button", "basic", "red", "tiny");
-  addButton.textContent = "Add Size";
+  addButton.textContent = "Agregar Talle";
   addButton.type = "button";
 
   addSizeButtonField.appendChild(addButton);
@@ -1598,10 +1656,24 @@ export function generateVariationField() {
   container.appendChild(addSizeButtonField);
   container.appendChild(variationSizesWrapper);
 
+  if (tacoVariations?.length) {
+    //Aca llegaron variaciones, las genero
+    tacoVariations.forEach((sizeStockVar) => {
+      let sizeVariationElement = generateVariationSizeContainer({
+        variation: sizeStockVar,
+        tacoParentID: undefined,
+      });
+      variationSizesWrapper.appendChild(sizeVariationElement);
+      checkForSizeSelects();
+    });
+  }
   return container;
 }
 
-export function generateVariationSizeContainer() {
+export function generateVariationSizeContainer({
+  variation = undefined,
+  tacoParentID = undefined,
+}) {
   // Crear el contenedor principal
   const container = document.createElement("div");
   container.classList.add("variation-size-container");
@@ -1619,23 +1691,22 @@ export function generateVariationSizeContainer() {
 
   const sizeSelect = document.createElement("select");
   sizeSelect.name = "variation-size-id";
-
   const sizeOptions = sizesFromDB.map((size) => ({
     value: size.id,
     text: size.size,
-    disabled: false,
   }));
 
   sizeOptions.forEach((opt) => {
     const option = document.createElement("option");
     option.value = opt.value;
     option.textContent = opt.text;
-    if (opt.disabled) option.disabled = true;
     sizeSelect.appendChild(option);
   });
 
   sizeField.appendChild(sizeLabel);
   sizeField.appendChild(sizeSelect);
+
+  sizeSelect.value = variation?.size_id || "";
 
   // Crear el segundo field (Stock)
   const stockField = document.createElement("div");
@@ -1650,6 +1721,7 @@ export function generateVariationSizeContainer() {
   stockInput.placeholder = "";
   stockInput.required = true;
   stockInput.classList.add("numeric-only-input");
+  stockInput.value = variation?.quantity || "";
 
   stockField.appendChild(stockLabel);
   stockField.appendChild(stockInput);
@@ -1658,7 +1730,6 @@ export function generateVariationSizeContainer() {
   container.appendChild(removeIcon);
   container.appendChild(sizeField);
   container.appendChild(stockField);
-
   return container;
 }
 
@@ -1675,7 +1746,7 @@ export async function createProductModal(product = undefined) {
         fields: [
           {
             type: "text",
-            label: "Spanish Name",
+            label: "Nombre (esp)",
             name: "product-es-name",
             placeholder: "Zapato",
             required: true,
@@ -1684,7 +1755,7 @@ export async function createProductModal(product = undefined) {
           },
           {
             type: "text",
-            label: "English Name",
+            label: "Nombre (eng)",
             name: "product-en-name",
             placeholder: "Shoe",
             required: true,
@@ -1698,7 +1769,7 @@ export async function createProductModal(product = undefined) {
         fields: [
           {
             type: "text",
-            label: "ARS Price",
+            label: "ARS Precio",
             name: "product-ars-price",
             placeholder: "50000",
             required: true,
@@ -1707,7 +1778,7 @@ export async function createProductModal(product = undefined) {
           },
           {
             type: "text",
-            label: "USD Price",
+            label: "USD Precio",
             name: "product-usd-price",
             placeholder: "50",
             required: true,
@@ -1720,8 +1791,8 @@ export async function createProductModal(product = undefined) {
         type: "two-fields",
         fields: [
           {
-            type: "text",
-            label: "Spanish Description",
+            type: "textarea",
+            label: "Descripcion (esp)",
             name: "product-es-description",
             placeholder:
               "Lorem ipsum dolor sit amet, consectetur adipisicing elit. Incidunt, ex.",
@@ -1730,8 +1801,8 @@ export async function createProductModal(product = undefined) {
             value: product ? product.spanish_description : "",
           },
           {
-            type: "text",
-            label: "English Description",
+            type: "textarea",
+            label: "Descripcion (eng)",
             name: "product-en-description",
             placeholder:
               "Lorem ipsum dolor sit amet, consectetur adipisicing elit. Incidunt, ex.",
@@ -1755,7 +1826,7 @@ export async function createProductModal(product = undefined) {
           },
           {
             type: "select",
-            label: "Category",
+            label: "Categoria",
             name: "product-category-id",
             options: categoriesFromDB.map((cat) => ({
               value: cat.id,
@@ -1769,11 +1840,11 @@ export async function createProductModal(product = undefined) {
       },
       {
         type: "file",
-        label: "Images",
+        label: "Imagenes",
         name: "product-image",
         allowedExtensions: ["jpg", "jpeg", "png", "webp"],
-        multiple: true,
-        required: true,
+        containerClassName: "input-file-container hidden",
+        // multiple: true,
       },
       {
         type: "field",
@@ -1783,7 +1854,7 @@ export async function createProductModal(product = undefined) {
       {
         type: "field",
         extraContent:
-          '<button class="ui button small basic red add-variation-btn" type="button">Add Variation</button>',
+          '<button class="ui button small basic red add-variation-btn" type="button">Agregar Variacion</button>',
       },
       {
         type: "field",
@@ -1798,18 +1869,93 @@ export async function createProductModal(product = undefined) {
         text: product ? "Edit" : "Create",
         onClick: async () => await handleProductModalActions(product),
       },
+      {
+        text: "Eliminar",
+        className: `ui button right floated basic black submit black sign-up-btn ${
+          !product ? "hidden" : ""
+        }`,
+        onClick: async () => createDisableProductModal(product),
+      },
     ],
+    id: product?.id || undefined,
   });
   // Una vez lo creo, lo abro
   handlePageModal(true);
+  // Ahora voy por las variaciones
+  // Agrupar por taco.id en un array de arrays
+  if (product) {
+    let groupsByTacoId = Object.values(
+      product.variations?.reduce((acc, item) => {
+        const tacoId = item.taco.id;
+        if (!acc[tacoId]) {
+          acc[tacoId] = [];
+        }
+        acc[tacoId].push(item);
+        return acc;
+      }, {})
+    );
+    const tacoVariationWrapper = document.querySelector(
+      ".ui.modal .variations-wrapper-field"
+    );
+    //Lo dejo unicamente por taco_id, size_id y el stock
+    groupsByTacoId = groupsByTacoId.map((group) =>
+      group.map((item) => ({
+        taco_id: item.taco.id,
+        size_id: item.size.id,
+        quantity: item.quantity,
+      }))
+    );
+    groupsByTacoId.forEach((tacoVariations) => {
+      const tacoVariationElement = generateVariationField(tacoVariations);
+      tacoVariationWrapper.appendChild(tacoVariationElement);
+      checkForVariationsSelects();
+    });
+    if (!product.files?.length) {
+      handleInputFileFromModal({ show: true });
+    }
+  } else {
+    //ACa no vino producto, entocne smuestro el input de archivos
+    handleInputFileFromModal({ show: true });
+  }
   listenProductModalCategorySelect();
   // Ahora agrego las escuchas
   listenToProductModalBtns();
   // Para escuchar los files
-  await setFilesThumb();
-  // escucho el x
+  await setFilesThumb(product);
+  setupSelectListeners(); //EScuchas para los tacos&sizes
 }
 
+export async function createDisableProductModal(product) {
+  disableProductModal(product);
+  handlePageModal(true);
+  const form = document.querySelector(".ui.form");
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const idToSend = product.id;
+    // Hago el fetch para borrar
+    let response = await fetch(`/api/product/${idToSend}`, {
+      method: "DELETE",
+      headers: {
+        "Content-Type": "application/json",
+      }
+    });
+    if (response.ok) {
+      response = await response.json();
+      const productIndexFromList = productsFromDB?.findIndex(
+        (dbProd) => dbProd.id == idToSend
+      );
+      if (productIndexFromList !== -1) {
+        productsFromDB.splice(productIndexFromList, 1);
+      }
+      closeModal();
+      showCardMessage(true, response.msg.es);
+      return updateProductTable();
+    }
+    let msg = "Ha ocurrido un error";
+    showCardMessage(false, msg);
+    return
+  });
+}
 function listenToProductModalBtns() {
   const addVariationBtn = document.querySelector(
     ".ui.modal .add-variation-btn"
@@ -1831,6 +1977,7 @@ function listenToProductModalBtns() {
       );
       const newField = generateVariationField();
       wrapper.appendChild(newField);
+      checkForVariationsSelects();
       return listenToProductModalBtns();
     });
   }
@@ -1841,8 +1988,16 @@ function listenToProductModalBtns() {
       const wrapper = btn
         .closest(".variation-field")
         .querySelector(".variation-sizes-wrapper");
-      const newField = generateVariationSizeContainer();
+      const tacoParentID = btn
+        .closest(".variation-field")
+        .querySelector('select[name="variation-taco-id"]').value;
+
+      const newField = generateVariationSizeContainer({
+        variation: undefined,
+        tacoParentID,
+      });
       wrapper.appendChild(newField);
+      checkForSizeSelects();
       return listenToProductModalBtns();
     });
   });
@@ -1852,14 +2007,16 @@ function listenToProductModalBtns() {
     btn.addEventListener("click", () => {
       const wrapper = btn.closest(".variation-field");
       wrapper.remove();
+      checkForVariationsSelects();
     });
   });
   removeVariationSizeBtns.forEach((btn) => {
     if (btn.dataset.listened) return;
     btn.dataset.listened = true;
     btn.addEventListener("click", () => {
-      const wrapper = btn.closest(".variation-size-container  ");
+      const wrapper = btn.closest(".variation-size-container");
       wrapper.remove();
+      checkForSizeSelects();
     });
   });
 }
@@ -1876,66 +2033,103 @@ function listenProductModalCategorySelect() {
   });
 }
 
-async function setFilesThumb() {
-  // Lógica para pintar imágenes y elegir principal
-  let fileInput = document.querySelector(".ui.modal input[type=file]");
-  let files = []; // Almacena los archivos seleccionados
-
-  fileInput.addEventListener("change", (e) => {
-    // Contenedor donde van a ir las fotos
+async function setFilesThumb(product = undefined) {
+  try {
+    product = (product && getDeepCopy(product)) || undefined; //No quiero alterar el que llega
+    // Obtener input de archivos
+    let fileInput = document.querySelector(".ui.modal input[type=file]");
     let divContainer = document.querySelector(".ui.modal .files_thumb_field");
-    divContainer.innerHTML = ""; // Limpia el contenedor antes de agregar nuevas imágenes
+    let files = [];
 
-    let fileObject = e.target.files;
-    files = []; // Reinicia el array de archivos
+    // Limpiar el contenedor de imágenes
+    divContainer.innerHTML = "";
 
-    // Recorre el objeto del input y guarda los archivos en un array
-    for (let i = 0; i < fileObject.length; i++) {
-      const file = fileObject[i];
-      file.main_file = i === 0; // Marca el primero como principal por defecto
-      files.push(file);
+    // Si hay un producto, pintar sus imágenes existentes
+    if (product?.files?.length) {
+      setProductFiles();
+
+      // Agregar imágenes del producto al contenedor
+      files.forEach((file, index) => {
+        const imageBox = getImageBoxHTML({ file, index, isProductFile: true });
+        divContainer.innerHTML += imageBox;
+      });
+
+      listenToImageClick(); // Escuchar cambios en selección
     }
 
-    const filePromises = files.map((file, i) => {
-      return new Promise((resolve) => {
-        const reader = new FileReader();
-        reader.readAsDataURL(file);
-        reader.onload = function () {
-          let boxHTML;
+    // Escuchar cambios en el input de archivos
+    fileInput.addEventListener("change", (e) => {
+      let fileObject = e.target.files;
+      setProductFiles(); //Seteo los que tenia el producto
+      fileObject.length && handleInputFileFromModal({ show: false }); //Oculto el input si es que vino una imagen
+      // Recorrer y agregar archivos nuevos
+      for (let i = 0; i < fileObject.length; i++) {
+        const file = fileObject[i];
+        file.main_file = files.length === 0 && i === 0; // Si es el primer archivo, marcarlo como principal
+        files.push(file);
+      }
 
-          if (file.type.startsWith("image/")) {
-            // Si es una imagen
-            boxHTML = `
-              <div class="image-radio-box" data-index="${i}">
-                  <div class="image-container">
-                      <img src="${reader.result}" alt="${
-              file.name
-            }" class="image-to-select-main">
-                  </div>
-                  <input type="radio" name="mainImage" value="${
-                    file.name
-                  }" class="radio-from-image" ${i == 0 ? "checked" : ""}>
-              </div>
-            `;
+      // Convertir archivos a base64 para previsualización
+      let counter = 0; //Esto es porque para los archivos de producto no puedo usar i, entonces va a sunmar y no quiero
+      const filePromises = files.map((file, i) => {
+        return new Promise((resolve) => {
+          if (file.thumb_url) {
+            // Si el archivo ya tiene una URL (es del producto existente)
+            resolve(
+              getImageBoxHTML({ file, index: undefined, isProductFile: true })
+            );
           } else {
-            boxHTML = "";
+            // Si es un nuevo archivo, leerlo en base64
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onload = function () {
+              file.thumb_url = reader.result; // Asignar la vista previa
+              resolve(
+                getImageBoxHTML({ file, index: counter, isProductFile: false })
+              );
+              counter++;
+            };
           }
-          resolve(boxHTML);
-        };
+        });
+      });
+
+      // Agregar imágenes al contenedor
+      Promise.all(filePromises).then((boxes) => {
+        divContainer.innerHTML = ""; // Limpiar antes de agregar nuevas imágenes
+        boxes.forEach((box) => (divContainer.innerHTML += box));
+        listenToImageClick();
       });
     });
 
-    Promise.all(filePromises).then((boxes) => {
-      // Agrega los boxes al contenedor
-      boxes.forEach((box) => (divContainer.innerHTML += box));
-      listenToImageClick();
+    // Generar el HTML de cada imagen
+    function getImageBoxHTML({ file, index, isProductFile }) {
+      return `
+       <div class="image-radio-box ${
+         !isProductFile ? "input-file" : "product-file"
+       }" ${
+        !isProductFile
+          ? `data-index="${index}"`
+          : `data-filename="${file.name}" data-db_id = "${file.id}"`
+      }>
+            <p class="remove-image-box-anchor no-margin">Remove</p>
+           <div class="image-container">
+               <img src="${file.thumb_url}" 
+                    srcset="${
+                      file.file_urls
+                        ? file.file_urls
+                            .map((url) => `${url.url} ${url.size}`)
+                            .join(", ")
+                        : file.thumb_url
+                    }" 
+                    alt="${file.name}" class="image-to-select-main">
+           </div>
+           <input type="radio" name="mainImage" value="${file.name}" 
+                  class="radio-from-image" ${file.main_file ? "checked" : ""}>
+       </div>
+     `;
+    }
 
-      // Asegurar que la primera imagen sigue siendo `main_file` si nadie cambia la selección
-      if (files.length > 0) {
-        files[0].main_file = true; // Refuerza que el primer archivo es el principal
-      }
-    });
-
+    // Manejar selección de imagen principal
     function listenToImageClick() {
       const imagesRadioBoxes = document.querySelectorAll(
         ".ui.modal .image-radio-box"
@@ -1945,23 +2139,88 @@ async function setFilesThumb() {
         if (box.dataset.listened) return;
         box.dataset.listened = true;
         box.addEventListener("click", () => {
-          const checkboxToCheck = box.querySelector('input[type="radio"]');
-          checkboxToCheck.checked = true;
-
-          // Obtener el índice del archivo seleccionado
           const index = parseInt(box.dataset.index);
 
-          // Actualizar la propiedad main_file en el array de archivos
+          // Actualizar la propiedad main_file en el array
           files.forEach((file, i) => {
             file.main_file = i === index;
           });
+
+          // Marcar el radio button como seleccionado
+          box.querySelector('input[type="radio"]').checked = true;
+        });
+      });
+      const removeAnchors = document.querySelectorAll(
+        ".remove-image-box-anchor"
+      );
+      removeAnchors.forEach((anchor) => {
+        if (anchor.dataset.listened) return;
+        anchor.dataset.listened = true;
+        anchor.addEventListener("click", (e) => {
+          e.stopImmediatePropagation();
+          const containerToRemove = e.target.closest(".image-radio-box");
+          const index = containerToRemove.dataset?.index;
+          if (index) {
+            //Aca selecciono una de las nuevas
+            removeFileFromInput(index);
+            containerToRemove.remove();
+            // Ahora como borre el contenedor, tengo que reasignar
+            const inputImagesLeft = document.querySelectorAll(
+              ".image-radio-box.input-file"
+            );
+            inputImagesLeft.forEach((element, i) => {
+              element.dataset.index = i;
+            });
+          } else {
+            const idToRemove = anchor.closest(".image-radio-box.product-file")
+              .dataset.db_id;
+            product.files = product.files?.filter(
+              (file) => file.id != idToRemove
+            );
+            //Aca esta queriendo borrar una imagen del producto en si, boror el contenedor y lo borro de imagenes dle producto
+            containerToRemove.remove();
+          }
+          handleInputFileFromModal({ show: true });
         });
       });
     }
-  });
+    function removeFileFromInput(index) {
+      let fileInput = document.querySelector(
+        ".ui.modal input[name='product-image']"
+      );
+
+      // Crear un objeto DataTransfer
+      let dt = new DataTransfer();
+
+      let files = fileInput.files;
+      // Agregar solo los archivos que NO sean el que queremos eliminar
+      for (let i = 0; i < files.length; i++) {
+        if (i != index) {
+          dt.items.add(files[i]);
+        }
+      }
+
+      // Asignar los archivos filtrados al input
+      fileInput.files = dt.files;
+    }
+    function setProductFiles() {
+      files =
+        product?.files?.map((file, index) => {
+          return {
+            id: file.id,
+            name: file.filename,
+            main_file: file.main_file || index === 0, // Si no hay main_file definido, el primero será el principal
+            file_urls: file.file_urls,
+            thumb_url: file.thumb_url,
+          };
+        }) || [];
+    }
+  } catch (error) {
+    return console.log(error);
+  }
 }
 
-export function generateOrderDetailModal(order) {
+export function generateOrderDetailModal(order, isAdminModal = false) {
   destroyExistingModal();
   // Crear modal principal
   const modal = document.createElement("div");
@@ -1990,16 +2249,25 @@ export function generateOrderDetailModal(order) {
           <div class="modal-card-header-span border-left align-end">#${
             order.tra_id
           }</div>
-      </div>
-      <div class="content">
-          <div class="modal-card-content-row">
-              <span class="modal-card-content-span">${
-                order.orderItemsPurchased
-              } ${isInSpanish ? "productos" : "products"}</span>
-              <span class="modal-card-content-span">$${
-                order.orderItemsPurchasedPrice
-              }</span>
-          </div>
+      </div>`;
+  if (isAdminModal) {
+    orderCard.innerHTML +=
+      '<div class="content product-table-list-content"></div>'; //Esto es para pitnar los orderItems
+  } else {
+    orderCard.innerHTML += `
+        <div class="content">
+        <div class="modal-card-content-row">
+            <span class="modal-card-content-span">${
+              order.orderItemsPurchased
+            } ${isInSpanish ? "productos" : "products"}</span>
+            <span class="modal-card-content-span">$${
+              order.orderItemsPurchasedPrice
+            }</span>
+        </div>
+        </div>`;
+  }
+  orderCard.innerHTML += `
+          <div class="content">
           <div class="modal-card-content-row no-margin">
               <span class="modal-card-content-span">${
                 isInSpanish ? "Envio" : "Shipping"
@@ -2008,14 +2276,41 @@ export function generateOrderDetailModal(order) {
                 order.shippingCost
               }</span>
           </div>
-      </div>
+          </div>
       <div class="content">
           <span class="modal-card-content-row">
-              <span class="modal-card-content-span">Total</span>
-              <span class="modal-card-content-span">$${order.total}</span>
+              <span class="modal-card-content-span bold">Total</span>
+              <span class="modal-card-content-span bold">$${order.total}</span>
           </span>
       </div>
   `;
+  let orderStatusSection = undefined;
+  if (isAdminModal) {
+    // Sección Detalle de Pago
+    orderStatusSection = document.createElement("section");
+    orderStatusSection.classList.add(
+      "card-status-detail",
+      "order-detail-card-section"
+    );
+    orderStatusSection.innerHTML = `
+        <label class="card-label label">${
+          isInSpanish ? "Estado de orden" : "Order status"
+        }</label>
+ <select class="ui select" id="orderStatusSelect">
+            ${statusesFromDB
+              .map(
+                (status) => `
+              <option value="${status.id}" ${
+                  status.id === order.orderStatus.id ? "selected" : ""
+                }>
+                ${status.status.es}
+              </option>
+            `
+              )
+              .join("")}
+              </select>
+    `;
+  }
 
   // Sección Detalle de Pago
   const paymentSection = document.createElement("section");
@@ -2128,15 +2423,241 @@ export function generateOrderDetailModal(order) {
   `;
   // Ensamblar modal
   content.appendChild(orderCard);
+  orderStatusSection && content.appendChild(orderStatusSection);
   content.appendChild(paymentSection);
   content.appendChild(shippingSection);
   content.appendChild(billingSection);
   modal.appendChild(header);
   modal.appendChild(content);
+  modal.innerHTML += `<div class="ui dimmer">
+    <div class="ui loader"></div>
+  </div>`;
   // Agrego el closemodal even
   modal
     .querySelector(".close-modal-btn")
     ?.addEventListener("click", () => closeModal());
 
+  return modal;
+}
+
+export function disableAddressModal(address) {
+  destroyExistingModal();
+
+  // Crear el contenedor principal
+  const modal = document.createElement("div");
+  modal.className = "ui small modal";
+
+  // Crear el header del modal
+  const header = document.createElement("div");
+  header.className = "header";
+  header.innerHTML = `Disable Address <i class='bx bx-x close-modal-btn'></i>`;
+  modal.appendChild(header);
+
+  const closeModalBtn = modal.querySelector(".close-modal-btn");
+  closeModalBtn.addEventListener("click", () => closeModal());
+
+  // Crear el contenido del modal
+  const content = document.createElement("div");
+  content.className = "content";
+
+  // Crear el formulario
+  const form = document.createElement("form");
+  form.className = "ui form destroy-form";
+
+  // Crear el encabezado dentro del formulario
+  const headerText = document.createElement("h4");
+  headerText.className = "ui dividing header required";
+  headerText.innerHTML = isInSpanish
+    ? `¿Estas seguro que quieres borrar "${address.label}"?`
+    : `Are you sure you want to remove "${address.label}"?`;
+  form.appendChild(headerText);
+
+  // Crear el contenedor de botones
+  const buttonFields = document.createElement("div");
+  buttonFields.className = "two fields";
+
+  // Botón de cancelación
+  const cancelField = document.createElement("div");
+  cancelField.className = "field";
+  const cancelButton = document.createElement("button");
+  cancelButton.className = "ui basic grey button";
+  cancelButton.type = "button";
+  cancelButton.textContent = isInSpanish ? "Cancelar" : "Cancel";
+  cancelField.appendChild(cancelButton);
+  buttonFields.appendChild(cancelField);
+
+  cancelButton.addEventListener("click", () => closeModal());
+
+  // Botón de confirmación
+  const confirmField = document.createElement("div");
+  confirmField.className = "field";
+  const confirmButton = document.createElement("button");
+  confirmButton.className = "ui basic red button";
+  confirmButton.textContent = isInSpanish ? "Confirmar" : "Confirm";
+  confirmButton.type = "submit";
+  confirmField.appendChild(confirmButton);
+  buttonFields.appendChild(confirmField);
+
+  confirmButton.addEventListener("click", () =>
+    confirmButton.classList.add("loading")
+  );
+  // Agregar los botones al formulario
+  form.appendChild(buttonFields);
+
+  // Agregar el formulario al contenido
+  content.appendChild(form);
+
+  // Agregar el contenido al modal
+  modal.appendChild(content);
+
+  // Agregar el modal al cuerpo del documento
+  document.body.appendChild(modal);
+
+  return modal;
+}
+export function disablePhoneModal(phone) {
+  destroyExistingModal();
+
+  // Crear el contenedor principal
+  const modal = document.createElement("div");
+  modal.className = "ui small modal";
+
+  // Crear el header del modal
+  const header = document.createElement("div");
+  header.className = "header";
+  header.innerHTML = `Disable Phone <i class='bx bx-x close-modal-btn'></i>`;
+  modal.appendChild(header);
+
+  const closeModalBtn = modal.querySelector(".close-modal-btn");
+  closeModalBtn.addEventListener("click", () => closeModal());
+
+  // Crear el contenido del modal
+  const content = document.createElement("div");
+  content.className = "content";
+
+  // Crear el formulario
+  const form = document.createElement("form");
+  form.className = "ui form destroy-form";
+
+  // Crear el encabezado dentro del formulario
+  const headerText = document.createElement("h4");
+  headerText.className = "ui dividing header required";
+  headerText.innerHTML = isInSpanish
+    ? `¿Estas seguro que quieres borrar "${phone.phone_number}"?`
+    : `Are you sure you want to remove "${phone.phone_number}"?`;
+  form.appendChild(headerText);
+
+  // Crear el contenedor de botones
+  const buttonFields = document.createElement("div");
+  buttonFields.className = "two fields";
+
+  // Botón de cancelación
+  const cancelField = document.createElement("div");
+  cancelField.className = "field";
+  const cancelButton = document.createElement("button");
+  cancelButton.className = "ui basic grey button";
+  cancelButton.type = "button";
+  cancelButton.textContent = isInSpanish ? "Cancelar" : "Cancel";
+  cancelField.appendChild(cancelButton);
+  buttonFields.appendChild(cancelField);
+
+  cancelButton.addEventListener("click", () => closeModal());
+
+  // Botón de confirmación
+  const confirmField = document.createElement("div");
+  confirmField.className = "field";
+  const confirmButton = document.createElement("button");
+  confirmButton.className = "ui basic red button";
+  confirmButton.textContent = isInSpanish ? "Confirmar" : "Confirm";
+  confirmButton.type = "submit";
+  confirmField.appendChild(confirmButton);
+  buttonFields.appendChild(confirmField);
+
+  confirmButton.addEventListener("click", () =>
+    confirmButton.classList.add("loading")
+  );
+  // Agregar los botones al formulario
+  form.appendChild(buttonFields);
+
+  // Agregar el formulario al contenido
+  content.appendChild(form);
+
+  // Agregar el contenido al modal
+  modal.appendChild(content);
+
+  // Agregar el modal al cuerpo del documento
+  document.body.appendChild(modal);
+
+  return modal;
+}
+export function disableProductModal(product) {
+  destroyExistingModal();
+  // Crear el contenedor principal
+  const modal = document.createElement("div");
+  modal.className = "ui small modal";
+
+  // Crear el header del modal
+  const header = document.createElement("div");
+  header.className = "header";
+  header.innerHTML = `Deshabilitar Producto <i class='bx bx-x close-modal-btn'></i>`;
+  modal.appendChild(header);
+
+  const closeModalBtn = modal.querySelector(".close-modal-btn");
+  closeModalBtn.addEventListener("click", () => createProductModal(product));
+
+  // Crear el contenido del modal
+  const content = document.createElement("div");
+  content.className = "content";
+
+  // Crear el formulario
+  const form = document.createElement("form");
+  form.className = "ui form destroy-form";
+
+  // Crear el encabezado dentro del formulario
+  const headerText = document.createElement("h4");
+  headerText.className = "ui dividing header required";
+  headerText.innerHTML = `¿Estas seguro que quieres deshabilitar "${product.es_name}"?`;
+  form.appendChild(headerText);
+
+  // Crear el contenedor de botones
+  const buttonFields = document.createElement("div");
+  buttonFields.className = "two fields";
+
+  // Botón de cancelación
+  const cancelField = document.createElement("div");
+  cancelField.className = "field";
+  const cancelButton = document.createElement("button");
+  cancelButton.className = "ui basic grey button";
+  cancelButton.type = "button";
+  cancelButton.textContent = "Cancelar";
+  cancelField.appendChild(cancelButton);
+  buttonFields.appendChild(cancelField);
+
+  cancelButton.addEventListener("click", () => createProductModal(product));
+
+  // Botón de confirmación
+  const confirmField = document.createElement("div");
+  confirmField.className = "field";
+  const confirmButton = document.createElement("button");
+  confirmButton.className = "ui basic red button";
+  confirmButton.textContent = isInSpanish ? "Confirmar" : "Confirm";
+  confirmButton.type = "submit";
+  confirmField.appendChild(confirmButton);
+  buttonFields.appendChild(confirmField);
+
+  confirmButton.addEventListener("click", () =>
+    confirmButton.classList.add("loading")
+  );
+  // Agregar los botones al formulario
+  form.appendChild(buttonFields);
+
+  // Agregar el formulario al contenido
+  content.appendChild(form);
+
+  // Agregar el contenido al modal
+  modal.appendChild(content);
+
+  // Agregar el modal al cuerpo del documento
+  document.body.appendChild(modal);
   return modal;
 }

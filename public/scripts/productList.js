@@ -1,14 +1,17 @@
 import { productCard } from "./componentRenderer.js";
 import { isInSpanish, translateProductCards } from "./languageHandler.js";
-import { setProductsFromDB, productsFromDB} from "./utils.js";
+import { setProductsFromDB, productsFromDB, getLastParamFromURL} from "./utils.js";
 const {pathname} = window.location;
 
 let products;
 window.addEventListener('DOMContentLoaded', async () => {
     const isCategoryView = pathname.includes('/categoria/1') || pathname.includes('/categoria/2');
     if (!isCategoryView) return;
-    await setProductsFromDB({categoryId: 1});
+    const categoryToLook = getLastParamFromURL()
+    await setProductsFromDB({categoryId: categoryToLook});
     products = productsFromDB;
+    console.log(products);
+    
     handleRenderProductList(products);
     translateCategoryTitle();
     translateFilters();

@@ -11,6 +11,7 @@ export default (sequelize, dataTypes) => {
         phone_number: { type: dataTypes.STRING(70) },
         country_id: { type: dataTypes.STRING(36) },
         user_id: { type: dataTypes.STRING(36) },
+        default: { type: dataTypes.BOOLEAN },
     }
 
     let config = {

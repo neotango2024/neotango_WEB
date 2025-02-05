@@ -6,8 +6,9 @@ const controller = {
     getShippingZonesWithPrices: async (req, res) => {
         try {
             const shippingZonesPrices = await ShippingZonePrice.findAll();
-            zones.forEach(zone => {
+            (zones||[]).forEach(zone => {
                 const zonePrice = shippingZonesPrices.find(zonePrice => zonePrice.zone_id === zone.id);
+                if(!zonePrice)return
                 zone.price = {
                     usd_price: zonePrice.usd_price,
                     ars_price: zonePrice.ars_price
@@ -19,6 +20,7 @@ const controller = {
             })
         } catch (error) {
             console.log(`error in getShippingZonesWithPrices: ${error}`);
+            console.log(error);
             return res.status(500).json({
                 ok: false,
                 msg: 'Internal server error'

@@ -7,6 +7,8 @@ import {
   generateRandomString,
   variationsFromDB,
   fetchDBProducts,
+  minDecimalPlaces,
+  displayBigNumbers,
 } from "./utils.js";
 
 let productDetailExportObj = {
@@ -33,7 +35,7 @@ window.addEventListener("load", async () => {
       breadcrumb.innerHTML = `
           <a class="section" href="/">Home</a>
           <div class="divider"> / </div>
-          <a class="section" href="${productData?.category?.id}">${
+          <a class="section" href="/categoria/${productData?.category?.id}">${
         isInSpanish
           ? productData?.category?.name?.es
           : productData?.category?.name?.en
@@ -53,7 +55,7 @@ window.addEventListener("load", async () => {
       const productPrice = document.createElement("p");
       productPrice.className = "product-price";
       productPrice.textContent = `$${
-        isInSpanish ? productData?.ars_price : productData?.usd_price
+        isInSpanish ? displayBigNumbers(minDecimalPlaces(productData?.ars_price)) : displayBigNumbers(minDecimalPlaces(productData?.usd_price))
       }`;
 
       const productDescription = document.createElement("p");

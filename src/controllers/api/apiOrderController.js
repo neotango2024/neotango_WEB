@@ -295,7 +295,7 @@ const controller = {
         },
       });
 
-      // Le  mando ok con el redirect al email verification view
+      // Le  mando ok
       return res.status(200).json({
         meta: {
           status: 200,
@@ -303,7 +303,7 @@ const controller = {
           method: "PUT",
         },
         ok: true,
-        msg: systemMessages.orderMsg.updateSuccesfull.es, //TODO: ver tema idioma
+        msg: systemMessages.orderMsg.updateSuccesfull, 
       });
     } catch (error) {
       console.log(`Falle en apiOrderController.updateOrder`);
@@ -326,7 +326,7 @@ const controller = {
           id: orderId
         }
       })
-      return res.status(204).json({
+      return res.status(200).json({
         ok: true
       })
     } catch (error) {
@@ -390,7 +390,6 @@ export async function getOrdersFromDB({ id, limit, offset, user_id }) {
     ordersToReturn = getDeepCopy(ordersToReturn);
     ordersToReturn?.forEach(orderToReturn=> {
       setOrderKeysToReturn(orderToReturn);
-      populateCurrencies(orderToReturn);
     });
 
     return ordersToReturn;
@@ -400,9 +399,7 @@ export async function getOrdersFromDB({ id, limit, offset, user_id }) {
   }
 }
 
-const populateCurrencies = (order) => {
-  order.currency = currencies.find(currency => currency.id === order.currency_id)
-}
+
 
 //Esta funcion toma el objeto y le hace una "foto" de las entidades que luego pueden cambiar
 //En db necesitamos almacenar los datos que perduren, ej si se cambia la address tiene que

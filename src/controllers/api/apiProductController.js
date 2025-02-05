@@ -12,6 +12,7 @@ import getDeepCopy from '../../utils/helpers/getDeepCopy.js';
 import tacos from '../../utils/staticDB/tacos.js';
 import sizes from '../../utils/staticDB/sizes.js';
 import {categories} from '../../utils/staticDB/categories.js';
+import minDecimalPlaces from '../../utils/helpers/minDecimalPlaces.js';
 
 const {productMsg} = systemMessages;
 const { fetchFailed, notFound, fetchSuccessfull, createFailed, updateFailed, deleteSuccess, createSuccessfull, deleteFailed } = productMsg;
@@ -123,11 +124,11 @@ const controller = {
                 }
             }
             
-            
+            let productToReturn = await findProductsInDb(newProductId,null,true)
             return res.status(200).json({
                 ok: true,
                 msg: createSuccessfull.en,
-                data: newProductId
+                product: productToReturn
             })
         } catch (error) {
             console.log(`Error in handleCreateProduct: ${error}`);
@@ -138,16 +139,19 @@ const controller = {
         }
     },
     handleUpdateProduct: async (req, res) => {
+        // return console.log(req.body);
+        
         const errors = validationResult(req);
         if(!errors.isEmpty()){
             return res.status(404).json({
                 ok: false,
-                msg: createFailed.es,
+                msg: createFailed,
                 errors: errors.mapped()
             })
         }
-        const productId = req.params.productId;
         const body = req.body;
+        const  { id: productId } = body;
+        
         const isUpdateSuccessful = await updateProductInDb(body, productId);
         if(!isUpdateSuccessful){
             return res.status(500).json({
@@ -156,7 +160,8 @@ const controller = {
             })
         }
         const variationsInDb = await findProductVariations(productId);
-        const { variations } = req.body;
+        let { variations } = req.body;
+        variations = JSON.parse(req.body.variations);
         const variationsToDelete = getVariationsToDelete(variations, variationsInDb, productId);
         const deleteVariationsPromises = variationsToDelete.map(async variationToDelete => {
             const isDeleteSuccessful = await deleteVariationInDb(variationToDelete);
@@ -179,7 +184,8 @@ const controller = {
             });
         }
         const imagesInDb = await findFilesInDb(productId);
-        const imagesToKeep = req.body.current_images;
+        let imagesToKeep = req.body.current_images;
+        imagesToKeep = JSON.parse(imagesToKeep);
         // current_images
         // [
             // id: fileid
@@ -194,7 +200,7 @@ const controller = {
         // req.files
         let imagesToDelete;
         if(imagesToKeep && imagesToKeep.length > 0){
-            imagesToDelete = imagesInDb.filter(img => !imagesToKeep.includes(img.filename));
+            imagesToDelete = imagesInDb.filter(img => !imagesToKeep.map(img=>img.filename).includes(img.filename));
         } else {
             imagesToDelete = imagesInDb;
         }
@@ -227,7 +233,8 @@ const controller = {
         }));
         if(req.files){
             const files = req.files;
-            const { filesFromArray } = body;
+            let { filesFromArray } = body;
+            filesFromArray = JSON.parse(filesFromArray);
             files.forEach(multerFile => {
                 const fileFromFilesArrayFiltered = filesFromArray.find(arrFile => arrFile.filename === multerFile.originalname)
                 multerFile.file_types_id = getFileType(multerFile);
@@ -258,9 +265,12 @@ const controller = {
                     ok: false,
                     msg: createFailed.es
                 });
-            }
+            };
+        let productToReturn = await findProductsInDb(productId,null,true)
         return res.status(200).json({
             ok: true,
+            product: productToReturn,
+            msg: systemMessages.productMsg.updateSuccessfull
         })
     },
     handleDeleteProduct: async (req, res) => {
@@ -281,11 +291,12 @@ const controller = {
             }
             return res.status(200).json({
                 ok: true,
-                msg: deleteSuccess.es,
+                msg: deleteSuccess,
                 data: productId
             })
         } catch (error) {
             console.log(`Error handling product deletion: ${error}`);
+            console.log(error);
             return res.status(500).json({
                 ok: false,
                 msg: deleteFailed.es
@@ -358,12 +369,13 @@ async function deleteProductInDb (productId) {
     try {
         const rowsAffected = await Product.destroy({
             where: {
-                product_id: productId
+                id: productId
             }
         })
         return rowsAffected > 0;
     } catch (error) {
         console.log(`error deleting product in db: ${error}`);
+        console.log(error);
         return null;
     }
 }  
@@ -458,7 +470,8 @@ try {
     //Le seteo la categoria
     prod.category = categories.find(cat=>cat.id == prod.category_id);
     prod.variations = populateVariations(prod.variations);
-
+    prod.ars_price = minDecimalPlaces(prod.ars_price);
+    prod.usd_price = minDecimalPlaces(prod.usd_price);
     if(withImages && prod.files?.length){
         await getFilesFromAWS({
             folderName: 'products',
