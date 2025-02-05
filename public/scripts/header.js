@@ -175,8 +175,7 @@ export const paintUserIconOrLetter = () => {
         userLoggedDropdownToChange.parentNode.replaceChild(userInitialsDropdown, userLoggedDropdownToChange);
         activateHeaderDropdowns();
     } else {
-        
-        userIconElement.classList.toggle('hidden');
+        userIconElement.classList.remove('hidden');
     }
 }
 

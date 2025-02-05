@@ -816,9 +816,9 @@ export async function createPhoneModal(phone) {
           label: isInSpanish ? "Telefono Predeterminado" : "Default Phone",
           type: "toggle",
           name: "phone_default",
-          className: "",
+          containerClassName: `${!userLogged ? "hidden" : ''}`,
           required: true,
-          checked: phone ? phone.default : !userLogged.phones.length,
+          checked: phone ? phone.default : !userLogged?.phones?.length,
         },
       ],
       buttons: [
@@ -867,8 +867,7 @@ export async function createAddressModal(address = undefined) {
       buttonText = isInSpanish ? "Crear" : "Create";
       headerText = isInSpanish ? "Agregar Direccion" : "Add Address";
     }
-    console.log(address);
-
+    
     createModal({
       headerTitle: headerText,
       formFields: [
@@ -946,9 +945,9 @@ export async function createAddressModal(address = undefined) {
           label: isInSpanish ? "Direccion predeterminada" : "Default Address",
           type: "toggle",
           name: "address-default",
-          className: "",
+          containerClassName: `${!userLogged ? "hidden" : ''}`,
           required: true,
-          checked: address ? address.default : !userLogged.addresses.length,
+          checked: address ? address.default : !userLogged?.addresses?.length,
         },
       ],
 
@@ -1011,6 +1010,7 @@ export async function createUserLoginModal() {
       buttons: [
         {
           text: isInSpanish ? "Iniciar Sesión" : "login",
+          type:'button',
           className: "ui button submit negative send-modal-form-btn",
           onClick: async () => await handleUserLoginModal(),
         },
@@ -1022,6 +1022,15 @@ export async function createUserLoginModal() {
         },
       ],
     });
+    // Armo el event listener
+    document.querySelector(".ui.modal").addEventListener("keydown", async(event) => {
+      if (event.key === "Enter") {
+        await handleUserLoginModal()
+      }
+  });
+  
+
+  
   } catch (error) {
     console.log("falle");
     return console.log(error);

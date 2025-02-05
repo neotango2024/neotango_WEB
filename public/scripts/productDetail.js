@@ -35,7 +35,7 @@ window.addEventListener("load", async () => {
       breadcrumb.innerHTML = `
           <a class="section" href="/">Home</a>
           <div class="divider"> / </div>
-          <a class="section" href="${productData?.category?.id}">${
+          <a class="section" href="/categoria/${productData?.category?.id}">${
         isInSpanish
           ? productData?.category?.name?.es
           : productData?.category?.name?.en

@@ -410,9 +410,9 @@ export async function handleModalCreation({
     // Cierro el modal
     handlePageModal(false);
     if (updateElements) {
-      if (entityType == "address" || entityType == "phone") {
+      if (userLogged && (entityType == "address" || entityType == "phone")) {
         //Aca me fijo si marco default y lo hago "Manual"
-        if (bodyData.defaultAddress) {
+        if ( bodyData.defaultAddress) {
           //ACa se que activo el default de la direc, cambio el de todos
           userLogged.addresses.forEach(
             (dbAddress) =>
@@ -728,7 +728,6 @@ export async function handleUserLoginFetch(bodyData) {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(bodyData),
   });
-  console.log(response);
   if (response.ok) {
     response = response.ok ? await response.json() : null;
 
@@ -737,6 +736,9 @@ export async function handleUserLoginFetch(bodyData) {
       //Aca dio ok, entonces al ser de un usuario actualizo al usuarioLogged.phones
       showCardMessage(true, isInSpanish ? response.msg.es : response.msg);
       await checkForUserLogged();
+      const bodyName = document.querySelector('body').dataset.page_name; 
+      // Esto es porque si pasa de no estar logeado a estarlo, pinto los productos del carro
+      if(bodyName == 'cart') await cartExportObj.pageConstructor();
       return true;
     }
     showCardMessage(false, isInSpanish ? response.msg.es : response.msg);
