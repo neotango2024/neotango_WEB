@@ -18,7 +18,7 @@ export default (sequelize, dataTypes) => {
         order_status_id: { type: dataTypes.INTEGER },
         shipping_types_id: { type: dataTypes.INTEGER },
         payment_types_id: { type: dataTypes.INTEGER },
-        language: { type: dataTypes.STRING(3) },
+        paypal_order_id: { type: dataTypes.STRING(100) },
         //Billing Address Snapshot
         billing_address_street: { type: dataTypes.STRING(200) },
         billing_address_detail: { type: dataTypes.STRING(200) },
@@ -38,7 +38,7 @@ export default (sequelize, dataTypes) => {
         //Phone Snapshot
         phone_code: { type: dataTypes.STRING(50) },
         phone_number: { type: dataTypes.STRING(100) },
-        currency_id: {type: dataTypes.INTEGER}
+        
     }
 
     let config = {

@@ -54,7 +54,7 @@ window.addEventListener("DOMContentLoaded", async () => {
     //seteo los productos
     let cartProducts = [];
     let shippingCost = 0; //Esto va cambiando por eso lo seteo aca
-    
+    let sectionIndex = 0; //Para ver donde esta parado
     cartExportObj.pageConstructor = async function () {
       try {
         await setCartProducts();
@@ -141,39 +141,49 @@ window.addEventListener("DOMContentLoaded", async () => {
           window.scrollTo(0, 0);
           try {
             if (btn.classList.contains("finalize-order-button")) {
-              btn.classList.add("loading");
-              await generateCheckoutForm();
-              //aca es un guest
-              let checkoutCards = Array.from(
-                document.querySelectorAll(".checkout-card")
-              );
-              checkoutCards = checkoutCards.map((card) => {
-                return {
-                  id: card.dataset?.variation_id,
-                  quantity: card.querySelector(".card_product_amount")
-                    .innerText,
-                };
-              });
-              if (userLogged) {
-                //Aca tengo que actualizar el carro
-                let response = await fetch(`/api/cart/${userLogged.id}`, {
-                  method: "PUT",
-                  headers: { "Content-Type": "application/json" },
-                  body: JSON.stringify({ tempCartItems: checkoutCards }),
+              if (sectionIndex == 0) {
+                sectionIndex++;
+                btn.classList.add("loading");
+                await generateCheckoutForm();
+                let checkoutCards = Array.from(
+                  document.querySelectorAll(".checkout-card")
+                );
+                checkoutCards = checkoutCards.map((card) => {
+                  return {
+                    id: card.dataset?.variation_id,
+                    quantity: card.querySelector(".card_product_amount")
+                      .innerText,
+                  };
                 });
-                if (!response.ok) {
-                  //Aca ver que hacer si da error TODO:
+                if (userLogged) {
+                  //Aca tengo que actualizar el carro
+                  let response = await fetch(`/api/cart/${userLogged.id}`, {
+                    method: "PUT",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ tempCartItems: checkoutCards }),
+                  });
+                  if (!response.ok) {
+                    //Aca ver que hacer si da error TODO:
+                  }
+                  response = await response.json();
+                  userLogged.tempCartItems = response.updatedCardItems;
+                } else {
+                  updateGuestCart();
                 }
-                response = await response.json();
-                userLogged.tempCartItems = response.updatedCardItems;
-              } else {
-                updateGuestCart();
-              }
-              // return;
-              await setCartProducts();
-              setDetailContainer();
-              btn.classList.remove("loading");
-              return main.classList.add("active");
+                // return;
+                await setCartProducts();
+                setDetailContainer();
+                btn.classList.remove("loading");
+                return main.classList.add("active");
+              } else if(sectionIndex == 1){
+                //Aca ya esta tocando para pagar ==> armo la orden y genero el fetch
+                let form = document.querySelector('.checkout-form');
+                let body = generateCheckoutFormBodyToFetch (form);
+                // Aca ya tengo todo ==> Hago el fetch
+                return console.log(body);
+                
+              };
+              return
             }
             //ACa limipio el checkout section
             const checkoutSectionForm = document.querySelector(
@@ -181,6 +191,7 @@ window.addEventListener("DOMContentLoaded", async () => {
             );
             checkoutSectionForm.innerHTML = "";
             shippingCost = 0; //Reinicio el shippingCost
+            sectionIndex = 0; //Reinicio el index
             setDetailContainer();
             return main.classList.remove("active");
           } catch (error) {
@@ -289,8 +300,8 @@ window.addEventListener("DOMContentLoaded", async () => {
           (cartItem) => cartItem.variation_id == cardVariationID
         );
         const unityPrice = isInSpanish
-          ? parseFloat(cartProductFromDB.product?.ars_price)
-          : parseFloat(cartProductFromDB.product?.usd_price);
+          ? parseFloat(cartProductFromDB?.product?.ars_price)
+          : parseFloat(cartProductFromDB?.product?.usd_price);
         const totalUnits = parseInt(
           card.querySelector(".card_product_amount").innerText
         );
@@ -432,6 +443,7 @@ window.addEventListener("DOMContentLoaded", async () => {
               inpClassNames: "",
             },
           ],
+          formClasses: "checkout-form"
         };
 
         const formToInsert = form(props);
@@ -615,7 +627,7 @@ window.addEventListener("DOMContentLoaded", async () => {
             if (e.target.value == 1) {
               //Envio a domicilio, pinto el checkbox y el shipping Address
               shippingAddressField.classList.remove("hidden");
-              await setShippingCost()
+              await setShippingCost();
               return useSameAddressCheckboxContainer.classList.remove("hidden");
             }
             //Aca pinto retiro por el local, escondo el checkbox y el shippingAddress y pongo el 0 shipping cost
@@ -627,7 +639,6 @@ window.addEventListener("DOMContentLoaded", async () => {
             return;
           } catch (error) {
             return console.log(error);
-            
           }
         });
       }
@@ -803,6 +814,50 @@ window.addEventListener("DOMContentLoaded", async () => {
       } catch (error) {
         return console.log(error);
       }
+    }
+
+    function generateCheckoutFormBodyToFetch(form){
+      let bodyData = {
+        user_id: userLogged ? userLogged.id : null,
+        first_name: form["first_name"].value,
+        last_name: form["last_name"].value,
+        email: form["email"].value,
+        dni: form["dni"].value,
+        payment_type_id: userLogged ? userLogged.payment_type_id : getLocalStorageItem('payment_type_id'),//TODO:
+        shipping_type_id: form["shipping_type_id"].value,
+        variations: [],
+      };
+      // Ahora voy por phone,shipping & billing, y variations
+      // Se supone que aca ya tengo actualizado o bien cartItems o bien el userLogged, acceso a eso
+      let cart = userLogged ? userLogged.tempCartItems : getLocalStorageItem('cartItems');
+      cart = cart.map(tempCartItem=>({
+        id: tempCartItem.variation_id,
+        quantityRequested: tempCartItem.quantity
+      }));
+      bodyData.variations = cart;
+      // Ahora el phone
+      const phoneID = form["phone_id"].value;
+      let phoneArrayToLook = userLogged ? userLogged.phones : getLocalStorageItem("guestPhones")
+      let phoneObj = phoneArrayToLook?.find(dbPhone=>dbPhone.id == phoneID);
+      bodyData.phoneObj = phoneObj;
+      // Ahora las addresses
+      let addressArrayToLook = userLogged ? userLogged.addresses : getLocalStorageItem("guestAddresses")
+      const billingAddressId = form["billing-address-id"].value;
+      let billingAddressObj = addressArrayToLook?.find(dbAddress=>dbAddress.id == billingAddressId);
+      bodyData.billingAddress = billingAddressObj;
+      const useSameAddress = form["use-same-addresses"].checked;
+      if(useSameAddress){
+        bodyData.shippingAddress = billingAddressObj; //Usa la misma
+      } else{
+        //Aca la busco
+        const shippingAddressId = form["shipping-address-id"].value;
+        let shippingAddressObj = addressArrayToLook?.find(dbAddress=>dbAddress.id == shippingAddressId);
+        bodyData.shippingAddress = shippingAddressObj;
+      }
+      
+      return bodyData
+      
+      
     }
   } catch (error) {
     console.log("falle");

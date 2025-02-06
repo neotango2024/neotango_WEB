@@ -46,6 +46,7 @@ import { getMappedErrors } from "../../utils/helpers/getMappedErrors.js";
 import currencies from "../../utils/staticDB/currencies.js";
 import { paymentTypes } from "../../utils/staticDB/paymentTypes.js";
 import { shippingTypes } from "../../utils/staticDB/shippingTypes.js";
+import { createPaypalOrder, getTokenFromUrl } from "./apiPaymentController.js";
 
 // ENV
 const webTokenSecret = process.env.JSONWEBTOKEN_SECRET;
@@ -62,7 +63,7 @@ const controller = {
         id: order_id,
         limit,
         offset,
-        user_id
+        user_id,
       });
 
       // Mando la respuesta
@@ -82,6 +83,7 @@ const controller = {
     }
   },
   createOrder: async (req, res) => {
+    let orderDataToDB;
     try {
       // Traigo errores
       let errors = validationResult(req);
@@ -111,10 +113,9 @@ const controller = {
         phoneObj,
         billingAddress,
         shippingAddress,
-        payment_types_id,
-        shipping_types_id,
+        payment_types_id: payment_type_id,
+        shipping_types_id: shipping_type_id,
         variationsFromDB, //Del middleware
-        language, //TODO: Cambiar modelos y setear dependiendo lo que llegue
       } = req.body;
       // Si esta logueado y no tenia los nros y direcciones armadas...
       if (!billingAddress.id && user_id) {
@@ -147,7 +148,7 @@ const controller = {
       }
       // Armo el objeto del pedido
       const randomString = generateRandomNumber(10);
-      let orderDataToDB = {
+      orderDataToDB = {
         id: uuidv4(),
         tra_id: randomString,
         user_id,
@@ -158,20 +159,22 @@ const controller = {
         phoneObj, //{}
         billingAddress,
         shippingAddress,
-        order_status_id: shipping_types_id == 1 ? 2 : 3, //Si es con shipping una vez la compran queda "pendiente de envio", sino queda pendiente de recoleccion
-        shipping_types_id,
-        payment_types_id,
+        order_status_id: shipping_type_id == 1 ? 2 : 3, //Si es con shipping una vez la compran queda "pendiente de envio", sino queda pendiente de recoleccion
+        shipping_type_id,
+        payment_type_id,
       };
       createOrderEntitiesSnapshot(orderDataToDB); //Funcion que saca "foto" de las entidades
       // armo los orderItems
       let orderItemsToDB = [];
+      // Voy por las variaciones para restar stock
       variations.forEach((variation) => {
+        let { quantityRequested, variationId } = variation; //Tengo que chequear con esa variacion
         // Agarro el producto de DB
         let variationFromDBIndex = variationsFromDB.findIndex(
-          (variationFromDB) => variationFromDB.id == variation.id
+          (variationFromDB) => variationFromDB.id == variationId
         );
         let variationFromDB = variationsFromDB[variationFromDBIndex];
-        let { quantityRequested } = variation; //Tengo que chequear con esa variacion
+
         quantityRequested = parseInt(quantityRequested); //Lo parseo
         //Aca paso el chequeo de stock ==> lo resto al stock que tenia
         variationFromDB.quantity -= quantityRequested; //Le resto el stock
@@ -179,7 +182,10 @@ const controller = {
         let orderItemEnName = variationFromDB.product?.eng_name;
         let orderItemEsName = variationFromDB.product?.es_name;
         //Si pago en mp entonces es precio pesos, sino precio usd
-        let orderItemPrice = orderDataToDB.payment_types_id == 1 ? variationFromDB.product?.ars_price : variationFromDB.product?.usd_price;
+        let orderItemPrice =
+          orderDataToDB.payment_types_id == 1
+            ? variationFromDB.product?.ars_price
+            : variationFromDB.product?.usd_price;
         orderItemPrice = orderItemPrice && parseFloat(orderItemPrice);
         let orderItemQuantity = parseInt(quantityRequested);
         // Voy armando el array de orderItems para hacer un bulkcreate
@@ -210,6 +216,20 @@ const controller = {
         orderTotalPrice += parseFloat(item.price) * parseInt(item.quantity);
       });
       orderDataToDB.total = orderTotalPrice;
+      
+      // Aca genero el url de paypal o de mp dependiendo que paymentTypeVino
+      let paymentURL,paymentOrderId;
+      if (orderCreated.payment_types_id == 1) {
+        // MP TODO:
+      } else if (orderCreated.payment_types_id == 2) {
+        // PAYPAL
+        paymentURL = await createPaypalOrder(); //Genero el link para enviar a pasarela de pagos paypal
+        if(!paymentURL) throw new Error("Could not generate paypal paymentURL"); // Lanza un error y salta al catch
+        // Obtengo el payment_order_id para pegarselo en el objeto
+        let paymentOrderId = getTokenFromUrl(paymentURL);
+        orderDataToDB.paypal_order_id = paymentOrderId; 
+      }
+
       // Hago los insert en la base de datos
       let orderCreated = await db.Order.create(
         {
@@ -226,7 +246,7 @@ const controller = {
         (await db.Variation.bulkCreate(variationsFromDB, {
           updateOnDuplicate: ["quantity"],
         }));
-      orderCreated = await getOrdersFromDB({id : orderDataToDB.id});
+    
       // Borro los temp items si es que viene usuario loggeado
       if (user_id) {
         await db.TempCartItem.destroy({
@@ -234,22 +254,36 @@ const controller = {
             user_id,
           },
         });
-      }
-      // await sendOrderMails(orderCreated); //TODO:
+      };
+
       // Mando la respuesta
       return res.status(200).json({
         meta: {
           status: 200,
         },
         ok: true,
-        order_id: orderCreated.tra_id,
-        msg: systemMessages.orderMsg.create, //TODO: ver
+        msg: systemMessages.orderMsg.create,
         //Si paga con tarjetas lo tengo que redirigir, sino le pongo false y termina ahi
-        redirect: "/",
+        url: paymentURL,
       });
     } catch (error) {
       console.log(`Falle en apiOrderController.createOrder`);
       console.log(error);
+      // aca dio error, tengo que cancelar la compra si es que se creo
+      const orderCreatedToDisable = await getOrdersFromDB(orderDataToDB.id);
+      if (orderCreatedToDisable) {
+        //La deshabilito
+        await db.Order.update(
+          {
+            order_status_id: 5,
+          },
+          {
+            where: {
+              id: orderCreatedToDisable.id,
+            },
+          }
+        );
+      }
       return res.status(500).json({ error });
     }
   },
@@ -279,7 +313,7 @@ const controller = {
       // Datos del body
       let { order_id, order_status_id } = req.body;
 
-      let orderFromDB = await getOrdersFromDB({id: order_id});
+      let orderFromDB = await getOrdersFromDB({ id: order_id });
       if (!orderFromDB)
         return res
           .status(404)
@@ -303,7 +337,7 @@ const controller = {
           method: "PUT",
         },
         ok: true,
-        msg: systemMessages.orderMsg.updateSuccesfull, 
+        msg: systemMessages.orderMsg.updateSuccesfull,
       });
     } catch (error) {
       console.log(`Falle en apiOrderController.updateOrder`);
@@ -313,40 +347,45 @@ const controller = {
   },
   updateOrderStatus: async (req, res) => {
     try {
-      const {orderId} = req.params;
-      if(!orderId){
-        console.log('No order id provided to update')
+      const { orderId } = req.params;
+      if (!orderId) {
+        console.log("No order id provided to update");
         return res.status(400).json({
-          ok: false
-        })
+          ok: false,
+        });
       }
-      const { body: { order_status_id } } = req;
-      await db.Order.update({order_status_id}, {
-        where: {
-          id: orderId
+      const {
+        body: { order_status_id },
+      } = req;
+      await db.Order.update(
+        { order_status_id },
+        {
+          where: {
+            id: orderId,
+          },
         }
-      })
+      );
       return res.status(200).json({
-        ok: true
-      })
+        ok: true,
+      });
     } catch (error) {
       console.log(`error in updateOrderStatus: ${error}`);
       return res.status(500).json({
         ok: false,
-        data: null
-      })
+        data: null,
+      });
     }
-  }
+  },
 };
 
 export default controller;
 
 let orderIncludeArray = [
-  "user", 
+  "user",
   {
     association: "orderItems",
-    include: ['product']
-  }
+    include: ["product"],
+  },
 ];
 
 export async function getOrdersFromDB({ id, limit, offset, user_id }) {
@@ -384,11 +423,10 @@ export async function getOrdersFromDB({ id, limit, offset, user_id }) {
         include: orderIncludeArray,
       });
     }
-  
-    
+
     if (!ordersToReturn || !ordersToReturn.length) return [];
     ordersToReturn = getDeepCopy(ordersToReturn);
-    ordersToReturn?.forEach(orderToReturn=> {
+    ordersToReturn?.forEach((orderToReturn) => {
       setOrderKeysToReturn(orderToReturn);
     });
 
@@ -399,13 +437,11 @@ export async function getOrdersFromDB({ id, limit, offset, user_id }) {
   }
 }
 
-
-
 //Esta funcion toma el objeto y le hace una "foto" de las entidades que luego pueden cambiar
 //En db necesitamos almacenar los datos que perduren, ej si se cambia la address tiene que
 //salir la misma que se compro no puede salir la actualizada, mismo con nombre de item,phone,etc
 function createOrderEntitiesSnapshot(obj) {
-  let { billingAddress, shippingAddress, phoneObj } = obj;
+  let { billingAddress, shippingAddress, phoneObj, shipping_type_id } = obj;
   let billingAddressCountryName = countries?.find(
     (count) => count.id == billingAddress.country_id
   )?.name;
@@ -421,13 +457,14 @@ function createOrderEntitiesSnapshot(obj) {
   obj.billing_address_label = billingAddress.label || "";
   obj.billing_address_country_name = billingAddressCountryName || "";
   //Mismo con shippingAddress
-  obj.shipping_address_street = shippingAddress.street || "";
-  obj.shipping_address_detail = shippingAddress.detail || "";
-  obj.shipping_address_city = shippingAddress.city || "";
-  obj.shipping_address_province = shippingAddress.province || "";
-  obj.shipping_address_zip_code = shippingAddress.zip_code || "";
-  obj.shipping_address_label = shippingAddress.label || "";
-  obj.shipping_address_country_name = shippingAddressCountryName || "";
+  const shippingAddressNotRequired = shipping_type_id == 2; //Retiro por local
+  obj.shipping_address_street = shippingAddressNotRequired ? null : shippingAddress.street || "";
+  obj.shipping_address_detail = shippingAddressNotRequired ? null : shippingAddress.detail || "";
+  obj.shipping_address_city = shippingAddressNotRequired ? null : shippingAddress.city || "";
+  obj.shipping_address_province = shippingAddressNotRequired ? null : shippingAddress.province || "";
+  obj.shipping_address_zip_code = shippingAddressNotRequired ? null : shippingAddress.zip_code || "";
+  obj.shipping_address_label = shippingAddressNotRequired ? null : shippingAddress.label || "";
+  obj.shipping_address_country_name = shippingAddressNotRequired ? null : shippingAddressCountryName || "";
   //Ahora creo el de phone
   let phoneCode = countries?.find(
     (count) => count.id == phoneObj.country_id
@@ -440,16 +477,24 @@ function createOrderEntitiesSnapshot(obj) {
   delete obj.phoneObj;
 }
 
-function setOrderKeysToReturn(order){
-  order.orderStatus = ordersStatuses.find(status=>status.id == order.order_status_id);
-  order.paymentType = paymentTypes.find(payType => payType.id == order.payment_types_id);
-  order.shippingType = shippingTypes.find(shipType => shipType.id == order.shipping_types_id);
-  order.currencyType = currencies?.find(curType => curType.id == order.currency_id);
-  order.orderItemsPurchased =  order.orderItems.reduce((acum,item)=>{
-    return acum + item.quantity
-  },0)
-  order.orderItemsPurchasedPrice =  order.orderItems.reduce((acum,item)=>{
-    return acum + (parseInt(item.quantity) * parseFloat(item.price || 0))
-  },0);
+function setOrderKeysToReturn(order) {
+  order.orderStatus = ordersStatuses.find(
+    (status) => status.id == order.order_status_id
+  );
+  order.paymentType = paymentTypes.find(
+    (payType) => payType.id == order.payment_types_id
+  );
+  order.shippingType = shippingTypes.find(
+    (shipType) => shipType.id == order.shipping_types_id
+  );
+  order.currencyType = currencies?.find(
+    (curType) => curType.id == order.currency_id
+  );
+  order.orderItemsPurchased = order.orderItems.reduce((acum, item) => {
+    return acum + item.quantity;
+  }, 0);
+  order.orderItemsPurchasedPrice = order.orderItems.reduce((acum, item) => {
+    return acum + parseInt(item.quantity) * parseFloat(item.price || 0);
+  }, 0);
   order.shippingCost = parseFloat(order.total) - order.orderItemsPurchasedPrice;
 }

@@ -784,7 +784,7 @@ const paintAdminShippings = async () => {
 
     const inputUSD = document.createElement("input");
     inputUSD.type = "number";
-    inputUSD.value = price.usd_price;
+    inputUSD.value = price?.usd_price;
     inputUSD.className = "usd-price-input";
     inputUSD.id = "usd-price";
 
@@ -799,7 +799,7 @@ const paintAdminShippings = async () => {
 
     const inputARS = document.createElement("input");
     inputARS.type = "number";
-    inputARS.value = price.ars_price;
+    inputARS.value = price?.ars_price;
     inputARS.className = "ars-price-input";
     inputARS.id = "ars-price";
 

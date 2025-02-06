@@ -39,7 +39,7 @@ const checkForLanguageSelection = () => {
     const modalImgs = document.querySelectorAll('.language-container');
     modalImgs.forEach(imgContainer => imgContainer.addEventListener('click', () => {
         const imgElement = imgContainer.querySelector('img');
-        const idSelector = imgElement.getAttribute('id');//eng o esp
+        const idSelector = imgElement.getAttribute('id');//1: mp o 2: paypal
         handleChangeLanguage(idSelector); 
         toggleLanguagesModalClasses();
         toggleOverlay();
@@ -50,10 +50,10 @@ const checkForLanguageSelection = () => {
 
 //Se ejecuta cuando carga la pagina para ver que idioma esta establecido
 const decideLanguageInsertion = () => {
-    const localStorageItem = getLocalStorageItem('language');
-    const languageToSet = userLogged && userLogged.language ? userLogged.language : localStorageItem ? localStorageItem : null;
-    if(languageToSet) {
-        handleChangeLanguage(languageToSet)
+    const localStorageItem = getLocalStorageItem('payment_type_id');
+    const languageToSetID = userLogged  ? userLogged.payment_type_id : localStorageItem ? localStorageItem : null;
+    if(languageToSetID) {
+        handleChangeLanguage(languageToSetID)
     } else {
         //Te abre el modal para que se elija el pais
         toggleLanguagesModalClasses();
@@ -63,13 +63,13 @@ const decideLanguageInsertion = () => {
 };
 
 //Agarra los src de las imagenes del modal
-const handleChangeLanguage = async(param) => { //param es esp/eng
+const handleChangeLanguage = async(param) => { //param es 1/2
     updateLanguage(param); //Updateo tanto en localStorage como en la variable que se comparte 
     //Agarro las banderas del modal
     const modalImgs = document.querySelectorAll('.modal-flag-container img');
     modalImgs.forEach(img => {
         const idSelector = img.getAttribute('id');
-        if(idSelector === param){
+        if(idSelector == param){
             const imgSrc = img.getAttribute('src');
             const activeImg = document.querySelector('.active-flag');
             activeImg.src = imgSrc
@@ -118,10 +118,24 @@ const toggleLanguagesModalClasses = () => {
 }
 
 //Cambia las variables
-const updateLanguage = (lang)=>{
-    setLocalStorageItem('language', lang); //Seteo en base al parametro el lenguaje
-    settedLanguage = lang;
-    isInSpanish = settedLanguage == 'esp';
+const updateLanguage = async (lang)=>{
+    const previousLanguageIDSelected = userLogged ? userLogged.payment_type_id : getLocalStorageItem('payment_type_id') || null;
+    isInSpanish = lang == 1; // 1 es esp
+    if(previousLanguageIDSelected == lang) return;
+    //Aca es para cambiar o bien en localStorage o en db el usuario
+    if(userLogged){        
+        //Aca hago un fetch a db para cambiar el payment_type_id del user
+        let response = await fetch(`/api/user/change-language/${userLogged.id}`, {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                payment_type_id: lang
+            }),
+          });
+    } else{
+        setLocalStorageItem('payment_type_id', lang); //Seteo en base al parametro el lenguaje
+    }
+    
 }
 
 export const translateProductCards = (container) => {

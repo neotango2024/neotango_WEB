@@ -3,7 +3,7 @@ const router = express.Router();
 import apiUserController from '../../controllers/api/apiUserController.js';
 import formValidations from '../../middlewares/formValidations.js';
 import upload from '../../middlewares/multerMiddleware.js';
-const {getUserOrders, getUserAddresses, handleCheckForUserLogged, createUser, updateUser, processLogin, generateNewEmailCode, checkForEmailCode} = apiUserController;
+const {handleChangeLanguage, getUserOrders, getUserAddresses, handleCheckForUserLogged, createUser, updateUser, processLogin, generateNewEmailCode, checkForEmailCode} = apiUserController;
 // Validators
 
 // GET
@@ -20,6 +20,7 @@ router.post('/check-verification-code', checkForEmailCode);
 
 // PUT
 router.put('/',formValidations.userUpdateFields, updateUser);
+router.put('/change-language/:userId', handleChangeLanguage);
 
 // DELETE
 
