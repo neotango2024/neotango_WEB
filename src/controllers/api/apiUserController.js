@@ -277,22 +277,10 @@ const controller = {
     try {
       const {body, params} = req;
       const { userId } = params;
-      const {language} = body;
-      const normalizedLanguage = language.toLowerCase().trim();
-      if(normalizedLanguage !== ENGLISH && normalizedLanguage !== SPANISH){
-        return res.status(500).json({
-          ok: false,
-          msg: 'Internal server error'
-        })
-      }
+      const {payment_type_id} = body;
       const user = await getUsersFromDB(userId);
-      if(!user){
-        return res.status(404).json({
-          ok: false,
-          msg: 'No user found'
-        })
-      }
-      const isSuccessUpdatingLanguage = await updateUserLanguageInDb(language, userId);
+      if(!user) return res.status(404).json({}); //Retorno error
+      const isSuccessUpdatingLanguage = await updateUserLanguageInDb(payment_type_id, userId);
       if(!isSuccessUpdatingLanguage){
         return res.status(500).json({
           ok: false,
@@ -300,12 +288,11 @@ const controller = {
         })
       }
       return res.status(200).json({
-        ok: true,
-        msg: 'Languaged updated successfully'
+        ok: true
       })
     } catch (error) {
       console.log(`Error changing language`);
-      console.log(error)
+      console.log(error);
       return res.status(500).json({
         ok: false,
         msg: 'Internal server error'
@@ -533,14 +520,15 @@ const sendContactEmail = async (email, name, message) => {
 
 }
 
-async function updateUserLanguageInDb(language, userId){
+async function updateUserLanguageInDb(paymentID, userId){
   try {
-    const rowsAffected = await User.update({preffered_language: language}, {
+    const rowsAffected = await db.User.update({payment_type_id: paymentID}, {
       where: { id: userId }
     })
     return rowsAffected > 0;
   } catch (error) {
     console.log(`Error updating user in db: ${error}`);
+    console.log(error);
     return false;
   }
 }

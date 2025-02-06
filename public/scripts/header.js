@@ -139,6 +139,7 @@ export const translateNavbar = () => {
     const linksContent = document.querySelectorAll('.page-link-item');
     linksContent.forEach((link) => {
         const isMobileShopItem = link.querySelector('.shop-mobile-span');
+        const settedLanguage = isInSpanish ? "es" : "en";
         if(isMobileShopItem){
             const mobileShopSpan = isMobileShopItem;
             const linkDataset = mobileShopSpan.dataset.translation;

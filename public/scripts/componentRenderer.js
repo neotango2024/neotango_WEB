@@ -542,7 +542,7 @@ export function form(props) {
   const form = document.createElement("form");
   form.action = formAction;
   form.method = method || "POST";
-  form.className = `custom-form ${formClasses}`;
+  form.className = `custom-form ${formClasses || ''}`;
   container.appendChild(form);
 
   inputProps.forEach((input) => {

@@ -1,5 +1,6 @@
 import zones from "../../utils/staticDB/zones.js";
 import db from "../../database/models/index.js";
+import minDecimalPlaces from "../../utils/helpers/minDecimalPlaces.js";
 const { ShippingZonePrice } = db;
 
 const controller = {
@@ -10,8 +11,8 @@ const controller = {
                 const zonePrice = shippingZonesPrices.find(zonePrice => zonePrice.zone_id === zone.id);
                 if(!zonePrice)return
                 zone.price = {
-                    usd_price: zonePrice.usd_price,
-                    ars_price: zonePrice.ars_price
+                    usd_price: minDecimalPlaces(zonePrice.usd_price),
+                    ars_price: minDecimalPlaces(zonePrice.ars_price)
                 }
             })
             return res.status(200).json({
