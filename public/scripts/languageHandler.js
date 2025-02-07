@@ -1,7 +1,7 @@
 import { paintUserIconOrLetter, translateNavbar, translateUserLoggedModal } from "./header.js";
 import { handleTranslateFeatureProducts, translateCompanyInfo } from "./index.js";
 import {setLocalStorageItem, getLocalStorageItem} from './localStorage.js';
-import { userLogged } from "./checkForUserLogged.js";
+import { checkForUserLogged, userLogged } from "./checkForUserLogged.js";
 import { productsFromDB, toggleBodyScrollableBehavior, toggleOverlay } from './utils.js';
 import { cartExportObj } from "./cart.js";
 import { productDetailExportObj } from "./productDetail.js";
@@ -12,7 +12,8 @@ import { translateAboutUsContent } from "./aboutUs.js";
 export let settedLanguage = null;
 export let isInSpanish = true;
 
-window.addEventListener('DOMContentLoaded', () => {
+window.addEventListener('DOMContentLoaded', async () => {
+    await checkForUserLogged();
     checkForLanguageClick();
     checkForLanguageSelection();
     decideLanguageInsertion();
@@ -63,7 +64,7 @@ const decideLanguageInsertion = () => {
 };
 
 //Agarra los src de las imagenes del modal
-const handleChangeLanguage = async(param) => { //param es 1/2
+const handleChangeLanguage = async(param) => { //param es 1/2    
     updateLanguage(param); //Updateo tanto en localStorage como en la variable que se comparte 
     //Agarro las banderas del modal
     const modalImgs = document.querySelectorAll('.modal-flag-container img');
@@ -99,7 +100,7 @@ const handleChangeLanguage = async(param) => { //param es 1/2
             break
         case 'profile':
             userProfileExportObj.pageConstructor && userProfileExportObj.pageConstructor();
-            translateUserLabels();
+            // translateUserLabels();
            break
         case "aboutUs":
             translateAboutUsContent();

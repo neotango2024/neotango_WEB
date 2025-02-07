@@ -24,7 +24,7 @@ import ordersStatuses from "../../utils/staticDB/ordersStatuses.js";
 import { getUserAddressesFromDB } from "./apiAddressController.js";
 import getFileType from "../../utils/helpers/getFileType.js";
 import { destroyFilesFromAWS, getFilesFromAWS, uploadFilesToAWS } from "../../utils/helpers/awsHandler.js";
-import { ENGLISH, SPANISH } from "../../utils/staticDB/languages.js";
+
 import { getMappedErrors } from "../../utils/helpers/getMappedErrors.js";
 import { getOrdersFromDB } from "./apiOrderController.js";
 import { findProductsInDb } from "./apiProductController.js";

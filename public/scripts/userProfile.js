@@ -1,4 +1,4 @@
-import { userLogged } from "./checkForUserLogged.js";
+import { checkForUserLogged, userLogged } from "./checkForUserLogged.js";
 import {
   addressCard,
   button,
@@ -130,6 +130,7 @@ window.addEventListener("load", async () => {
   }
   //Construye el menu
   function menuBtnConstructor() {
+    
     const userProps = {
       type: typeOfPanel, // User panel
       items: [
@@ -163,17 +164,17 @@ window.addEventListener("load", async () => {
         {
           itemType: "sales", // Identificador
           itemLogo: "bx bx-money-withdraw", // Clase CSS para el ícono
-          itemLabel: "Ventas", // Texto del tooltip
+          itemLabel: isInSpanish ? "Ventas" : "Sales", // Texto del tooltip
         },
         {
           itemType: "products", // Identificador
           itemLogo: "bx bxs-tag", // Clase CSS para el ícono
-          itemLabel: "Productos", // Texto del tooltip
+          itemLabel: isInSpanish ?  "Productos" : "Products", // Texto del tooltip
         },
         {
           itemType: "shipping", // Identificador
           itemLogo: "bx bxs-truck", // Clase CSS para el ícono
-          itemLabel: "Envíos", // Texto del tooltip
+          itemLabel: isInSpanish ?  "Envíos" : "Shippings", // Texto del tooltip
         },
       ],
       actualIndexSelected: activeIndexSelected, //Esto basicamente es para saber cual item renderizar activo
@@ -858,7 +859,7 @@ const listenForZoneFormSubmit = (form) => {
 export const translateUserLabels = () => {
   const { user_role_id } = userLogged;
   if (user_role_id === 2) {
-    const lang = isInSpanish ? "esp" : "eng";
+    const lang = isInSpanish ? "es" : "en";
     const items = document.querySelectorAll(".item");
     items.forEach((item) => {
       if (item.dataset.label) {

@@ -64,6 +64,14 @@ app.use('/',mainRouter);
 app.use('/user',userRouter);
 const PORT = process.env.PORT || 3500;
 
+
+//404
+app.use((req, res, next) => {
+    res.status(404);
+    return res.redirect('/')
+  });
+
+  
 app.listen(PORT,()=>{
     console.log(" 🚀 Se levanto proyecto en puerto "+PORT)
 })

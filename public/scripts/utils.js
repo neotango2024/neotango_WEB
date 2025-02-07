@@ -1072,3 +1072,7 @@ export function handleInputFileFromModal({ show }) {
 export function getDeepCopy(arg) {
   return JSON.parse(JSON.stringify(arg));
 }
+
+export function removeIndexesFromArray(arr, indexesToRemove) {
+  return arr.filter((_, index) => !indexesToRemove.includes(index));
+}

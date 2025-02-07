@@ -14,7 +14,7 @@ window.addEventListener('load', () => {
 
 
 export const translateAboutUsContent = () => {
-    const language = isInSpanish ? 'esp' : 'eng';
+    const language = isInSpanish ? 'es' : 'en';
     const h1Element = document.querySelector('.page-title');
     h1Element.textContent = aboutUs.title[language];
     const firstDescription = document.querySelector('.first-description');
