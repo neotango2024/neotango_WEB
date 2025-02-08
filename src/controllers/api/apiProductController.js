@@ -13,6 +13,7 @@ import tacos from '../../utils/staticDB/tacos.js';
 import sizes from '../../utils/staticDB/sizes.js';
 import {categories} from '../../utils/staticDB/categories.js';
 import minDecimalPlaces from '../../utils/helpers/minDecimalPlaces.js';
+import { HTTP_STATUS } from '../../utils/staticDB/httpStatusCodes.js';
 
 const {productMsg} = systemMessages;
 const { fetchFailed, notFound, fetchSuccessfull, createFailed, updateFailed, deleteSuccess, createSuccessfull, deleteFailed } = productMsg;
@@ -29,7 +30,7 @@ const controller = {
             if(productId){
                 const foundProduct = await findProductsInDb(productId,null,true, null, null);
                 if(!foundProduct){
-                    return res.status(404).json({
+                    return res.status(HTTP_STATUS.NOT_FOUND.code).json({
                         ok: false,
                         msg: notFound,
                         data: []
@@ -43,7 +44,7 @@ const controller = {
             } else {
                 const productsFetched = await findProductsInDb(null,categoryId,true, limit, offset);                
                 if (!productsFetched.length){
-                    return res.status(500).json({
+                    return res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR.code).json({
                         ok: false,
                         msg: fetchFailed.es,
                         data: []
@@ -51,14 +52,14 @@ const controller = {
                 }
                 products = productsFetched;           
             }
-            return res.status(200).json({
+            return res.status(HTTP_STATUS.OK.code).json({
                 ok: true,
                 data: products
             })
         } catch (error) {
             console.log(`error in handleGetAllProducts:`);
             console.log(error);
-            return res.status(500).json({
+            return res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR.code).json({
                 ok: false,
                 msg: fetchFailed.en
             })
@@ -69,7 +70,7 @@ const controller = {
             const errors = validationResult(req);
             if(!errors.isEmpty()){
                 let {errorsParams,errorsMapped} = getMappedErrors(errors);
-                return res.status(404).json({
+                return res.status(HTTP_STATUS.BAD_REQUEST.code).json({
                     ok: false,
                     msg: createFailed.es,
                     errors: errorsMapped,
@@ -79,7 +80,7 @@ const controller = {
             const body = req.body;
             const [isCreated, newProductId] = await insertProductInDb(body);
             if(!isCreated){
-                return res.status(500).json({
+                return res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR.code).json({
                     ok: false,
                     msg: createFailed.es
                 });
@@ -91,7 +92,7 @@ const controller = {
             filesFromArray = JSON.parse(req.body.filesFromArray);
             const isCreatingVariationsSuccessful = await insertVariationsInDb(variations, newProductId);
             if(!isCreatingVariationsSuccessful){
-                return res.status(500).json({
+                return res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR.code).json({
                     ok: false,
                     msg: createFailed.es
                 });
@@ -110,14 +111,14 @@ const controller = {
                 }
                 const filesToInsertInDb = await uploadFilesToAWS(objectToUpload);
                 if(!filesToInsertInDb){
-                    return res.status(500).json({
+                    return res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR.code).json({
                         ok: false,
                         msg: createFailed.es
                     });
                 }
                 const isInsertingFilesSuccessful = await insertFilesInDb(filesToInsertInDb, newProductId);
                 if(!isInsertingFilesSuccessful){
-                    return res.status(500).json({
+                    return res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR.code).json({
                         ok: false,
                         msg: createFailed.es
                     });
@@ -125,14 +126,14 @@ const controller = {
             }
             
             let productToReturn = await findProductsInDb(newProductId,null,true)
-            return res.status(200).json({
+            return res.status(HTTP_STATUS.OK.code).json({
                 ok: true,
                 msg: createSuccessfull.en,
                 product: productToReturn
             })
         } catch (error) {
             console.log(`Error in handleCreateProduct: ${error}`);
-            return res.status(500).json({
+            return res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR.code).json({
                 ok: false,
                 msg: createFailed.es
             });
@@ -143,9 +144,9 @@ const controller = {
         
         const errors = validationResult(req);
         if(!errors.isEmpty()){
-            return res.status(404).json({
+            return res.status(HTTP_STATUS.BAD_REQUEST.code).json({
                 ok: false,
-                msg: createFailed,
+                msg: updateFailed,
                 errors: errors.mapped()
             })
         }
@@ -154,7 +155,7 @@ const controller = {
         
         const isUpdateSuccessful = await updateProductInDb(body, productId);
         if(!isUpdateSuccessful){
-            return res.status(500).json({
+            return res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR.code).json({
                 ok: false,
                 msg: updateFailed.en
             })
@@ -170,7 +171,7 @@ const controller = {
         const promisesResult = await Promise.all(deleteVariationsPromises);
         const areAllVariationsDeleted = promisesResult.every(prom => prom === true);
         if(!areAllVariationsDeleted){
-            return res.status(500).json({
+            return res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR.code).json({
                 ok: false,
                 msg: createFailed.es
             });
@@ -178,7 +179,7 @@ const controller = {
         const variationsToAdd = getVariationsToAdd(variations, variationsInDb,productId);
         const isInsertingVariationsSuccessful = await insertVariationsInDb(variationsToAdd, productId);
         if(!isInsertingVariationsSuccessful){
-            return res.status(500).json({
+            return res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR.code).json({
                 ok: false,
                 msg: updateFailed.es
             });
@@ -210,7 +211,7 @@ const controller = {
         }
         const isDeletionInAwsSuccessful = await destroyFilesFromAWS(objectToDestroyInAws);
         if(!isDeletionInAwsSuccessful){
-            return res.status(500).json({
+            return res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR.code).json({
                 ok: false,
                 msg: updateFailed.es
             });
@@ -223,7 +224,7 @@ const controller = {
         const results = await Promise.all(deleteImagesPromises);
         const isAllDeleted = results.every(res => res === true);
         if(!isAllDeleted){
-            return res.status(500).json({
+            return res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR.code).json({
                 ok: false,
                 msg: updateFailed.en
             })
@@ -252,7 +253,7 @@ const controller = {
             ]
 
             if(!filesToInsertInDb){
-                return res.status(500).json({
+                return res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR.code).json({
                     ok: false,
                     msg: createFailed.es
                 });
@@ -261,13 +262,13 @@ const controller = {
         }
         const isInsertingFilesSuccessful = await insertFilesInDb(normalizedFilesToUpdateInDb, productId);
             if(!isInsertingFilesSuccessful){
-                return res.status(500).json({
+                return res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR.code).json({
                     ok: false,
                     msg: createFailed.es
                 });
             };
         let productToReturn = await findProductsInDb(productId,null,true)
-        return res.status(200).json({
+        return res.status(HTTP_STATUS.OK.code).json({
             ok: true,
             product: productToReturn,
             msg: systemMessages.productMsg.updateSuccessfull
@@ -277,19 +278,19 @@ const controller = {
         try {
             const productId = req.params.productId;
             if(!productId){
-                return res.status(500).json({
+                return res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR.code).json({
                     ok: false,
                     msg: deleteFailed.es
                 })
             }
             const isDeletedSuccessfully = await deleteProductInDb(productId);
             if(!isDeletedSuccessfully){
-                return res.status(500).json({
+                return res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR.code).json({
                     ok: false,
                     msg: deleteFailed.es
                 })
             }
-            return res.status(200).json({
+            return res.status(HTTP_STATUS.OK.code).json({
                 ok: true,
                 msg: deleteSuccess,
                 data: productId
@@ -297,7 +298,7 @@ const controller = {
         } catch (error) {
             console.log(`Error handling product deletion: ${error}`);
             console.log(error);
-            return res.status(500).json({
+            return res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR.code).json({
                 ok: false,
                 msg: deleteFailed.es
             })

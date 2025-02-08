@@ -28,6 +28,7 @@ import { destroyFilesFromAWS, getFilesFromAWS, uploadFilesToAWS } from "../../ut
 import { getMappedErrors } from "../../utils/helpers/getMappedErrors.js";
 import { getOrdersFromDB } from "./apiOrderController.js";
 import { findProductsInDb } from "./apiProductController.js";
+import { HTTP_STATUS } from "../../utils/staticDB/httpStatusCodes.js";
 
 const { verify } = jwt;
 
@@ -45,9 +46,9 @@ const controller = {
         //Si hay errores en el back...
         //Para saber los parametros que llegaron..
         let {errorsParams,errorsMapped} = getMappedErrors(errors);
-        return res.status(422).json({
+        return res.status(HTTP_STATUS.BAD_REQUEST.code).json({
             meta: {
-                status: 422,
+                status: HTTP_STATUS.BAD_REQUEST.code,
                 url: '/api/user',
                 method: "POST"
             },
@@ -77,9 +78,7 @@ const controller = {
       };
       const userCreated = await insertUserToDB(userDataToDB); //Creo el usuario
       let emailResponse = await generateAndInstertEmailCode(userDataToDB);
-      if(!emailResponse) return res.status(500).json({});
-      //return res.status(201).json({ userDataToDB });
-      
+      if(!emailResponse) return res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR.code).json({});
       // Lo tengo que loggear directamente
       const cookieTime = 1000 * 60 * 60 * 24 * 7; //1 Semana
 
@@ -93,27 +92,26 @@ const controller = {
         secure: process.env.NODE_ENV == "production",
         sameSite: "strict",
       });
-      console.log(req.cookies.userAccessToken)
       // Le  mando ok con el redirect al email verification view
-      return res.status(201).json({
+      return res.status(HTTP_STATUS.CREATED.code).json({
         meta: {
-          status: 201,
+          status: HTTP_STATUS.CREATED.code,
           url: "/api/user",
           method: "POST",
         },
         ok: true,
-        msg: systemMessages.userMsg.createSuccesfull.es, //TODO: ver tema idioma
+        msg: systemMessages.userMsg.createSuccesfull,
         redirect: "/",
       });
     } catch (error) {
       console.log(`Falle en apiUserController.createUser`);
       console.log(error);
-      return res.status(500).json({ error });
+      return res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR.code).json({ error });
     }
   },
   updateUser: async (req, res) => {
     try {
-      // Traigo errores
+      // Traigo errores TODO:
       // let errors = validationResult(req);
 
       // if (!errors.isEmpty()) {
@@ -122,9 +120,9 @@ const controller = {
 
       //   // Ver como definir los errors
       //   // return res.send(errors)
-      //   return res.status(422).json({
+      //   return res.status(HTTP_STATUS.BAD_REQUEST.code).json({
       //       meta: {
-      //           status: 422,
+      //           status: HTTP_STATUS.BAD_REQUEST.code,
       //           url: '/api/user',
       //           method: "POST"
       //       },
@@ -154,9 +152,9 @@ const controller = {
       await updateUserFromDB(keysToUpdate,user_id);
 
       // Le  mando ok con el redirect al email verification view
-      return res.status(200).json({
+      return res.status(HTTP_STATUS.OK.code).json({
         meta: {
-          status: 200,
+          status: HTTP_STATUS.OK.code,
           url: "/api/user",
           method: "PUT",
         },
@@ -166,7 +164,7 @@ const controller = {
     } catch (error) {
       console.log(`Falle en apiUserController.updateUser`);
       console.log(error);
-      return res.status(500).json({ error });
+      return res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR.code).json({ error });
     }
   },
   destroyUser: async (req, res) => {
@@ -181,9 +179,9 @@ const controller = {
       // Borro cookie y session
       res.clearCookie("userAccessToken");
       delete req.session.userLoggedId;
-      return res.status(200).json({
+      return res.status(HTTP_STATUS.OK.code).json({
         meta: {
-          status: 201,
+          status: HTTP_STATUS.OK.code,
           url: "/api/user",
           method: "DELETE",
         },
@@ -194,7 +192,7 @@ const controller = {
     } catch (error) {
       console.log(`Falle en apiUserController.destroyUser`);
       console.log(error);
-      return res.status(500).json({ error });
+      return res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR.code).json({ error });
     }
   },
   getUserOrders: async (req, res) => {
@@ -217,9 +215,9 @@ const controller = {
       })
       });
 
-      return res.status(200).json({
+      return res.status(HTTP_STATUS.OK.code).json({
         meta: {
-          status: 200,
+          status: HTTP_STATUS.OK.code,
           url: "/api/user/order",
           method: "GET",
         },
@@ -229,16 +227,16 @@ const controller = {
     } catch (error) {
       console.log(`Falle en apiUserController.getUserOrders`);
       console.log(error);
-      return res.status(500).json({ error });
+      return res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR.code).json({ error });
     }
   },
   getUserAddresses: async(req,res) =>{
     try {
       let { userLoggedId } = req.session;
       let userAddresses = await getUserAddressesFromDB(userLoggedId);
-      return res.status(200).json({
+      return res.status(HTTP_STATUS.OK.code).json({
         meta: {
-          status: 200,
+          status: HTTP_STATUS.OK.code,
           url: "/api/user/address",
           method: "GET",
         },
@@ -248,7 +246,7 @@ const controller = {
     } catch (error) {
       console.log(`Falle en apiUserController.getUserAddresses`);
       console.log(error);
-      return res.status(500).json({ error });
+      return res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR.code).json({ error });
     }
   },
   generateNewEmailCode: async (req, res) => {
@@ -261,7 +259,7 @@ const controller = {
       .json({ ok: false, msg: systemMessages.generalMsg.failed.es });
       //Aca lo encontro, genero el codigo
       await generateAndInstertEmailCode(userFromDB);
-      return res.status(200).json({
+      return res.status(HTTP_STATUS.OK.code).json({
         ok: true,
         msg: systemMessages.userMsg.verificationCodeSuccess,
       });
@@ -276,21 +274,21 @@ const controller = {
       const { userId } = params;
       const {payment_type_id} = body;
       const user = await getUsersFromDB(userId);
-      if(!user) return res.status(404).json({}); //Retorno error
+      if(!user) return res.status(HTTP_STATUS.NOT_FOUND.code).json({}); //Retorno error
       const isSuccessUpdatingLanguage = await updateUserLanguageInDb(payment_type_id, userId);
       if(!isSuccessUpdatingLanguage){
-        return res.status(500).json({
+        return res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR.code).json({
           ok: false,
           msg: 'Internal server error'
         })
       }
-      return res.status(200).json({
+      return res.status(HTTP_STATUS.OK.code).json({
         ok: true
       })
     } catch (error) {
       console.log(`Error changing language`);
       console.log(error);
-      return res.status(500).json({
+      return res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR.code).json({
         ok: false,
         msg: 'Internal server error'
       })
@@ -300,7 +298,7 @@ const controller = {
     try {
       const token = req.cookies.userAccessToken;
       if(!token){
-        return res.status(200).json({
+        return res.status(HTTP_STATUS.OK.code).json({
           ok: true,
           data: null
         })
@@ -308,20 +306,20 @@ const controller = {
       const decoded = verify(token,webTokenSecret);
       const user = await getUsersFromDB(decoded.id);
       if(!user) {
-        return res.status(500).json({
+        return res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR.code).json({
           ok: false,
           data: null,
           msg: 'User not found'
         })
       }
       deleteSensitiveUserData(user);
-      return res.status(200).json({
+      return res.status(HTTP_STATUS.OK.code).json({
         ok: true,
         data: user
       })
     } catch (error) {
       console.log(`error fetching user logged: ${error}`);
-      return res.status(500).json({
+      return res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR.code).json({
         ok: false,
         data: {
           isLogged: false
@@ -335,20 +333,20 @@ const controller = {
       let { code, user_id } = req.body;
       code = JSON.parse(code);
       let user = await getUsersFromDB(user_id)
-      if (!user) return res.status(404).json();
+      if (!user) return res.status(HTTP_STATUS.NOT_FOUND.code).json();
       // Primero me fijo que el expiration time este bien
       const codeExpirationTime = new Date(user.expiration_time);
       const currentTime = new Date();
       // Este if quiere decir que se vencio
       if (currentTime > codeExpirationTime) {
-        return res.status(200).json({
+        return res.status(HTTP_STATUS.OK.code).json({
           ok: false,
           msg: "El codigo ha vencido, solicita otro e intente nuevamente",
         });
       }
       // Aca el tiempo es correcto ==> Chequeo codigo
       if (code != user.verification_code) {
-        return res.status(200).json({
+        return res.status(HTTP_STATUS.OK.code).json({
           ok: false,
           msg: systemMessages.userMsg.userVerifiedFail, 
         });
@@ -367,17 +365,17 @@ const controller = {
           verified_email: false
         }
       })
-      if(!response) return res.status(500).json({
+      if(!response) return res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR.code).json({
         ok: false,
         msg: 'Internal server error' //TODO: IDIOMA
       })
-      return res.status(200).json({
+      return res.status(HTTP_STATUS.OK.code).json({
         ok: true,
         msg: systemMessages.userMsg.userVerifiedSuccess, 
       });
     } catch (error) {
       console.log(error);
-      return res.status(500).json({
+      return res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR.code).json({
         ok: false,
         msg: 'Internal server error'
       })
@@ -423,9 +421,9 @@ const controller = {
               sameSite: "strict",
             });
           }
-          return res.status(200).json({
+          return res.status(HTTP_STATUS.OK.code).json({
             meta:{
-              status: 200, 
+              status: HTTP_STATUS.OK.code, 
               method: "POST", 
               url: 'api/user/login'
             },
@@ -441,9 +439,9 @@ const controller = {
         
       }
       // Si llego aca es porque esta mal el email o password
-      return res.status(200).json({
+      return res.status(HTTP_STATUS.OK.code).json({
         meta:{
-          status: 200, 
+          status: HTTP_STATUS.OK.code, 
           method: "POST", 
           url: 'api/user/login'
         },
@@ -455,7 +453,7 @@ const controller = {
       });
     } catch (error) {
       console.log(`Error in processLogin`);
-      return res.status(500).json({
+      return res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR.code).json({
         ok: false,
         msg: 'Internal server error'
       })

@@ -1,6 +1,7 @@
 
 import jwt from "jsonwebtoken";
 import { getUsersFromDB } from "../controllers/api/apiUserController.js";
+import { HTTP_STATUS } from "../utils/staticDB/httpStatusCodes.js";
 
 const webTokenSecret = process.env.JSONWEBTOKEN_SECRET;
 
@@ -29,7 +30,7 @@ const adminCredentialsMiddleware = async (req, res, next) => {
                 if (!decodedUserToken.id) {
                     console.warn("Invalid user token structure");
                     res.clearCookie("userAccessToken"); // Si el token no tiene el ID, limpiarlo
-                    return res.status(403).json({ error: "Session expired, please log in again" });
+                    return res.status(HTTP_STATUS.UNAUTHORIZED.code).json({ msg: "Problem processing credentials, please log in again" });
                 }
 
                 // Consultar en la base de datos si es admin
@@ -38,7 +39,7 @@ const adminCredentialsMiddleware = async (req, res, next) => {
                 if (!userFromDB) {
                     console.warn("User not found in database");
                     res.clearCookie("userAccessToken"); // Limpiar cookie si el usuario no existe
-                    return res.status(403).json({ error: "Session expired, please log in again" });
+                    return res.status(HTTP_STATUS.UNAUTHORIZED.code).json({ msg: "Problem processing credentials, please log in again" });
                 }
 
                 // Si es admin, regenerar la cookie adminAuth
@@ -61,11 +62,11 @@ const adminCredentialsMiddleware = async (req, res, next) => {
         }
 
         // 3️⃣ Si no hay credenciales válidas, rechazar la solicitud
-        return res.status(403).json({ error: "Problem processing credentials, please log in again" });
+        return res.status(HTTP_STATUS.UNAUTHORIZED.code).json({ msg: "Problem processing credentials, please log in again" });
 
     } catch (error) {
         console.error("Unexpected error in admin middleware:", error);
-        return res.status(500).json({ error: "Internal server error" });
+        return res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR.code).json({ msg: "Internal server error" });
     }
 };
 

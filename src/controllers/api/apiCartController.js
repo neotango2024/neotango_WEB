@@ -8,6 +8,7 @@ import { findVariationsById } from "../api/apiVariationsController.js";
 import { v4 as UUIDV4 } from "uuid";
 import { Op } from "sequelize";
 import getDeepCopy from "../../utils/helpers/getDeepCopy.js";
+import { HTTP_STATUS } from "../../utils/staticDB/httpStatusCodes.js";
 const { TempCartItem } = db;
 
 const controller = {
@@ -15,7 +16,7 @@ const controller = {
     try {
       const userId = req.params.userId;
       if (!userId) {
-        return res.status(400).json({
+        return res.status(HTTP_STATUS.BAD_REQUEST.code).json({
           ok: false,
           msg: "No user id was provided",
           data: null,
@@ -23,7 +24,7 @@ const controller = {
       }
       const tempCartItems = await findTempCartItemsByUserId(userId);
       if (!tempCartItems) {
-        return res.status(500).json({
+        return res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR.code).json({
           ok: false,
           msg: "Internal server error",
           data: null,
@@ -34,14 +35,14 @@ const controller = {
         tempItem.size = populateSize(size_id);
         tempItem.taco = populateTaco(taco_id);
       });
-      return res.status(200).json({
+      return res.status(HTTP_STATUS.OK.code).json({
         ok: true,
         msg: "Successfully fetched cart",
         data: tempCartItems,
       });
     } catch (error) {
       console.log(`Error obtaining cart: ${error}`);
-      return res.status(500).json({
+      return res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR.code).json({
         ok: false,
         msg: "Internal server error",
         data: null,
@@ -53,7 +54,7 @@ const controller = {
       const userId = req.params.userId;
 
       if (!userId) {
-        return res.status(400).json({
+        return res.status(HTTP_STATUS.BAD_REQUEST.code).json({
           ok: false,
           msg: "No user id was provided",
           data: null,
@@ -65,7 +66,7 @@ const controller = {
       const [productExists, product] = await findProductsInDb(productId);
       if (!productExists || !product) {
         console.log("failed to fetched product");
-        return res.status(500).json({
+        return res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR.code).json({
           ok: false,
           msg: "Internal server error",
           data: null,
@@ -75,7 +76,7 @@ const controller = {
       const variationExists = await findVariationsById(variation_id);
       if (!variationExists) {
         console.log("variation not found");
-        return res.status(500).json({
+        return res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR.code).json({
           ok: false,
           msg: "Internal server error",
           data: null,
@@ -84,19 +85,19 @@ const controller = {
       const isCartItemCreated = await createCartItemInDb(body, userId);
       if (!isCartItemCreated) {
         console.log("failing creating item");
-        return res.status(500).json({
+        return res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR.code).json({
           ok: false,
           msg: "Internal server error",
           data: null,
         });
       }
-      return res.status(200).json({
+      return res.status(HTTP_STATUS.OK.code).json({
         ok: true,
         msg: "Succesfully added item to cart",
       });
     } catch (error) {
       console.log(`error creating cart item: ${error}`);
-      return res.status(500).json({
+      return res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR.code).json({
         ok: false,
         msg: "Internal server error",
         data: null,
@@ -107,19 +108,19 @@ const controller = {
     try {
       const cartItemId = req.params.cartItemId;
       if (!cartItemId) {
-        return res.status(500).json({
+        return res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR.code).json({
           msg: "Internal server error",
           ok: false,
         });
       }
       const isDeleted = await deleteCartItemInDb(cartItemId);
       if (!isDeleted) {
-        return res.status(500).json({
+        return res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR.code).json({
           msg: "Internal server error",
           ok: false,
         });
       }
-      return res.status(200).json({
+      return res.status(HTTP_STATUS.OK.code).json({
         msg: "Succesfully deleted item",
         ok: true,
       });
@@ -127,7 +128,7 @@ const controller = {
       console.log(`Error deleting cart item`);
       console.log(error);
 
-      return res.status(500).json({
+      return res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR.code).json({
         msg: "Internal server error",
         ok: false,
       });
@@ -177,14 +178,14 @@ const controller = {
       await db.TempCartItem.bulkCreate(tempCartItems, {
         updateOnDuplicate: ["quantity"],
       });
-      return res.status(200).json({
+      return res.status(HTTP_STATUS.OK.code).json({
         ok: true,
         updatedCardItems: tempCartItems,
       });
     } catch (error) {
       console.log(`Error updating cart`);
       console.log(error);
-      return res.status(500).json({
+      return res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR.code).json({
         msg: "Internal server error",
         ok: false,
       });

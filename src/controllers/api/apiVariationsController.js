@@ -7,6 +7,7 @@ import sizes from '../../utils/staticDB/sizes.js';
 import tacos from '../../utils/staticDB/tacos.js';
 import { findProductsInDb } from './apiProductController.js';
 import getDeepCopy from '../../utils/helpers/getDeepCopy.js';
+import { HTTP_STATUS } from '../../utils/staticDB/httpStatusCodes.js';
 const {Variation } = db;
 
 const controller = {
@@ -14,25 +15,25 @@ const controller = {
         try {
             const {variationId} = req.query;
             if(!variationId){
-                return res.status(500).json({
+                return res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR.code).json({
                     ok: false,
                     msg: 'No variation id was provided'
                 })
             }
             const variations = await findVariationsById(variationId);
             if(!variations){
-                return res.status(404).json({
+                return res.status(HTTP_STATUS.NOT_FOUND.code).json({
                     ok: false,
                     msg: 'Variation not found'
                 })
             }
-            return res.status(200).json({
+            return res.status(HTTP_STATUS.OK.code).json({
                 ok: true,
                 data: variations
             })
         } catch (error) {
             console.log(`Error in handleGetVariations: ${error}`);
-            return res.status(500).json({
+            return res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR.code).json({
                 ok: false,
                 msg: 'Internal server error'
             })
@@ -43,7 +44,7 @@ const controller = {
             const {productId} = req.params;
             const productExists = await findProductsInDb(productId);
             if(!productExists){
-                return res.status(404).json({
+                return res.status(HTTP_STATUS.NOT_FOUND.code).json({
                     ok: false,
                     msg: 'Product was not found'
                 })
@@ -51,18 +52,18 @@ const controller = {
             const {variations} = req.body;
             const isSuccessfulInsertingVariation = insertVariationsInDb(variations, productId);
             if(!isSuccessfulInsertingVariation){
-                return res.status(500).json({
+                return res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR.code).json({
                     ok: false,
                     msg: 'Internal server error'
                 })
             }
-            return res.status(200).json({
+            return res.status(HTTP_STATUS.OK.code).json({
                 ok: true,
                 msg: 'Successfully created the variations'
             })
         } catch (error) {
             console.log(`error in handleCreateVariation: ${error}`);
-            return res.status(500).json({
+            return res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR.code).json({
                 ok: false,
                 msg: 'Internal server error'
             })
@@ -74,18 +75,18 @@ const controller = {
             const { quantity } = req.body;
             const successfulUpdating = await updateVariationInDb(variationId, quantity);
             if(successfulUpdating){
-                return res.status(500).json({
+                return res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR.code).json({
                     ok: false,
                     msg: 'Internal server error'
                 })
             }
-            return res.status(200).json({
+            return res.status(HTTP_STATUS.OK.code).json({
                 ok: true,
                 msg: 'Successfully updated variation'
             })
         } catch (error) {
             console.log(`error in update variation: ${error}`);
-            return res.status(200).json({
+            return res.status(HTTP_STATUS.OK.code).json({
                 ok: false,
                 msg: 'Internal server error'
             })
@@ -106,13 +107,13 @@ const controller = {
             })
             const results = await Promise.all(deletePromises); 
             const areAllPromisesSuccessfull = results.every(res => res === true);
-            return res.status(200).json({
+            return res.status(HTTP_STATUS.OK.code).json({
                 ok: true,
                 msg: `${areAllPromisesSuccessfull ? 'All variations were deleted' : 'Some variations where deleted'}`
             })
         } catch (error) {
             console.log('error deleting variation ' + error);
-            return res.status(500).json({
+            return res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR.code).json({
                 ok: false,
                 msg: 'Internal server error'
             })

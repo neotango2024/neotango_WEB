@@ -20,6 +20,7 @@ import getDeepCopy from "../../utils/helpers/getDeepCopy.js";
 import countries from "../../utils/staticDB/countries.js";
 
 import { getMappedErrors } from "../../utils/helpers/getMappedErrors.js";
+import { HTTP_STATUS } from "../../utils/staticDB/httpStatusCodes.js";
 
 // ENV
 
@@ -31,9 +32,9 @@ const controller = {
 
       if (!errors.isEmpty()) {
         let { errorsParams, errorsMapped } = getMappedErrors(errors);
-        return res.status(422).json({
+        return res.status(HTTP_STATUS.BAD_REQUEST.code).json({
           meta: {
-            status: 422,
+            status: HTTP_STATUS.BAD_REQUEST.code,
             url: "/api/phone",
             method: "POST",
           },
@@ -59,12 +60,12 @@ const controller = {
       }
       let createdPhone = getDeepCopy(await insertPhoneToDB(phoneObjToDB));
 
-      if (!createdPhone) return res.status(502).json();
+      if (!createdPhone) return res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR.code).json({msg: systemMessages.phoneMsg.createFailed});
       createdPhone.country = countries.find(country=> country.id == createdPhone.country_id);
       // Le  mando ok con el redirect al email verification view
-      return res.status(201).json({
+      return res.status(HTTP_STATUS.CREATED.code).json({
         meta: {
-          status: 201,
+          status: HTTP_STATUS.CREATED.code,
           url: "/api/phone",
           method: "POST",
         },
@@ -75,7 +76,7 @@ const controller = {
     } catch (error) {
       console.log(`Falle en apiPhoneController.createPhone`);
       console.log(error);
-      return res.status(500).json({ error });
+      return res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR.code).json({ error });
     }
   },
   updatePhone: async (req, res) => {
@@ -85,9 +86,9 @@ const controller = {
       if (!errors.isEmpty()) {
         // Traigo errores
         let { errorsParams, errorsMapped } = getMappedErrors(errors);
-        return res.status(422).json({
+        return res.status(HTTP_STATUS.BAD_REQUEST.code).json({
           meta: {
-            status: 422,
+            status: HTTP_STATUS.BAD_REQUEST.code,
             url: "/api/user",
             method: "PUT",
           },
@@ -122,9 +123,9 @@ const controller = {
       await updatePhoneFromDB(keysToUpdate, id);
       let updatedPhone = getPhonesFromDB(id)
       // Le  mando ok con el redirect al email verification view
-      return res.status(200).json({
+      return res.status(HTTP_STATUS.OK.code).json({
         meta: {
-          status: 200,
+          status: HTTP_STATUS.OK.code,
           url: "/api/phone",
           method: "PUT",
           redirect: "/user/phone",
@@ -136,7 +137,7 @@ const controller = {
     } catch (error) {
       console.log(`Falle en apiPhoneController.updatePhone`);
       console.log(error);
-      return res.status(500).json({ error });
+      return res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR.code).json({ error });
     }
   },
   destroyPhone: async (req, res) => {
@@ -144,10 +145,10 @@ const controller = {
       let { phone_id } = req.body;
       // Lo borro de db
       let response = destroyPhoneFromDB(phone_id);
-      if (!response) return res.status(502).json();
-      return res.status(200).json({
+      if (!response) return res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR.code).json({msg: systemMessages.phoneMsg.destroyFailed});
+      return res.status(HTTP_STATUS.OK.code).json({
         meta: {
-          status: 201,
+          status: HTTP_STATUS.OK.code,
           url: "/api/phone",
           method: "DELETE",
         },
@@ -158,7 +159,7 @@ const controller = {
     } catch (error) {
       console.log(`Falle en apiPhoneController.destroyPhone`);
       console.log(error);
-      return res.status(500).json({ error });
+      return res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR.code).json({ error });
     }
   },
 };

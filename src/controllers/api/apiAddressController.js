@@ -20,6 +20,7 @@ import getDeepCopy from "../../utils/helpers/getDeepCopy.js";
 import countries from "../../utils/staticDB/countries.js";
 
 import { getMappedErrors } from "../../utils/helpers/getMappedErrors.js";
+import { HTTP_STATUS } from "../../utils/staticDB/httpStatusCodes.js";
 
 // ENV
 
@@ -31,9 +32,9 @@ const controller = {
 
       if (!errors.isEmpty()) {
         let {errorsParams,errorsMapped} = getMappedErrors(errors);
-        return res.status(422).json({
+        return res.status(HTTP_STATUS.BAD_REQUEST.code).json({
             meta: {
-                status: 422,
+                status: HTTP_STATUS.BAD_REQUEST.code,
                 url: '/api/address',
                 method: "POST"
             },
@@ -57,12 +58,12 @@ const controller = {
       let createdAddress = await insertAddressToDB(addressObjToDB);
       
       if(!createdAddress)
-      return res.status(502).json();
+      return res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR.code).json({msg: HTTP_STATUS.INTERNAL_SERVER_ERROR.message});
       
       // Le  mando ok con el redirect al email verification view
-      return res.status(201).json({
+      return res.status(HTTP_STATUS.CREATED.code).json({
         meta: {
-          status: 201,
+          status: HTTP_STATUS.CREATED.code,
           url: "/api/address",
           method: "POST",
         },
@@ -73,7 +74,7 @@ const controller = {
     } catch (error) {
       console.log(`Falle en apiAddressController.createUser`);
       console.log(error);
-      return res.status(500).json({ error });
+      return res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR.code).json({ error });
     }
   },
   updateAddress: async (req, res) => {
@@ -84,9 +85,9 @@ const controller = {
 
       if (!errors.isEmpty()) {
         let {errorsParams,errorsMapped} = getMappedErrors(errors);
-        return res.status(422).json({
+        return res.status(HTTP_STATUS.BAD_REQUEST.code).json({
             meta: {
-                status: 422,
+                status: HTTP_STATUS.BAD_REQUEST.code,
                 url: '/api/address',
                 method: "PUT"
             },
@@ -122,9 +123,9 @@ const controller = {
       await updateAddressFromDB(keysToUpdate,id)
 
       // Le  mando ok con el redirect al email verification view
-      return res.status(200).json({
+      return res.status(HTTP_STATUS.OK.code).json({
         meta: {
-          status: 200,
+          status: HTTP_STATUS.OK.code,
           url: "/api/address",
           method: "PUT",
           redirect: "/user/address"
@@ -135,7 +136,7 @@ const controller = {
     } catch (error) {
       console.log(`Falle en apiUserController.updateAddress`);
       console.log(error);
-      return res.status(500).json({ error });
+      return res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR.code).json({ error });
     }
   },
   destroyAddress: async (req, res) => {
@@ -143,10 +144,10 @@ const controller = {
       let { address_id } = req.body;
       // Lo borro de db
       let response = destroyAddressFromDB(address_id);
-      if(!response)return res.status(502).json();
-      return res.status(200).json({
+      if(!response)return res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR.code).json();
+      return res.status(HTTP_STATUS.OK.code).json({
         meta: {
-          status: 201,
+          status: HTTP_STATUS.OK.code,
           url: "/api/address",
           method: "DELETE",
         },
@@ -157,7 +158,7 @@ const controller = {
     } catch (error) {
       console.log(`Falle en apiAddressController.destroyAddress`);
       console.log(error);
-      return res.status(500).json({ error });
+      return res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR.code).json({ error });
     }
   },
 };

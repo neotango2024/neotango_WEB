@@ -1,6 +1,7 @@
 
 import jwt from "jsonwebtoken";
 import { getUsersFromDB } from "../controllers/api/apiUserController.js";
+import { HTTP_STATUS } from "../utils/staticDB/httpStatusCodes.js";
 
 const webTokenSecret = process.env.JSONWEBTOKEN_SECRET;
 
@@ -42,7 +43,7 @@ const userIsLoggedMiddleware = async (req, res, next) => {
 
     } catch (error) {
         console.error("Unexpected error in admin middleware:", error);
-        return res.status(500).json({ error: "Internal server error" });
+        return res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR.code).json({ error: "Internal server error" });
     }
 };
 
