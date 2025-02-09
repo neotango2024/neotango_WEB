@@ -12,21 +12,12 @@ import { fileURLToPath } from "url";
 import axios from "axios";
 import { log } from "console";
 import { Preference } from "mercadopago";
+import { HTTP_STATUS } from "../../utils/staticDB/httpStatusCodes.js";
 // way to replace __dirname in es modules
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const controller = {
-  generatePaymentOrderURL: async (req, res) => {
-    try {
-        let { order } = req.body;
-        let responseUrl = await createPaypalOrder();
-
-      return res.status(200).json({ok:true,url: responseUrl});
-    } catch (error) {
-        console.log(error);
-        return res.status(400).json({})
-    }
-  },
+  
 };
 
 export default controller;

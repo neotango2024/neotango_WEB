@@ -50,6 +50,9 @@ import { createPaypalOrder, getTokenFromUrl, handleCreateMercadoPagoOrder } from
 import { MercadoPagoConfig } from 'mercadopago';
 // Agrega credenciales
 const mpClient = new MercadoPagoConfig({ accessToken: process.env.MERCADO_PAGO_ACCESS_TOKEN });
+import { createPaypalOrder, getTokenFromUrl } from "./apiPaymentController.js";
+import { HTTP_STATUS } from "../../utils/staticDB/httpStatusCodes.js";
+
 // ENV
 const webTokenSecret = process.env.JSONWEBTOKEN_SECRET;
 
@@ -69,9 +72,9 @@ const controller = {
       });
 
       // Mando la respuesta
-      return res.status(201).json({
+      return res.status(HTTP_STATUS.OK.code).json({
         meta: {
-          status: 201,
+          status: HTTP_STATUS.OK.code,
           path: "/api/order/",
           method: "GET",
         },
@@ -81,7 +84,7 @@ const controller = {
     } catch (error) {
       console.log(`Falle en apiOrderController.getOrders`);
       console.log(error);
-      return res.status(500).json({ error });
+      return res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR.code).json({ error });
     }
   },
   createOrder: async (req, res) => {
@@ -95,9 +98,9 @@ const controller = {
         //Si hay errores en el back...
         //Para saber los parametros que llegaron..
         let { errorsParams, errorsMapped } = getMappedErrors(errors);
-        return res.status(422).json({
+        return res.status(HTTP_STATUS.BAD_REQUEST.code).json({
           meta: {
-            status: 422,
+            status: HTTP_STATUS.BAD_REQUEST.code,
             url: "/api/order",
             method: "POST",
           },
@@ -126,7 +129,7 @@ const controller = {
         let billingAddressObjToDB = generateAddressObject(billingAddress);
         billingAddressObjToDB.user_id = user_id; //Si hay usuario loggeado lo agrego a esta
         let createdAddress = await insertAddressToDB(billingAddressObjToDB);
-        if (!createdAddress) return res.status(502).json();
+        if (!createdAddress) return res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR.code).json({msg: systemMessages.addressMsg.createFailed});
         billingAddress.id = billingAddressObjToDB.id; //lo dejo seteado asi despues puedo acceder
       } else if (billingAddress?.id) {
         //Si vino el id, busco la address y la dejo desde db porlas
@@ -136,7 +139,7 @@ const controller = {
         let shippingAddressObjToDB = generateAddressObject(shippingAddress);
         shippingAddressObjToDB.user_id = user_id; //Si hay usuario lo agrego a esta
         let createdAddress = await insertAddressToDB(shippingAddressObjToDB);
-        if (!createdAddress) return res.status(502).json();
+        if (!createdAddress) return res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR.code).json({msg: systemMessages.addressMsg.createFailed});
         shippingAddress.id = shippingAddressObjToDB.id; //lo dejo seteado asi despues puedo acceder
       } else if (shippingAddress?.id) {
         //Si vino el id, busco la address y la dejo desde db porlas
@@ -145,7 +148,7 @@ const controller = {
       if (!phoneObj?.id && user_id) {
         let phoneObjToDB = generatePhoneObject({ ...phoneObj, user_id });
         let createdPhone = await insertPhoneToDB(phoneObjToDB);
-        if (!createdPhone) return res.status(502).json();
+        if (!createdPhone) return res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR.code).json({msg: systemMessages.phoneMsg.createFailed});
         if (user_id) phoneObjToDB.user_id = user_id; //Si hay usuario lo agrego a esta
       } else if (phoneObj?.id) {
         phoneObj = getPhonesFromDB(phoneObj.id);
@@ -262,9 +265,9 @@ const controller = {
       }
 
       // Mando la respuesta
-      return res.status(200).json({
+      return res.status(HTTP_STATUS.OK.code).json({
         meta: {
-          status: 200,
+          status: HTTP_STATUS.OK.code,
         },
         ok: true,
         msg: systemMessages.orderMsg.create,
@@ -289,7 +292,7 @@ const controller = {
           }
         );
       }
-      return res.status(500).json({ error });
+      return res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR.code).json({ error });
     }
   },
   updateOrder: async (req, res) => {
@@ -303,9 +306,9 @@ const controller = {
 
         // Ver como definir los errors
         // return res.send(errors)
-        return res.status(422).json({
+        return res.status(HTTP_STATUS.BAD_REQUEST.code).json({
           meta: {
-            status: 422,
+            status: HTTP_STATUS.BAD_REQUEST.code,
             url: "/api/user",
             method: "POST",
           },
@@ -321,7 +324,7 @@ const controller = {
       let orderFromDB = await getOrdersFromDB({ id: order_id });
       if (!orderFromDB)
         return res
-          .status(404)
+          .status(HTTP_STATUS.NOT_FOUND.code)
           .json({ ok: false, msg: systemMessages.orderMsg.updateFailed });
 
       let keysToUpdate = {
@@ -335,9 +338,9 @@ const controller = {
       });
 
       // Le  mando ok
-      return res.status(200).json({
+      return res.status(HTTP_STATUS.OK.code).json({
         meta: {
-          status: 200,
+          status: HTTP_STATUS.OK.code,
           url: "/api/order",
           method: "PUT",
         },
@@ -347,7 +350,7 @@ const controller = {
     } catch (error) {
       console.log(`Falle en apiOrderController.updateOrder`);
       console.log(error);
-      return res.status(500).json({ error });
+      return res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR.code).json({ error });
     }
   },
   updateOrderStatus: async (req, res) => {
@@ -355,7 +358,7 @@ const controller = {
       const { orderId } = req.params;
       if (!orderId) {
         console.log("No order id provided to update");
-        return res.status(400).json({
+        return res.status(HTTP_STATUS.BAD_REQUEST.code).json({
           ok: false,
         });
       }
@@ -370,12 +373,12 @@ const controller = {
           },
         }
       );
-      return res.status(200).json({
+      return res.status(HTTP_STATUS.OK.code).json({
         ok: true,
       });
     } catch (error) {
       console.log(`error in updateOrderStatus: ${error}`);
-      return res.status(500).json({
+      return res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR.code).json({
         ok: false,
         data: null,
       });

@@ -442,7 +442,7 @@ export async function handleModalCreation({
         await updateElements();
       }
     }
-
+    submitButton.classList.remove("loading");
     return;
   } catch (error) {
     console.log("FALLE");
@@ -708,6 +708,7 @@ export async function handleProductFetch(bodyData, method) {
       method: method,
       body: bodyData,
     });    
+    response = await response.json()
     if (response.ok) {
       response = await response.json()
       //Aca dio ok, entonces al ser de un usuario actualizo al usuarioLogged.phones
@@ -725,9 +726,8 @@ export async function handleProductFetch(bodyData, method) {
       let responseMsg = response.msg.es;
       showCardMessage(true, responseMsg);
       return true;
-    }
-    let msg = "Ha ocurrido un error inesperado, intente nuevamente";
-    showCardMessage(false, msg);
+    }    
+    showCardMessage(false, response.msg);
     return false;
   } catch (error) {
     return console.log(error);
@@ -1071,4 +1071,8 @@ export function handleInputFileFromModal({ show }) {
 
 export function getDeepCopy(arg) {
   return JSON.parse(JSON.stringify(arg));
+}
+
+export function removeIndexesFromArray(arr, indexesToRemove) {
+  return arr.filter((_, index) => !indexesToRemove.includes(index));
 }

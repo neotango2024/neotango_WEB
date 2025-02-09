@@ -167,7 +167,7 @@ export default {
       }),
   ],
   orderFields: [
-    body(["user_id", "first_name", "last_name", "email", "dni","payment_types_id","shipping_types_id"])
+    body(["user_id", "first_name", "last_name", "email", "dni","payment_type_id","shipping_type_id"])
     .notEmpty()
     .withMessage("Complete todos los campos necesarios")
     .bail()
@@ -180,7 +180,7 @@ export default {
       }
       return true;
     }),
-    body(["variations", "phoneObj", "billingAddress", "shippingAddress"])
+    body(["variations", "phoneObj", "billingAddress"])
       .notEmpty()
       .withMessage("Complete todos los campos necesarios")
       .bail(),

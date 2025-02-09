@@ -1,3 +1,3 @@
-export const ENGLISH = 'eng';
+export const ENGLISH = 'en';
 
-export const SPANISH = 'esp';
+export const SPANISH = 'es';

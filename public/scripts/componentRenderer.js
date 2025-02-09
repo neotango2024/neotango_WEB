@@ -44,7 +44,7 @@ import {
 } from "./utils.js";
 const SCREEN_WIDTH = window.screen.width;
 
-export function checkoutCard(props) {
+export function checkoutCard(props) {  
   const productFromDB = props;
   const productMainFile = productFromDB.files?.find((file) => file.main_file);
   props.quantity = props.quantity || 1;
@@ -135,7 +135,7 @@ export function checkoutCard(props) {
   removeButton.className = `ui button number_button remove_more_product ${
     props.quantity > 1 ? "" : "hidden"
   }`;
-  addButton.className = "ui button number_button add_more_product";
+  addButton.className = `ui button number_button add_more_product ${props.quantity == props.maxQuantityAvailable ? "disabled" :''}`;
 
   const plusIcon = document.createElement("i");
   const minusIcon = document.createElement("i");
@@ -1866,7 +1866,7 @@ export async function createProductModal(product = undefined) {
       {
         type: "button",
         className: "ui button submit negative send-modal-form-btn",
-        text: product ? "Edit" : "Create",
+        text: product ? "Editar" : "Crear",
         onClick: async () => await handleProductModalActions(product),
       },
       {

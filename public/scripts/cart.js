@@ -32,6 +32,7 @@ import {
   handlePhoneFetch,
   isInDesktop,
   productsFromDB,
+  removeIndexesFromArray,
   setShippingZones,
   setVariationsFromDB,
   shippingZonesFromDB,
@@ -66,22 +67,25 @@ window.addEventListener("DOMContentLoaded", async () => {
         pageTitle.innerHTML = isInSpanish
           ? "Carro de compras"
           : "Shopping cart";
-        setDetailContainer();
-        if (main.classList.contains("active")) {
+
+        if (sectionIndex == 1) {
+          if (!countriesFromDB.length) await setCountries();
+          if (!shippingZonesFromDB.length) await setShippingZones();
           //aca se que estoy en el formulario de pago
           await generateCheckoutForm();
+          setDetailContainer();
           return;
         }
         //Aca solo pinto las cards
         paintCheckoutCards();
+        setDetailContainer();
+        //Ahora escucho los botones
+        checkCheckoutCardButtons();
         return;
       } catch (error) {
         return console.log(error);
       }
     };
-
-    //Construyo la pagina
-    await cartExportObj.pageConstructor();
 
     // =========================================
     // funciones
@@ -90,7 +94,7 @@ window.addEventListener("DOMContentLoaded", async () => {
       const containersToAppend = document.querySelectorAll(
         ".cart-detail-rail-container"
       );
-      containersToAppend.forEach((cont) => {
+      containersToAppend.forEach(async (cont) => {
         cont.innerHTML = "";
         //Lo genero
         let newDetailContainer = createCartDetailContainer();
@@ -111,13 +115,10 @@ window.addEventListener("DOMContentLoaded", async () => {
           cartItem.product.sizeFromDB = cartItem.size;
           cartItem.product.tacoFromDB = cartItem.taco;
           cartItem.product.quantity = cartItem.quantity;
+          cartItem.product.maxQuantityAvailable = cartItem.maxQuantityAvailable;
           const checkoutCardElement = checkoutCard(cartItem.product);
           cartProductsWrapper.appendChild(checkoutCardElement);
         });
-        //Ahora escucho los botones
-        checkCheckoutCardButtons();
-        // Pinto el detail
-        modifyDetailList();
         return;
       }
       //ACa no tiene proudctos, pinto algo
@@ -164,7 +165,6 @@ window.addEventListener("DOMContentLoaded", async () => {
               if (sectionIndex == 0) {
                 sectionIndex++;
                 btn.classList.add("loading");
-                await generateCheckoutForm();
                 let checkoutCards = Array.from(
                   document.querySelectorAll(".checkout-card")
                 );
@@ -190,12 +190,11 @@ window.addEventListener("DOMContentLoaded", async () => {
                 } else {
                   updateGuestCart();
                 }
-                // return;
                 await setCartProducts();
-                setDetailContainer();
                 btn.classList.remove("loading");
-                return main.classList.add("active");
-              } else if(sectionIndex == 1){
+                main.classList.add("active");
+                cartExportObj.pageConstructor();
+              } else if (sectionIndex == 1) {
                 //Aca ya esta tocando para pagar ==> armo la orden y genero el fetch
                 let form = document.querySelector('.checkout-form');
                 let body = generateCheckoutFormBodyToFetch(form);
@@ -219,7 +218,7 @@ window.addEventListener("DOMContentLoaded", async () => {
             checkoutSectionForm.innerHTML = "";
             shippingCost = 0; //Reinicio el shippingCost
             sectionIndex = 0; //Reinicio el index
-            setDetailContainer();
+            cartExportObj.pageConstructor();
             return main.classList.remove("active");
           } catch (error) {
             console.log("Falle");
@@ -241,10 +240,16 @@ window.addEventListener("DOMContentLoaded", async () => {
         let cartProductFromDB = cartProducts.find(
           (cartItem) => cartItem.variation_id == cardVariationID
         );
+        
+        
         const productPrice = isInSpanish
           ? parseFloat(cartProductFromDB.product?.ars_price)
           : parseFloat(cartProductFromDB.product?.usd_price);
         addBtn.addEventListener("click", () => {
+          cartProductFromDB.quantity ++
+          if(cartProductFromDB.quantity == cartProductFromDB.maxQuantityAvailable){
+            addBtn.classList.add('disabled')
+          }
           let actualQuantitySpan = card.querySelector(".card_product_amount");
           actualQuantitySpan.innerHTML =
             parseInt(actualQuantitySpan.innerHTML) + 1;
@@ -259,6 +264,9 @@ window.addEventListener("DOMContentLoaded", async () => {
           modifyDetailList();
         });
         minusBtn.addEventListener("click", () => {
+          cartProductFromDB.quantity --
+          //Activo el + denuevo
+          addBtn.classList.remove('disabled')
           let actualQuantitySpan = card.querySelector(".card_product_amount");
           actualQuantitySpan.innerHTML =
             parseInt(actualQuantitySpan.innerHTML) - 1;
@@ -316,10 +324,7 @@ window.addEventListener("DOMContentLoaded", async () => {
         document.querySelectorAll(".checkout-card")
       );
       let productLength = productCards?.length;
-      let shippingCostElement = document.querySelector(
-        ".detail-row-shipping-cost"
-      ).innerText;
-      let totalCost = parseFloat(shippingCostElement) || 0; //al principio es solo el shipping
+      let totalCost = parseFloat(shippingCost) || 0; //al principio es solo el shipping
       let productCost = 0;
       productCards.forEach((card) => {
         let cardVariationID = card.dataset.variation_id;
@@ -470,7 +475,7 @@ window.addEventListener("DOMContentLoaded", async () => {
               inpClassNames: "",
             },
           ],
-          formClasses: "checkout-form"
+          formClasses: "checkout-form",
         };
 
         const formToInsert = form(props);
@@ -617,8 +622,8 @@ window.addEventListener("DOMContentLoaded", async () => {
         // Agrego la escucha para pintar el estimate cost
         shippingAddressSelect.addEventListener("change", async () => {
           // aca seteo el shipping cost
-          await setShippingCost();
-
+          setShippingCost();
+          setDetailContainer();
           return;
         });
       } catch (error) {
@@ -642,19 +647,27 @@ window.addEventListener("DOMContentLoaded", async () => {
       if (!useSameAddressCheckbox.dataset.listened) {
         useSameAddressCheckbox.dataset.listened = true;
         useSameAddressCheckbox.addEventListener("change", (e) => {
-          if (e.target.checked)
+          setShippingCost();
+          setDetailContainer();
+          if (e.target.checked) {
+            modifyBillingLabel(false); //cambio el label
             return shippingAddressField.classList.add("hidden");
+          }
+          modifyBillingLabel(true); // Cambio el label
           return shippingAddressField.classList.remove("hidden");
         });
       }
       if (!shippingTypeSelect.dataset.listened) {
         shippingTypeSelect.dataset.listened = true;
-        shippingTypeSelect.addEventListener("change", async (e) => {
+        shippingTypeSelect.addEventListener("change", (e) => {
           try {
+            modifyBillingLabel(true)
             if (e.target.value == 1) {
               //Envio a domicilio, pinto el checkbox y el shipping Address
               shippingAddressField.classList.remove("hidden");
-              await setShippingCost();
+              setShippingCost();
+              setDetailContainer();
+              
               return useSameAddressCheckboxContainer.classList.remove("hidden");
             }
             //Aca pinto retiro por el local, escondo el checkbox y el shippingAddress y pongo el 0 shipping cost
@@ -662,6 +675,7 @@ window.addEventListener("DOMContentLoaded", async () => {
             useSameAddressCheckboxContainer.classList.add("hidden");
             useSameAddressCheckbox.checked = false; //Lo dejo false
             shippingCost = 0;
+            shippingAddressField.querySelector("select").value = "";
             setDetailContainer();
             return;
           } catch (error) {
@@ -726,15 +740,31 @@ window.addEventListener("DOMContentLoaded", async () => {
       shippingLabel.textContent = isInSpanish ? "Envio" : "Shipping";
       shippingRow.appendChild(shippingLabel);
 
+      const shippingTypeSelect = document.querySelector(
+        'select[name="shipping_type_id"]'
+      );
+      const shippingAddressSelect = document.querySelector(
+        'select[name="shipping-address-id"]'
+      );
       const shippingCostContainer = document.createElement("p");
       shippingCostContainer.className = "detail-row-p";
-      shippingCostContainer.innerHTML = `<span class="detail-row-shipping-cost">${
-        shippingCost == 0
-          ? isInSpanish
-            ? "A estimar"
-            : "To estimate"
-          : `$${shippingCost}`
-      }</span>`;
+      // Si es 0 y no hay address seleccionada
+      if (shippingCost == 0 && !shippingAddressSelect?.value) {
+        if (shippingTypeSelect && shippingTypeSelect.value == 2) {
+          shippingCostContainer.innerHTML = `<span class="detail-row-shipping-cost">-</span>`;
+        } else if (!shippingTypeSelect || !shippingAddressSelect?.value) {
+          shippingCostContainer.innerHTML = `<span class="detail-row-shipping-cost">${
+            isInSpanish ? "A estimar" : "To estimate"
+          }
+          </span>`;
+        }
+      } else {
+        //Aca o bien no es 0, o bien hay address => Seteo el shipping cost y lo pinto
+        setShippingCost();
+        shippingCostContainer.innerHTML = `<span class="detail-row-shipping-cost">$${displayBigNumbers(
+          shippingCost
+        )}</span>`;
+      }
       shippingRow.appendChild(shippingCostContainer);
 
       detailListContainer.appendChild(shippingRow);
@@ -784,8 +814,8 @@ window.addEventListener("DOMContentLoaded", async () => {
       if (!variationIdsToFetch || !variationIdsToFetch.length) return;
       await setVariationsFromDB(variationIdsToFetch); //seteo los variations
       if (!variationsFromDB.length) return;
-
-      cartProducts.forEach((cartItem) => {
+      let indexesToRemoveFromCart = [];
+      cartProducts.forEach((cartItem,i) => {
         const variationFromDB = variationsFromDB?.find(
           (variation) => variation.id == cartItem.variation_id
         );
@@ -793,7 +823,20 @@ window.addEventListener("DOMContentLoaded", async () => {
         cartItem.product = variationFromDB?.product;
         cartItem.size = variationFromDB?.size;
         cartItem.taco = variationFromDB?.taco;
+        cartItem.maxQuantityAvailable = variationFromDB?.quantity;
+        //Si esta pidiendo mas le dejo el stock que tiene el producto
+        if(cartItem.quantity > variationFromDB?.quantity) {
+          if(variationFromDB.quantity == 0){
+            indexesToRemoveFromCart.push(i)
+          }
+          console.log(variationFromDB?.quantity);
+          
+          cartItem.quantity = variationFromDB?.quantity;
+        }
       });
+      //si hay productos sin stock los saco antes de pintarlos
+      cartProducts = indexesToRemoveFromCart.length ? removeIndexesFromArray(cartProducts,indexesToRemoveFromCart) : cartProducts;
+      
       return;
     }
     function updateGuestCart() {
@@ -813,81 +856,111 @@ window.addEventListener("DOMContentLoaded", async () => {
         delete cartProduct.productFromDB;
         setLocalStorageItem("cartItems", cartProduct, true);
       });
-    }
+    };
 
-    async function setShippingCost() {
-      try {
-        if (!countriesFromDB.length) await setCountries();
-        if (!shippingZonesFromDB.length) await setShippingZones();
-        // Convierte el array en un Map para acceso rápido
-        const countriesMap = new Map(
-          countriesFromDB.map((dbCountry) => [dbCountry.id, dbCountry])
-        );
-        const shippingAddressSelect = document.querySelector(
-          'select[name="shipping-address-id"]'
-        );
-        const addressID = shippingAddressSelect.value;
-        let addressToUse = userLogged
-          ? userLogged.addresses
-          : getLocalStorageItem("guestAddresses");
-        let address = addressToUse.find((add) => add.id == addressID);
-        const countryFromDB = countriesMap.get(address.country_id);
-        let zoneFromDB = shippingZonesFromDB.find(
-          (zone) => zone.id == countryFromDB.zone_id
-        );
-        if (!zoneFromDB) return (shippingAddressSelect.value = ""); //Reinicio la direc, no dejo seguir
-        shippingCost = isInSpanish
-          ? zoneFromDB?.price?.ars_price || 0
-          : zoneFromDB?.price?.usd_price || 0;
-        setDetailContainer();
-      } catch (error) {
-        return console.log(error);
-      }
-    }
+    function setShippingCost() {
+      // Convierte el array en un Map para acceso rápido
+      const countriesMap = new Map(
+        countriesFromDB.map((dbCountry) => [dbCountry.id, dbCountry])
+      );
+      const useSameAddressCheckbox = document.querySelector(
+        'input[name="use-same-addresses"]'
+      );
+      const shippingAddressSelect = document.querySelector(
+        'select[name="shipping-address-id"]'
+      );
+      const billingAddressSelect = document.querySelector(
+        'select[name="billing-address-id"]'
+      );
+      const addressID = useSameAddressCheckbox.checked
+        ? billingAddressSelect.value
+        : shippingAddressSelect?.value;
+      let addressToUse = userLogged
+        ? userLogged.addresses
+        : getLocalStorageItem("guestAddresses");
+      let address = addressToUse.find((add) => add.id == addressID);
 
-    function generateCheckoutFormBodyToFetch(form){
+      if (!address) return (shippingCost = 0);
+      const countryFromDB = countriesMap.get(address?.country_id);
+      let zoneFromDB = shippingZonesFromDB?.find(
+        (zone) => zone.id == countryFromDB?.zone_id
+      );
+
+      if (!zoneFromDB) return (shippingAddressSelect.value = ""); //Reinicio la direc, no dejo seguir
+      shippingCost = isInSpanish
+        ? zoneFromDB?.price?.ars_price || 0
+        : zoneFromDB?.price?.usd_price || 0;
+    };
+
+    function generateCheckoutFormBodyToFetch(form) {
       let bodyData = {
         user_id: userLogged ? userLogged.id : null,
         first_name: form["first_name"].value,
         last_name: form["last_name"].value,
         email: form["email"].value,
         dni: form["dni"].value,
-        payment_type_id: userLogged ? userLogged.payment_type_id : getLocalStorageItem('payment_type_id'),//TODO:
+        payment_type_id: userLogged
+          ? userLogged.payment_type_id
+          : getLocalStorageItem("payment_type_id"), //TODO:
         shipping_type_id: form["shipping_type_id"].value,
         variations: [],
       };
       // Ahora voy por phone,shipping & billing, y variations
       // Se supone que aca ya tengo actualizado o bien cartItems o bien el userLogged, acceso a eso
-      let cart = userLogged ? userLogged.tempCartItems : getLocalStorageItem('cartItems');
-      cart = cart.map(tempCartItem=>({
+      let cart = userLogged
+        ? userLogged.tempCartItems
+        : getLocalStorageItem("cartItems");
+      cart = cart.map((tempCartItem) => ({
         id: tempCartItem.variation_id,
-        quantityRequested: tempCartItem.quantity
+        quantityRequested: tempCartItem.quantity,
       }));
       bodyData.variations = cart;
       // Ahora el phone
       const phoneID = form["phone_id"].value;
-      let phoneArrayToLook = userLogged ? userLogged.phones : getLocalStorageItem("guestPhones")
-      let phoneObj = phoneArrayToLook?.find(dbPhone=>dbPhone.id == phoneID);
+      let phoneArrayToLook = userLogged
+        ? userLogged.phones
+        : getLocalStorageItem("guestPhones");
+      let phoneObj = phoneArrayToLook?.find((dbPhone) => dbPhone.id == phoneID);
       bodyData.phoneObj = phoneObj;
       // Ahora las addresses
-      let addressArrayToLook = userLogged ? userLogged.addresses : getLocalStorageItem("guestAddresses")
+      let addressArrayToLook = userLogged
+        ? userLogged.addresses
+        : getLocalStorageItem("guestAddresses");
       const billingAddressId = form["billing-address-id"].value;
-      let billingAddressObj = addressArrayToLook?.find(dbAddress=>dbAddress.id == billingAddressId);
+      let billingAddressObj = addressArrayToLook?.find(
+        (dbAddress) => dbAddress.id == billingAddressId
+      );
       bodyData.billingAddress = billingAddressObj;
       const useSameAddress = form["use-same-addresses"].checked;
-      if(useSameAddress){
+      if (useSameAddress) {
         bodyData.shippingAddress = billingAddressObj; //Usa la misma
-      } else{
+      } else {
         //Aca la busco
         const shippingAddressId = form["shipping-address-id"].value;
-        let shippingAddressObj = addressArrayToLook?.find(dbAddress=>dbAddress.id == shippingAddressId);
+        let shippingAddressObj = addressArrayToLook?.find(
+          (dbAddress) => dbAddress.id == shippingAddressId
+        );
         bodyData.shippingAddress = shippingAddressObj;
       }
-      
-      return bodyData
-      
-      
-    }
+
+      return bodyData;
+    };
+    function modifyBillingLabel(justBilling) {
+      //ESto modifica la label del form
+      const billingAddressLabel = document.querySelector(
+        ".billing-address-container>label"
+      );
+      if (justBilling) {
+        billingAddressLabel.textContent = isInSpanish
+          ? "Dirección de Facturación"
+          : "Billing Address";
+        return;
+      }
+      billingAddressLabel.textContent = isInSpanish
+        ? "Dirección de Facturación & Envio"
+        : "Billing & Shipping Address";
+      return;
+    };
   } catch (error) {
     console.log("falle");
     return console.log(error);

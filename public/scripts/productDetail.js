@@ -328,7 +328,10 @@ window.addEventListener("load", async () => {
         addToCartBtn.classList.remove("loading");
       });
     }
-
+    function checkForVariationStock(){
+      return variationSelected.quantity > 0;
+      ;
+    }
     function checkForProductInCart() {
       let cartItems;
       if (!userLogged) {
@@ -360,6 +363,17 @@ window.addEventListener("load", async () => {
     function paintAddToCartButton(){
       const button = document.querySelector('.button-container');
       if(!button)return
+      const variationHasStock = checkForVariationStock();
+      if(!variationHasStock){
+        const buttonText = isInSpanish
+          ? "Producto sin stock"
+        : "Out of stock";
+      button.innerHTML = `
+          <button class="ui button negative basic add-to-cart-btn disabled" type="button">${buttonText}</button>
+      `;
+      return
+      }
+      
       const productAlreadyInCart = checkForProductInCart(); //Se fija si la variacion ya esta en el carro
       const buttonText = productAlreadyInCart
         ? isInSpanish
