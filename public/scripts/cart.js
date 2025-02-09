@@ -42,6 +42,9 @@ let cartExportObj = {
   paintCheckoutPhoneSelect: null,
   paintCheckoutAddressesSelect: null,
 };
+const mp = new MercadoPago("APP_USR-1fcc821e-5223-4cdd-9c00-5c5fb7789542", {
+  locale: 'es-AR'
+})
 window.addEventListener("DOMContentLoaded", async () => {
   try {
     if (!window.location.pathname.endsWith("/carro")) return;
@@ -130,6 +133,23 @@ window.addEventListener("DOMContentLoaded", async () => {
       sectionHandlerBtns.forEach((btn) => btn.classList.add("disabled"));
     }
 
+    function constructMercadoPagoBtn(preferenceId){
+
+      const bricksBuilder = mp.bricks();
+      if(window.checkoutButton) window.checkoutButton.unmount();
+      bricksBuilder.create("wallet", "wallet_container", {
+        initialization: {
+            preferenceId: preferenceId,
+        },
+        customization: {
+          texts: {
+          valueProp: 'smart_option',
+          },
+          },
+      });
+
+    }
+
     function checkForSectionButtons() {
       const sectionButtons = document.querySelectorAll(
         ".section-handler-button"
@@ -180,8 +200,15 @@ window.addEventListener("DOMContentLoaded", async () => {
                 let form = document.querySelector('.checkout-form');
                 let body = generateCheckoutFormBodyToFetch(form);
                 // Aca ya tengo todo ==> Hago el fetch
-                return console.log(body);
-                
+                const response = await fetch('/api/order', {
+                  method: 'POST',
+                  headers: { 
+                    "Content-Type": "application/json"
+                  },
+                  body: JSON.stringify(body)
+                });
+                const preferenceResponse = await response.json();
+                window.location.href = preferenceResponse.url;
               };
               return
             }
@@ -739,6 +766,8 @@ window.addEventListener("DOMContentLoaded", async () => {
       finalizeButton.textContent = isInSpanish
         ? "Finalizar compra"
         : "Go to checkout";
+      const walletContainer = document.createElement('button');
+      walletContainer.id = "wallet_container";
       container.appendChild(finalizeButton);
 
       return container;

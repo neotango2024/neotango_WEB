@@ -46,8 +46,10 @@ import { getMappedErrors } from "../../utils/helpers/getMappedErrors.js";
 import currencies from "../../utils/staticDB/currencies.js";
 import { paymentTypes } from "../../utils/staticDB/paymentTypes.js";
 import { shippingTypes } from "../../utils/staticDB/shippingTypes.js";
-import { createPaypalOrder, getTokenFromUrl } from "./apiPaymentController.js";
-
+import { createPaypalOrder, getTokenFromUrl, handleCreateMercadoPagoOrder } from "./apiPaymentController.js";
+import { MercadoPagoConfig } from 'mercadopago';
+// Agrega credenciales
+const mpClient = new MercadoPagoConfig({ accessToken: process.env.MERCADO_PAGO_ACCESS_TOKEN });
 // ENV
 const webTokenSecret = process.env.JSONWEBTOKEN_SECRET;
 
@@ -87,6 +89,8 @@ const controller = {
     try {
       // Traigo errores
       let errors = validationResult(req);
+      console.log('error')
+      console.log(errors)
       if (!errors.isEmpty()) {
         //Si hay errores en el back...
         //Para saber los parametros que llegaron..
@@ -216,19 +220,6 @@ const controller = {
         orderTotalPrice += parseFloat(item.price) * parseInt(item.quantity);
       });
       orderDataToDB.total = orderTotalPrice;
-      
-      // Aca genero el url de paypal o de mp dependiendo que paymentTypeVino
-      let paymentURL,paymentOrderId;
-      if (orderCreated.payment_types_id == 1) {
-        // MP TODO:
-      } else if (orderCreated.payment_types_id == 2) {
-        // PAYPAL
-        paymentURL = await createPaypalOrder(); //Genero el link para enviar a pasarela de pagos paypal
-        if(!paymentURL) throw new Error("Could not generate paypal paymentURL"); // Lanza un error y salta al catch
-        // Obtengo el payment_order_id para pegarselo en el objeto
-        let paymentOrderId = getTokenFromUrl(paymentURL);
-        orderDataToDB.paypal_order_id = paymentOrderId; 
-      }
 
       // Hago los insert en la base de datos
       let orderCreated = await db.Order.create(
@@ -255,6 +246,20 @@ const controller = {
           },
         });
       };
+      
+      // Aca genero el url de paypal o de mp dependiendo que paymentTypeVino
+      let paymentURL, paymentOrderId;
+      if (orderCreated.payment_types_id == 1) {
+        paymentURL = await handleCreateMercadoPagoOrder(orderItemsToDB, mpClient);
+        if(!paymentURL) throw new Error("Could not generate paypal paymentURL");
+      } else if (orderCreated.payment_types_id == 2) {
+        // PAYPAL
+        paymentURL = await createPaypalOrder(); //Genero el link para enviar a pasarela de pagos paypal
+        if(!paymentURL) throw new Error("Could not generate paypal paymentURL"); // Lanza un error y salta al catch
+        // Obtengo el payment_order_id para pegarselo en el objeto
+        let paymentOrderId = getTokenFromUrl(paymentURL);
+        orderDataToDB.paypal_order_id = paymentOrderId; 
+      }
 
       // Mando la respuesta
       return res.status(200).json({
