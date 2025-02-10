@@ -16,8 +16,8 @@ export default (sequelize, dataTypes) => {
         dni: { type: dataTypes.STRING(40) },
         total: { type: dataTypes.DECIMAL(10,2) },
         order_status_id: { type: dataTypes.INTEGER },
-        shipping_types_id: { type: dataTypes.INTEGER },
-        payment_types_id: { type: dataTypes.INTEGER },
+        shipping_type_id: { type: dataTypes.INTEGER },
+        payment_type_id: { type: dataTypes.INTEGER },
         paypal_order_id: { type: dataTypes.STRING(100) },
         //Billing Address Snapshot
         billing_address_street: { type: dataTypes.STRING(200) },

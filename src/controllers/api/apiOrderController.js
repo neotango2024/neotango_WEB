@@ -50,9 +50,6 @@ import { createPaypalOrder, getTokenFromUrl, handleCreateMercadoPagoOrder } from
 import { MercadoPagoConfig } from 'mercadopago';
 // Agrega credenciales
 const mpClient = new MercadoPagoConfig({ accessToken: process.env.MERCADO_PAGO_ACCESS_TOKEN });
-import { createPaypalOrder, getTokenFromUrl } from "./apiPaymentController.js";
-import { HTTP_STATUS } from "../../utils/staticDB/httpStatusCodes.js";
-
 // ENV
 const webTokenSecret = process.env.JSONWEBTOKEN_SECRET;
 
@@ -72,9 +69,9 @@ const controller = {
       });
 
       // Mando la respuesta
-      return res.status(HTTP_STATUS.OK.code).json({
+      return res.status(201).json({
         meta: {
-          status: HTTP_STATUS.OK.code,
+          status: 201,
           path: "/api/order/",
           method: "GET",
         },
@@ -84,7 +81,7 @@ const controller = {
     } catch (error) {
       console.log(`Falle en apiOrderController.getOrders`);
       console.log(error);
-      return res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR.code).json({ error });
+      return res.status(500).json({ error });
     }
   },
   createOrder: async (req, res) => {
@@ -98,9 +95,9 @@ const controller = {
         //Si hay errores en el back...
         //Para saber los parametros que llegaron..
         let { errorsParams, errorsMapped } = getMappedErrors(errors);
-        return res.status(HTTP_STATUS.BAD_REQUEST.code).json({
+        return res.status(422).json({
           meta: {
-            status: HTTP_STATUS.BAD_REQUEST.code,
+            status: 422,
             url: "/api/order",
             method: "POST",
           },
@@ -120,8 +117,8 @@ const controller = {
         phoneObj,
         billingAddress,
         shippingAddress,
-        payment_types_id: payment_type_id,
-        shipping_types_id: shipping_type_id,
+        payment_type_id,
+        shipping_type_id,
         variationsFromDB, //Del middleware
       } = req.body;
       // Si esta logueado y no tenia los nros y direcciones armadas...
@@ -129,7 +126,7 @@ const controller = {
         let billingAddressObjToDB = generateAddressObject(billingAddress);
         billingAddressObjToDB.user_id = user_id; //Si hay usuario loggeado lo agrego a esta
         let createdAddress = await insertAddressToDB(billingAddressObjToDB);
-        if (!createdAddress) return res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR.code).json({msg: systemMessages.addressMsg.createFailed});
+        if (!createdAddress) return res.status(502).json();
         billingAddress.id = billingAddressObjToDB.id; //lo dejo seteado asi despues puedo acceder
       } else if (billingAddress?.id) {
         //Si vino el id, busco la address y la dejo desde db porlas
@@ -139,7 +136,7 @@ const controller = {
         let shippingAddressObjToDB = generateAddressObject(shippingAddress);
         shippingAddressObjToDB.user_id = user_id; //Si hay usuario lo agrego a esta
         let createdAddress = await insertAddressToDB(shippingAddressObjToDB);
-        if (!createdAddress) return res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR.code).json({msg: systemMessages.addressMsg.createFailed});
+        if (!createdAddress) return res.status(502).json();
         shippingAddress.id = shippingAddressObjToDB.id; //lo dejo seteado asi despues puedo acceder
       } else if (shippingAddress?.id) {
         //Si vino el id, busco la address y la dejo desde db porlas
@@ -148,7 +145,7 @@ const controller = {
       if (!phoneObj?.id && user_id) {
         let phoneObjToDB = generatePhoneObject({ ...phoneObj, user_id });
         let createdPhone = await insertPhoneToDB(phoneObjToDB);
-        if (!createdPhone) return res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR.code).json({msg: systemMessages.phoneMsg.createFailed});
+        if (!createdPhone) return res.status(502).json();
         if (user_id) phoneObjToDB.user_id = user_id; //Si hay usuario lo agrego a esta
       } else if (phoneObj?.id) {
         phoneObj = getPhonesFromDB(phoneObj.id);
@@ -175,13 +172,14 @@ const controller = {
       let orderItemsToDB = [];
       // Voy por las variaciones para restar stock
       variations.forEach((variation) => {
-        let { quantityRequested, variationId } = variation; //Tengo que chequear con esa variacion
+        let { quantityRequested, id } = variation; //Tengo que chequear con esa variacion
         // Agarro el producto de DB
         let variationFromDBIndex = variationsFromDB.findIndex(
-          (variationFromDB) => variationFromDB.id == variationId
+          (variationFromDB) => variationFromDB.id == id
         );
         let variationFromDB = variationsFromDB[variationFromDBIndex];
-
+        console.log('variation')
+        console.log(variationFromDB)
         quantityRequested = parseInt(quantityRequested); //Lo parseo
         //Aca paso el chequeo de stock ==> lo resto al stock que tenia
         variationFromDB.quantity -= quantityRequested; //Le resto el stock
@@ -223,7 +221,8 @@ const controller = {
         orderTotalPrice += parseFloat(item.price) * parseInt(item.quantity);
       });
       orderDataToDB.total = orderTotalPrice;
-
+      console.log('order items')
+      console.log(orderItemsToDB)
       // Hago los insert en la base de datos
       let orderCreated = await db.Order.create(
         {
@@ -252,7 +251,7 @@ const controller = {
       
       // Aca genero el url de paypal o de mp dependiendo que paymentTypeVino
       let paymentURL, paymentOrderId;
-      if (orderCreated.payment_types_id == 1) {
+      if (orderCreated.payment_type_id == 1) {
         paymentURL = await handleCreateMercadoPagoOrder(orderItemsToDB, mpClient);
         if(!paymentURL) throw new Error("Could not generate paypal paymentURL");
       } else if (orderCreated.payment_types_id == 2) {
@@ -265,9 +264,9 @@ const controller = {
       }
 
       // Mando la respuesta
-      return res.status(HTTP_STATUS.OK.code).json({
+      return res.status(200).json({
         meta: {
-          status: HTTP_STATUS.OK.code,
+          status: 200,
         },
         ok: true,
         msg: systemMessages.orderMsg.create,
@@ -292,7 +291,7 @@ const controller = {
           }
         );
       }
-      return res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR.code).json({ error });
+      return res.status(500).json({ error });
     }
   },
   updateOrder: async (req, res) => {
@@ -306,9 +305,9 @@ const controller = {
 
         // Ver como definir los errors
         // return res.send(errors)
-        return res.status(HTTP_STATUS.BAD_REQUEST.code).json({
+        return res.status(422).json({
           meta: {
-            status: HTTP_STATUS.BAD_REQUEST.code,
+            status: 422,
             url: "/api/user",
             method: "POST",
           },
@@ -324,7 +323,7 @@ const controller = {
       let orderFromDB = await getOrdersFromDB({ id: order_id });
       if (!orderFromDB)
         return res
-          .status(HTTP_STATUS.NOT_FOUND.code)
+          .status(404)
           .json({ ok: false, msg: systemMessages.orderMsg.updateFailed });
 
       let keysToUpdate = {
@@ -338,9 +337,9 @@ const controller = {
       });
 
       // Le  mando ok
-      return res.status(HTTP_STATUS.OK.code).json({
+      return res.status(200).json({
         meta: {
-          status: HTTP_STATUS.OK.code,
+          status: 200,
           url: "/api/order",
           method: "PUT",
         },
@@ -350,7 +349,7 @@ const controller = {
     } catch (error) {
       console.log(`Falle en apiOrderController.updateOrder`);
       console.log(error);
-      return res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR.code).json({ error });
+      return res.status(500).json({ error });
     }
   },
   updateOrderStatus: async (req, res) => {
@@ -358,7 +357,7 @@ const controller = {
       const { orderId } = req.params;
       if (!orderId) {
         console.log("No order id provided to update");
-        return res.status(HTTP_STATUS.BAD_REQUEST.code).json({
+        return res.status(400).json({
           ok: false,
         });
       }
@@ -373,12 +372,12 @@ const controller = {
           },
         }
       );
-      return res.status(HTTP_STATUS.OK.code).json({
+      return res.status(200).json({
         ok: true,
       });
     } catch (error) {
       console.log(`error in updateOrderStatus: ${error}`);
-      return res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR.code).json({
+      return res.status(500).json({
         ok: false,
         data: null,
       });

@@ -198,6 +198,7 @@ window.addEventListener("DOMContentLoaded", async () => {
                 //Aca ya esta tocando para pagar ==> armo la orden y genero el fetch
                 let form = document.querySelector('.checkout-form');
                 let body = generateCheckoutFormBodyToFetch(form);
+                console.log(body)
                 // Aca ya tengo todo ==> Hago el fetch
                 const response = await fetch('/api/order', {
                   method: 'POST',
@@ -207,7 +208,7 @@ window.addEventListener("DOMContentLoaded", async () => {
                   body: JSON.stringify(body)
                 });
                 const preferenceResponse = await response.json();
-                window.location.href = preferenceResponse.url;
+                //window.location.href = preferenceResponse.url;
               };
               return
             }

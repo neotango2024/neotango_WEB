@@ -416,14 +416,12 @@ async function updateProductInDb(body, productId){
 
 export async function getVariationsFromDB(id) {
     try {
-        let includeObj = {
-          include: [
-          "product"
-        ],
-      }
+        let includeObj = ["product"];
         // Condición si id es un string
         if (typeof id === "string") {
-          let variationToReturn = await db.Variation.findByPk(id,includeObj);
+          let variationToReturn = await db.Variation.findByPk(id,{
+            include: includeObj
+          });
           if(!variationToReturn)return null
           variationToReturn = variationToReturn && getDeepCopy(variationToReturn);
           //Aca le agrego los tacos y eso
@@ -436,7 +434,7 @@ export async function getVariationsFromDB(id) {
             where: {
               id: id, // id es un array, se hace un WHERE id IN (id)
             },
-            includeObj,
+            include: includeObj,
           });
           if(!variationsToReturn.length)return null
           variationsToReturn = getDeepCopy(variationsToReturn);
@@ -447,7 +445,9 @@ export async function getVariationsFromDB(id) {
     
         // Condición si id es undefined
         if (id === undefined) {
-          let variationsToReturn = await db.Variation.findAll(includeObj);
+          let variationsToReturn = await db.Variation.findAll({
+            include: includeObj
+          });
           if(!variationsToReturn.length)return null
           variationsToReturn = getDeepCopy(variationsToReturn);
           //Aca le agrego los tacos y eso

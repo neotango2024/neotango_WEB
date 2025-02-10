@@ -167,7 +167,7 @@ export default {
       }),
   ],
   orderFields: [
-    body(["user_id", "first_name", "last_name", "email", "dni","payment_type_id","shipping_type_id"])
+    body(["user_id", "first_name", "last_name", "email", "dni", "payment_type_id", "shipping_type_id"])
     .notEmpty()
     .withMessage("Complete todos los campos necesarios")
     .bail()
@@ -175,9 +175,9 @@ export default {
       // que sea de tipo string
       // Si viene formato json entonces lo parseo, sino me fijo directamente
       if (isJson(value)) value = JSON.parse(value);
-      if (typeof value !== "string") {
-        throw new Error();
-      }
+      // if (typeof value !== "string") {
+      //   throw new Error();
+      // }
       return true;
     }),
     body(["variations", "phoneObj", "billingAddress"])
