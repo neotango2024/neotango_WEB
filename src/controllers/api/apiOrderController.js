@@ -48,8 +48,12 @@ import { paymentTypes } from "../../utils/staticDB/paymentTypes.js";
 import { shippingTypes } from "../../utils/staticDB/shippingTypes.js";
 import { createPaypalOrder, getTokenFromUrl, handleCreateMercadoPagoOrder } from "./apiPaymentController.js";
 import { MercadoPagoConfig } from 'mercadopago';
+const env = process.env.NODE_ENV === 'dev';
 // Agrega credenciales
-const mpClient = new MercadoPagoConfig({ accessToken: process.env.MERCADO_PAGO_ACCESS_TOKEN });
+const mpClient = new MercadoPagoConfig({ 
+  accessToken: process.env.MERCADO_PAGO_ACCESS_TOKEN,
+  sandbox: process.env.NODE_ENV ?? false
+});
 // ENV
 const webTokenSecret = process.env.JSONWEBTOKEN_SECRET;
 
@@ -89,8 +93,6 @@ const controller = {
     try {
       // Traigo errores
       let errors = validationResult(req);
-      console.log('error')
-      console.log(errors)
       if (!errors.isEmpty()) {
         //Si hay errores en el back...
         //Para saber los parametros que llegaron..
@@ -178,8 +180,6 @@ const controller = {
           (variationFromDB) => variationFromDB.id == id
         );
         let variationFromDB = variationsFromDB[variationFromDBIndex];
-        console.log('variation')
-        console.log(variationFromDB)
         quantityRequested = parseInt(quantityRequested); //Lo parseo
         //Aca paso el chequeo de stock ==> lo resto al stock que tenia
         variationFromDB.quantity -= quantityRequested; //Le resto el stock
@@ -188,7 +188,7 @@ const controller = {
         let orderItemEsName = variationFromDB.product?.es_name;
         //Si pago en mp entonces es precio pesos, sino precio usd
         let orderItemPrice =
-          orderDataToDB.payment_types_id == 1
+          orderDataToDB.payment_type_id == 1
             ? variationFromDB.product?.ars_price
             : variationFromDB.product?.usd_price;
         orderItemPrice = orderItemPrice && parseFloat(orderItemPrice);
@@ -221,8 +221,6 @@ const controller = {
         orderTotalPrice += parseFloat(item.price) * parseInt(item.quantity);
       });
       orderDataToDB.total = orderTotalPrice;
-      console.log('order items')
-      console.log(orderItemsToDB)
       // Hago los insert en la base de datos
       let orderCreated = await db.Order.create(
         {
@@ -254,7 +252,7 @@ const controller = {
       if (orderCreated.payment_type_id == 1) {
         paymentURL = await handleCreateMercadoPagoOrder(orderItemsToDB, mpClient);
         if(!paymentURL) throw new Error("Could not generate paypal paymentURL");
-      } else if (orderCreated.payment_types_id == 2) {
+      } else if (orderCreated.payment_type_id == 2) {
         // PAYPAL
         paymentURL = await createPaypalOrder(); //Genero el link para enviar a pasarela de pagos paypal
         if(!paymentURL) throw new Error("Could not generate paypal paymentURL"); // Lanza un error y salta al catch
@@ -489,7 +487,7 @@ function setOrderKeysToReturn(order) {
     (status) => status.id == order.order_status_id
   );
   order.paymentType = paymentTypes.find(
-    (payType) => payType.id == order.payment_types_id
+    (payType) => payType.id == order.payment_type_id
   );
   order.shippingType = shippingTypes.find(
     (shipType) => shipType.id == order.shipping_types_id

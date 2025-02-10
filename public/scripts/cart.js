@@ -94,10 +94,10 @@ window.addEventListener("DOMContentLoaded", async () => {
       const containersToAppend = document.querySelectorAll(
         ".cart-detail-rail-container"
       );
-      containersToAppend.forEach(async (cont) => {
+      containersToAppend.forEach(async (cont, i) => {
         cont.innerHTML = "";
         //Lo genero
-        let newDetailContainer = createCartDetailContainer();
+        let newDetailContainer = createCartDetailContainer(i);
         // Reemplazar el contenedor antiguo con el nuevo
         cont.appendChild(newDetailContainer);
       });
@@ -134,21 +134,8 @@ window.addEventListener("DOMContentLoaded", async () => {
       sectionHandlerBtns.forEach((btn) => btn.classList.add("disabled"));
     }
 
-    function constructMercadoPagoBtn(preferenceId){
-
-      const bricksBuilder = mp.bricks();
-      if(window.checkoutButton) window.checkoutButton.unmount();
-      bricksBuilder.create("wallet", "wallet_container", {
-        initialization: {
-            preferenceId: preferenceId,
-        },
-        customization: {
-          texts: {
-          valueProp: 'smart_option',
-          },
-          },
-      });
-
+    function constructPaypalBtn(){
+      // paypal btn
     }
 
     function checkForSectionButtons() {
@@ -163,6 +150,7 @@ window.addEventListener("DOMContentLoaded", async () => {
           try {
             if (btn.classList.contains("finalize-order-button")) {
               if (sectionIndex == 0) {
+                constructMercadoPagoBtn();
                 sectionIndex++;
                 btn.classList.add("loading");
                 let checkoutCards = Array.from(
@@ -198,7 +186,6 @@ window.addEventListener("DOMContentLoaded", async () => {
                 //Aca ya esta tocando para pagar ==> armo la orden y genero el fetch
                 let form = document.querySelector('.checkout-form');
                 let body = generateCheckoutFormBodyToFetch(form);
-                console.log(body)
                 // Aca ya tengo todo ==> Hago el fetch
                 const response = await fetch('/api/order', {
                   method: 'POST',
@@ -208,7 +195,7 @@ window.addEventListener("DOMContentLoaded", async () => {
                   body: JSON.stringify(body)
                 });
                 const preferenceResponse = await response.json();
-                //window.location.href = preferenceResponse.url;
+                window.location.href = preferenceResponse.url;
               };
               return
             }
@@ -686,7 +673,7 @@ window.addEventListener("DOMContentLoaded", async () => {
       }
     }
     //Crea la tarjeta de Detalle
-    function createCartDetailContainer() {
+    function createCartDetailContainer(index) {
       const productsLength = cartProducts?.length || 0;
       let productsCost = 0;
       cartProducts?.forEach((cartItem) => {
@@ -790,16 +777,22 @@ window.addEventListener("DOMContentLoaded", async () => {
       container.appendChild(detailListContainer);
 
       // Crear botón de finalizar compra
-      const finalizeButton = document.createElement("button");
+      let finalizeButton;  
+      finalizeButton = document.createElement("button");
       finalizeButton.className =
         "ui button negative finalize-order-button section-handler-button";
       finalizeButton.type = "button";
-      finalizeButton.textContent = isInSpanish
-        ? "Finalizar compra"
-        : "Go to checkout";
-      const walletContainer = document.createElement('button');
-      walletContainer.id = "wallet_container";
-      container.appendChild(finalizeButton);
+      if(sectionIndex === 0){ 
+        finalizeButton.textContent = isInSpanish
+          ? "Finalizar compra"
+          : "Go to checkout";
+        } else {
+          finalizeButton.textContent = isInSpanish
+          ? "Ir al pago"
+          : "Go to payment";
+        }
+        container.appendChild(finalizeButton)
+
 
       return container;
     }
@@ -967,5 +960,12 @@ window.addEventListener("DOMContentLoaded", async () => {
     return console.log(error);
   }
 });
+
+function constructMercadoPagoBtn(){
+    const finalizeBtn = document.querySelectorAll('.finalize-order-button');
+    finalizeBtn[1].classList.add('hidden');
+    const mpButton = document.createElement('div');
+    mpButton.className = "mp-button";
+}
 
 export { cartExportObj };

@@ -113,7 +113,13 @@ export async function handleCreateMercadoPagoOrder(orderItemsToDb, mpClient) {
         failure: "https://quilmac.com.ar/",
         pending: "https://www.google.com/"
       },
-      auto_return: "approved"
+      auto_return: "approved",
+      payment_methods: {
+        excluded_payment_types: [
+          { id: "ticket" },  // Eliminar pagos en efectivo
+          { id: "atm" },     // Eliminar pagos por transferencias
+        ]
+      }
     }
     orderItemsToDb.forEach(item => {
       const mercadoPagoItemObject = {

@@ -160,6 +160,31 @@
 .card-header:hover{
     color: var(--red-color);
 }
+.mp-button-container {
+    background-color: #009EE3; /* Azul oficial de MercadoPago */
+    color: white;
+    font-size: 16px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    width: 70%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    max-width: 320px;
+  }
+
+  .mp-button-container span {
+    font-size: 18px;
+    color: #fff;
+    font-weight: 700;
+  }
+
+  .mp-button-container img {
+    width: 80px;
+    height: 50px;
+    margin-left: 10px;
+  }
 @media(min-width: 1024px){
     .main{
         flex-direction: row;
@@ -239,4 +264,8 @@
         height: 5vh;
         margin: 0;
     }
+    .mp-button-container {
+        width: 100%;
+      }
+    
 }

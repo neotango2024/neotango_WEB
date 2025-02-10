@@ -13,14 +13,16 @@ window.addEventListener('load', () => {
 
 export const translateFaqContent = () => {
     const main = document.querySelector('.faq-main');
-    const lang = isInSpanish ? 'esp' : 'eng';
+    const lang = isInSpanish ? 'es' : 'en';
     const h1Element = document.querySelector('.page-title');
     h1Element.textContent = translations.faq.title[lang];
     const faqs = document.querySelectorAll('.faq-container');
     faqs.forEach((faq, i) => {
         const title = faq.querySelector('.faq-title');
         const description = faq.querySelector('.faq-description');
+
         title.textContent = translations.faq[i].title[lang];
+        console.log(translations.faq[i].title[lang])
         description.textContent = translations.faq[i].description[lang];
         const additionalDescription = faq.querySelector('.additional-faq-description');
         if(additionalDescription && lang === 'eng'){

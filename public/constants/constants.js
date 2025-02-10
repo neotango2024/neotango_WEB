@@ -50,7 +50,7 @@ export const translations = {
     },
     faq: {
         title: {en: 'Frequently asked questions', es: 'Preguntas frecuentes'},
-        firstFaq: {
+        0: {
             title: {
                 en: 'Payment methods',
                 es: 'Métodos de pago'
