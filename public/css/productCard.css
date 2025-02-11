@@ -8,9 +8,9 @@
 
 .products-container, .placeholders-container {
     display: grid;
-    gap: 20px;
+    gap: 10px;
     grid-template-columns: repeat(2, 1fr); 
-    padding: 0 3%;
+    padding: 0 15px;
 }
 
 .skeleton-product {
@@ -98,7 +98,11 @@
 
 
 
-@media(min-width: 720px){ 
+@media(min-width: 768px){ 
+
+    .product-card {
+        height: 350px;
+    }
 
     .skeleton-product {
         width: 45%;

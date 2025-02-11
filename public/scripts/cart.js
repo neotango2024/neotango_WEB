@@ -122,11 +122,19 @@ window.addEventListener("DOMContentLoaded", async () => {
         return;
       }
       //ACa no tiene proudctos, pinto algo
-      cartProductsWrapper.innerHTML = `<p>${
+      cartProductsWrapper.className = "detail-list-container";
+      cartProductsWrapper.innerHTML = `<p class="no-cart-p">${
         isInSpanish
-          ? "No tienes productos en el carro!"
+          ? "No tienes productos en el carro"
           : "There are no products on your cart!"
-      }</p>`;
+      }</p>
+      <p class="no-cart-p">
+        ${isInSpanish 
+           ? 'Los productos que agregues se verán aquí'
+           :
+           'Items added will be shown here'
+        }
+      </p>`;
       //Pinto disabled el boton de finalizar compra
       const sectionHandlerBtns = document.querySelectorAll(
         ".section-handler-button"
@@ -692,7 +700,7 @@ window.addEventListener("DOMContentLoaded", async () => {
       container.className = "cart-detail-container";
 
       // Crear título
-      const title = document.createElement("p");
+      const title = document.createElement("h1");
       title.className = "cart-detail-title page-title";
       title.textContent = isInSpanish ? "Detalle" : "Detail";
       container.appendChild(title);
@@ -781,8 +789,9 @@ window.addEventListener("DOMContentLoaded", async () => {
       finalizeButton = document.createElement("button");
       finalizeButton.className =
         "ui button negative finalize-order-button section-handler-button";
-      finalizeButton.type = "button";
-      if(sectionIndex === 0){ 
+        finalizeButton.type = "button";
+        if(sectionIndex === 0){ 
+        if(cartProducts.length === 0) finalizeButton.className += ' disabled'
         finalizeButton.textContent = isInSpanish
           ? "Finalizar compra"
           : "Go to checkout";

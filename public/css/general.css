@@ -248,8 +248,8 @@ label {
   border: 1px solid red!important;
 }
 .disabled {
-  background-color: grey;
-  pointer-events: none;
+  background-color: grey!important;
+  pointer-events: none!important;
 }
 @keyframes loading {
   to {
