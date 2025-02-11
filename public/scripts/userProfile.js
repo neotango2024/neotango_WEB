@@ -703,7 +703,8 @@ const handleChangeOrderStatus = async (e, order) => {
       const orderIndexToModify = ordersFromDB.findIndex(ord=>ord.id == order.id);
       const newOrderStatusObj = statusesFromDB.find(status=>status.id == newOrderStatus);
       ordersFromDB[orderIndexToModify].orderStatus = newOrderStatusObj;
-      ordersFromDB[orderIndexToModify].order_status_id = newOrderStatus;      
+      ordersFromDB[orderIndexToModify].order_status_id = newOrderStatus;     
+       
       return userProfileExportObj.pageConstructor();
     }
   } catch (error) {

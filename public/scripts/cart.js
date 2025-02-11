@@ -43,6 +43,9 @@ let cartExportObj = {
   paintCheckoutPhoneSelect: null,
   paintCheckoutAddressesSelect: null,
 };
+const mp = new MercadoPago("APP_USR-1fcc821e-5223-4cdd-9c00-5c5fb7789542", {
+  locale: 'es-AR'
+})
 window.addEventListener("DOMContentLoaded", async () => {
   try {
     if (!window.location.pathname.endsWith("/carro")) return;
@@ -91,10 +94,10 @@ window.addEventListener("DOMContentLoaded", async () => {
       const containersToAppend = document.querySelectorAll(
         ".cart-detail-rail-container"
       );
-      containersToAppend.forEach(async (cont) => {
+      containersToAppend.forEach(async (cont, i) => {
         cont.innerHTML = "";
         //Lo genero
-        let newDetailContainer = createCartDetailContainer();
+        let newDetailContainer = createCartDetailContainer(i);
         // Reemplazar el contenedor antiguo con el nuevo
         cont.appendChild(newDetailContainer);
       });
@@ -119,16 +122,28 @@ window.addEventListener("DOMContentLoaded", async () => {
         return;
       }
       //ACa no tiene proudctos, pinto algo
-      cartProductsWrapper.innerHTML = `<p>${
+      cartProductsWrapper.className = "detail-list-container";
+      cartProductsWrapper.innerHTML = `<p class="no-cart-p">${
         isInSpanish
-          ? "No tienes productos en el carro!"
+          ? "No tienes productos en el carro"
           : "There are no products on your cart!"
-      }</p>`;
+      }</p>
+      <p class="no-cart-p">
+        ${isInSpanish 
+           ? 'Los productos que agregues se verán aquí'
+           :
+           'Items added will be shown here'
+        }
+      </p>`;
       //Pinto disabled el boton de finalizar compra
       const sectionHandlerBtns = document.querySelectorAll(
         ".section-handler-button"
       );
       sectionHandlerBtns.forEach((btn) => btn.classList.add("disabled"));
+    }
+
+    function constructPaypalBtn(){
+      // paypal btn
     }
 
     function checkForSectionButtons() {
@@ -143,6 +158,7 @@ window.addEventListener("DOMContentLoaded", async () => {
           try {
             if (btn.classList.contains("finalize-order-button")) {
               if (sectionIndex == 0) {
+                constructMercadoPagoBtn();
                 sectionIndex++;
                 btn.classList.add("loading");
                 let checkoutCards = Array.from(
@@ -176,12 +192,20 @@ window.addEventListener("DOMContentLoaded", async () => {
                 cartExportObj.pageConstructor();
               } else if (sectionIndex == 1) {
                 //Aca ya esta tocando para pagar ==> armo la orden y genero el fetch
-                let form = document.querySelector(".checkout-form");
+                let form = document.querySelector('.checkout-form');
                 let body = generateCheckoutFormBodyToFetch(form);
                 // Aca ya tengo todo ==> Hago el fetch
-                return console.log(body);
-              }
-              return;
+                const response = await fetch('/api/order', {
+                  method: 'POST',
+                  headers: { 
+                    "Content-Type": "application/json"
+                  },
+                  body: JSON.stringify(body)
+                });
+                const preferenceResponse = await response.json();
+                window.location.href = preferenceResponse.url;
+              };
+              return
             }
             //ACa limipio el checkout section
             const checkoutSectionForm = document.querySelector(
@@ -657,7 +681,7 @@ window.addEventListener("DOMContentLoaded", async () => {
       }
     }
     //Crea la tarjeta de Detalle
-    function createCartDetailContainer() {
+    function createCartDetailContainer(index) {
       const productsLength = cartProducts?.length || 0;
       let productsCost = 0;
       cartProducts?.forEach((cartItem) => {
@@ -676,7 +700,7 @@ window.addEventListener("DOMContentLoaded", async () => {
       container.className = "cart-detail-container";
 
       // Crear título
-      const title = document.createElement("p");
+      const title = document.createElement("h1");
       title.className = "cart-detail-title page-title";
       title.textContent = isInSpanish ? "Detalle" : "Detail";
       container.appendChild(title);
@@ -761,14 +785,23 @@ window.addEventListener("DOMContentLoaded", async () => {
       container.appendChild(detailListContainer);
 
       // Crear botón de finalizar compra
-      const finalizeButton = document.createElement("button");
+      let finalizeButton;  
+      finalizeButton = document.createElement("button");
       finalizeButton.className =
         "ui button negative finalize-order-button section-handler-button";
-      finalizeButton.type = "button";
-      finalizeButton.textContent = isInSpanish
-        ? "Finalizar compra"
-        : "Go to checkout";
-      container.appendChild(finalizeButton);
+        finalizeButton.type = "button";
+        if(sectionIndex === 0){ 
+        if(cartProducts.length === 0) finalizeButton.className += ' disabled'
+        finalizeButton.textContent = isInSpanish
+          ? "Finalizar compra"
+          : "Go to checkout";
+        } else {
+          finalizeButton.textContent = isInSpanish
+          ? "Ir al pago"
+          : "Go to payment";
+        }
+        container.appendChild(finalizeButton)
+
 
       return container;
     }
@@ -935,5 +968,12 @@ window.addEventListener("DOMContentLoaded", async () => {
     return console.log(error);
   }
 });
+
+function constructMercadoPagoBtn(){
+    const finalizeBtn = document.querySelectorAll('.finalize-order-button');
+    finalizeBtn[1].classList.add('hidden');
+    const mpButton = document.createElement('div');
+    mpButton.className = "mp-button";
+}
 
 export { cartExportObj };

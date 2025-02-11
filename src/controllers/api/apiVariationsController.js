@@ -229,7 +229,6 @@ export const getVariationsToDelete = (bodyVariations, dbVariations, productId) =
             const isSameSize = normalizeToString(dbVar.size_id) === normalizeToString(bodyVar.size_id);
             const isSameProduct = normalizeToString(dbVar.product_id) === normalizeToString(productId);
             const isSameTaco = normalizeToString(dbVar.taco_id) === normalizeToString(bodyVar.taco_id);
-
             return isSameSize && isSameTaco && isSameProduct;
         });
         

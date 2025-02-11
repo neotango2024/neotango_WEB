@@ -11,6 +11,7 @@ import { validationResult } from "express-validator";
 import { fileURLToPath } from "url";
 import axios from "axios";
 import { log } from "console";
+import { Preference } from "mercadopago";
 import { HTTP_STATUS } from "../../utils/staticDB/httpStatusCodes.js";
 // way to replace __dirname in es modules
 const __filename = fileURLToPath(import.meta.url);
@@ -101,4 +102,39 @@ export async function capturePaypalPayment(orderId){
 export function getTokenFromUrl(url) {
     const parsedUrl = new URL(url);
     return parsedUrl.searchParams.get('token'); // Obtiene el valor del parámetro 'token'
+}
+
+export async function handleCreateMercadoPagoOrder(orderItemsToDb, mpClient) {
+  try {   
+    let body = {
+      items: [],
+      back_urls: {
+        success: "https://neotangoshoes.com/",
+        failure: "https://quilmac.com.ar/",
+        pending: "https://www.google.com/"
+      },
+      auto_return: "approved",
+      payment_methods: {
+        excluded_payment_types: [
+          { id: "ticket" },  // Eliminar pagos en efectivo
+          { id: "atm" },     // Eliminar pagos por transferencias
+        ]
+      }
+    }
+    orderItemsToDb.forEach(item => {
+      const mercadoPagoItemObject = {
+        title: item.es_name,
+        quantity: Number(item.quantity),
+        unit_price: Number(item.price),
+        currency_id: "ARS"
+      }
+      body.items.push(mercadoPagoItemObject);
+    })
+    const preference = new Preference(mpClient);
+    const result = await preference.create({body});
+    return result.init_point;
+  } catch (error) {
+    console.log('error in mercadopago create')
+    console.log(error)
+  }
 }

@@ -28,6 +28,9 @@ import { destroyFilesFromAWS, getFilesFromAWS, uploadFilesToAWS } from "../../ut
 import { getMappedErrors } from "../../utils/helpers/getMappedErrors.js";
 import { getOrdersFromDB } from "./apiOrderController.js";
 import { findProductsInDb } from "./apiProductController.js";
+import nodemailer from 'nodemailer';
+import mailConfig from "../../utils/staticDB/mailConfig.js";
+const {User} = db;
 import { HTTP_STATUS } from "../../utils/staticDB/httpStatusCodes.js";
 
 const { verify } = jwt;
@@ -459,9 +462,61 @@ const controller = {
       })
     }
   },
+  handleSendContactEmail: async (req, res) => {
+    const {email, name, message} = req.body;
+    if(!email || !name || !message){
+      return res.status(400).json({
+        ok: false,
+        message: "Either the email or name weren't provided"
+      })
+    }
+    const success = await sendContactEmail(email, name, message);
+    if(!success){
+      return res.status(500).json({
+        ok: false,
+        msg: 'Internal server error'
+      })
+    }
+    return res.status(200).json({
+      ok: true
+    })
+  }
 };
 
 export default controller;
+
+const sendContactEmail = async (email, name, message) => {
+  try {
+    const userEmailContent = `
+      <div style="font-family: Arial, sans-serif; line-height: 1.5; color: #333;">
+        <h2 style="color: #444;">Nueva consulta recibida</h2>
+        <p><strong>Nombre:</strong> ${name}</p>
+        <p><strong>Correo:</strong> ${email}</p>
+        <p><strong>Mensaje:</strong></p>
+        <blockquote style="border-left: 4px solid #ddd; padding-left: 8px; color: #666;">
+          ${message}
+        </blockquote>
+        <hr>
+        <p style="font-size: 12px; color: #aaa;">Este mensaje se envió desde el formulario de contacto de tu sitio web.</p>
+      </div>
+  `;
+  const userMailOptions = {
+    from: process.env.EMAIL_USER, 
+    to: process.env.EMAIL_USER, 
+    subject: 'Nueva consulta',
+    html: userEmailContent,
+    replyTo: email
+  };
+   let transporter = nodemailer.createTransport(mailConfig);
+   const emailSending = await transporter.sendMail(userMailOptions);
+   return true;
+  } catch (error) {
+    console.log(error)
+    return false;
+  }
+  
+
+}
 
 async function updateUserLanguageInDb(paymentID, userId){
   try {

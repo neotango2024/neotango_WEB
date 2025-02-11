@@ -12,6 +12,7 @@ router.get('/producto/:id',mainController.productDetail);
 router.get('/perfil', userIsLoggedMiddleware, mainController.userProfile); //TODO: aca agregar middleware para chequear que este loggeado, de no estar index
 router.get('/nosotros',mainController.aboutUs);
 router.get('/faq',mainController.faq);
+router.get('/contacto',mainController.contact);
 router.get('/logout',getLastURL,mainController.logout);
 
 export default router;

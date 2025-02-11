@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <%- include('./partials/head.ejs') %>
+    <link rel="stylesheet" href="/css/contact.css">
+    <script type="module" src="/scripts/contact.js"></script>
+    <title>Nosotros</title>
+</head>
+<body data-page_name="contact">
+    <%- include('./partials/header.ejs') %>
+    <main class="contact-main">
+        <div class="ui placeholder title-placeholder">
+            <div class="image"></div>
+        </div>
+        <div class="contact-placeholders-container">
+            <div class="ui placeholder image-placeholder">
+                <div class="image"></div>
+            </div>
+        </div>
+        <h1 class="page-title red hidden"></h1>
+        <div class="contact-form-container hidden">
+            <form class="contact-form" action="/api/user/send-mail" method="POST">
+                <input type="text" class="contact-form-input input name-input" name="name">
+                <input type="text" class="contact-form-input input email-input" name="email">
+
+                <textarea class="contact-textarea input" rows="5" cols="30"></textarea>
+                <button type="submit" class="contact-form-submit-btn"></button>
+            </form>
+            <div class="form-img-container">
+                <img src="/img/contact/draft.jpg" alt="draft">
+            </div>
+        </div>
+        <div class="extra-contacts">
+            <div class="contact-container">
+                <i class='bx bx-phone contact-icon'></i>
+                <p class="contact-label">11-4242-4213</p>
+            </div>
+            <div class="contact-container">
+                <i class='bx bx-map contact-icon'></i>
+                <p class="contact-label">Sarmiento 1938 - CABA</p>
+            </div>
+            <div class="contact-container">
+                <i class='bx bxl-instagram contact-icon'></i>
+                <p class="contact-label">neo_tango</p>
+            </div>
+            <div class="contact-container">
+                <i class='bx bxl-facebook contact-icon' ></i>
+                <p class="contact-label">Neo Tango Rodolfo Ruiz</p>
+            </div>
+        </div>
+    </main>
+  <%- include('./partials/footer.ejs') %>
+</body>
+</html>

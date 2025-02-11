@@ -68,6 +68,15 @@ const controller = {
             return res.redirect('/');
         }
     },
+    contact: async (req, res) => {
+        try {
+            return res.render('contact')
+        } catch (error) {
+            console.log(`Error in contact: redirecting...`);
+            console.log(error)
+            return res.redirect('/');
+        }
+    },
     logout: (req,res)=>{
         let pathToReturn = req.session.returnTo;
         res.clearCookie("userAccessToken");

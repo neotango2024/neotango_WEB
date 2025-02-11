@@ -10,8 +10,6 @@ window.addEventListener('DOMContentLoaded', async () => {
     const categoryToLook = getLastParamFromURL()
     await setProductsFromDB({categoryId: categoryToLook});
     products = productsFromDB;
-    console.log(products);
-    
     handleRenderProductList(products);
     translateCategoryTitle();
     translateFilters();
@@ -30,7 +28,7 @@ const handleRenderProductList = (products) => {
 }
 
 export const translateCategoryTitle = () => {
-    const pageTitle = document.querySelector('.category-title');
+    const pageTitle = document.querySelector('.page-title');
     const categoryNumber = Number(pathname.split('/')[2]);
     switch(categoryNumber){
         case 1:

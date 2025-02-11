@@ -8,6 +8,7 @@ import { productDetailExportObj } from "./productDetail.js";
 import { handleTranslateCategoryProducts, translateCategoryTitle, translateFilters } from "./productList.js";
 import { translateUserLabels, userProfileExportObj } from "./userProfile.js";
 import { translateAboutUsContent } from "./aboutUs.js";
+import { translateFaqContent } from "./faq.js";
 
 export let settedLanguage = null;
 export let isInSpanish = true;
@@ -104,6 +105,9 @@ const handleChangeLanguage = async(param) => { //param es 1/2
            break
         case "aboutUs":
             translateAboutUsContent();
+            break;
+        case "faq":
+            translateFaqContent();
             break;
         default:
             break;
