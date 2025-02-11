@@ -799,7 +799,6 @@ window.addEventListener("DOMContentLoaded", async () => {
           if(variationFromDB.quantity == 0){
             indexesToRemoveFromCart.push(i)
           }
-          console.log(variationFromDB?.quantity);
           
           cartItem.quantity = variationFromDB?.quantity;
         }

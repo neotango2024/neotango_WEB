@@ -44,7 +44,7 @@ import {
 } from "./utils.js";
 const SCREEN_WIDTH = window.screen.width;
 
-export function checkoutCard(props) {  
+export function checkoutCard(props) {
   const productFromDB = props;
   const productMainFile = productFromDB.files?.find((file) => file.main_file);
   props.quantity = props.quantity || 1;
@@ -135,7 +135,9 @@ export function checkoutCard(props) {
   removeButton.className = `ui button number_button remove_more_product ${
     props.quantity > 1 ? "" : "hidden"
   }`;
-  addButton.className = `ui button number_button add_more_product ${props.quantity == props.maxQuantityAvailable ? "disabled" :''}`;
+  addButton.className = `ui button number_button add_more_product ${
+    props.quantity == props.maxQuantityAvailable ? "disabled" : ""
+  }`;
 
   const plusIcon = document.createElement("i");
   const minusIcon = document.createElement("i");
@@ -542,7 +544,7 @@ export function form(props) {
   const form = document.createElement("form");
   form.action = formAction;
   form.method = method || "POST";
-  form.className = `custom-form ${formClasses || ''}`;
+  form.className = `custom-form ${formClasses || ""}`;
   container.appendChild(form);
 
   inputProps.forEach((input) => {
@@ -1269,7 +1271,7 @@ function createField(field) {
   }
 
   // Manejo de select
-  if (field.type === "select") {
+  else if (field.type === "select") {
     const select = document.createElement("select");
     select.name = field.name;
     select.className = field.className || "ui dropdown";
@@ -1304,7 +1306,7 @@ function createField(field) {
   }
 
   // Manejo de radio-group
-  if (field.type === "radio-group") {
+  else if (field.type === "radio-group") {
     const radioGroup = document.createElement("div");
     radioGroup.className = "inline fields";
 
@@ -1335,7 +1337,7 @@ function createField(field) {
   }
 
   // Manejo de textarea
-  if (field.type === "textarea") {
+  else if (field.type === "textarea") {
     const textarea = document.createElement("textarea");
     textarea.name = field.name;
     textarea.placeholder = field.placeholder || "";
@@ -1347,10 +1349,31 @@ function createField(field) {
     }
 
     fieldContainer.appendChild(textarea);
-  }
+  } else if (field.icon) {
+    const iconInputContainer = document.createElement("div");
+    iconInputContainer.className = "ui icon input";
 
-  // Manejo de input estándar (text, number, email, password)
-  if (["text", "number", "email", "password"].includes(field.type)) {
+    const input = document.createElement("input");
+    input.type = field.type || "text";
+    input.name = field.name || "";
+    input.placeholder = field.placeHolder || "";
+    input.required = field.required || false;
+    input.className = field.className || "";
+
+    const icon = document.createElement("i");
+    icon.className = `${field.icon} icon`;
+
+    if (field.iconCallback && typeof field.iconCallback === "function") {
+      icon.addEventListener("click", (event) =>
+        field.iconCallback(event, input)
+      );
+    }
+
+    iconInputContainer.appendChild(input);
+    iconInputContainer.appendChild(icon);
+    fieldContainer.appendChild(iconInputContainer);
+  } else if (["text", "number", "email", "password"].includes(field.type)) {
+    // Manejo de input estándar (text, number, email, password)
     const input = document.createElement("input");
     input.type = field.type;
     input.name = field.name;
@@ -1937,7 +1960,7 @@ export async function createDisableProductModal(product) {
       method: "DELETE",
       headers: {
         "Content-Type": "application/json",
-      }
+      },
     });
     if (response.ok) {
       response = await response.json();
@@ -1953,7 +1976,7 @@ export async function createDisableProductModal(product) {
     }
     let msg = "Ha ocurrido un error";
     showCardMessage(false, msg);
-    return
+    return;
   });
 }
 function listenToProductModalBtns() {
