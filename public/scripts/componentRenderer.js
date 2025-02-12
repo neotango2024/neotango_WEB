@@ -1911,7 +1911,7 @@ export async function createProductModal(product = undefined) {
   if (product) {
     let groupsByTacoId = Object.values(
       product.variations?.reduce((acc, item) => {
-        const tacoId = item.taco.id;
+        const tacoId = item.taco?.id;
         if (!acc[tacoId]) {
           acc[tacoId] = [];
         }

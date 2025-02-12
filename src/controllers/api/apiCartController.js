@@ -9,6 +9,7 @@ import { v4 as UUIDV4 } from "uuid";
 import { Op } from "sequelize";
 import getDeepCopy from "../../utils/helpers/getDeepCopy.js";
 import { HTTP_STATUS } from "../../utils/staticDB/httpStatusCodes.js";
+import { deleteSensitiveUserData } from "./apiUserController.js";
 const { TempCartItem } = db;
 
 const controller = {
@@ -197,13 +198,15 @@ export default controller;
 
 async function findTempCartItemsByUserId(userId) {
   try {
-    const tempCartItems = await TempCartItem.findAll({
+    let tempCartItems = await TempCartItem.findAll({
       where: {
         user_id: userId,
       },
       include: ["product", "user"],
     });
     if (!tempCartItems) return [];
+    tempCartItems = getDeepCopy(tempCartItems);
+    tempCartItems.forEach(tempItem=>deleteSensitiveUserData(tempItem.user));
     return tempCartItems;
   } catch (error) {
     console.log(`Error finding cart in db: ${error}`);

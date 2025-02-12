@@ -207,8 +207,8 @@ export default {
         }),
     body(["phoneObj","billingAddress","shippingAddress"]) //Me fijo que los paises esten en db
     .custom(async (value, { req }) => {
-          let countryFromDB = countries.find(country=>country.id == value.country_id);
-          if(!countryFromDB) throw new Error("Pais no encontrado");
+          let countryFromDB = countries.find(country=>country.id == value?.country_id);
+          if(value && !countryFromDB) throw new Error("Pais no encontrado");
           return true;
     }),
     body(["phoneObj"]) //Saco los nros con el regex

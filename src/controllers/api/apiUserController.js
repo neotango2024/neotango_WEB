@@ -600,6 +600,7 @@ export async function getUsersFromDB(id) {
 }
 
 export function deleteSensitiveUserData(user){
+  if(!user)return;
   delete user.password;
   delete user.password_token;
   delete user.verification_code;

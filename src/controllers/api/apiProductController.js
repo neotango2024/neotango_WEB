@@ -140,8 +140,7 @@ const controller = {
         }
     },
     handleUpdateProduct: async (req, res) => {
-        // return console.log(req.body);
-        
+        // return console.log(req.body); 
         const errors = validationResult(req);
         if(!errors.isEmpty()){
             return res.status(HTTP_STATUS.BAD_REQUEST.code).json({
@@ -167,7 +166,10 @@ const controller = {
         const deleteVariationsPromises = variationsToDelete.map(async variationToDelete => {
             const isDeleteSuccessful = await deleteVariationInDb(variationToDelete);
             return isDeleteSuccessful;
-        })
+        });
+        console.log("VARIATIONS TO DELETE");
+        console.log(variationsToDelete);
+        
         const promisesResult = await Promise.all(deleteVariationsPromises);
         const areAllVariationsDeleted = promisesResult.every(prom => prom === true);
         if(!areAllVariationsDeleted){
@@ -177,6 +179,8 @@ const controller = {
             });
         }
         const variationsToAdd = getVariationsToAdd(variations, variationsInDb,productId);
+        console.log("VARIATIONS TO ADD");
+        console.log(variationsToAdd);
         const isInsertingVariationsSuccessful = await insertVariationsInDb(variationsToAdd, productId);
         if(!isInsertingVariationsSuccessful){
             return res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR.code).json({

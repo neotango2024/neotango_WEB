@@ -21,6 +21,7 @@ import countries from "../../utils/staticDB/countries.js";
 
 import { getMappedErrors } from "../../utils/helpers/getMappedErrors.js";
 import { HTTP_STATUS } from "../../utils/staticDB/httpStatusCodes.js";
+import { deleteSensitiveUserData } from "./apiUserController.js";
 
 // ENV
 
@@ -246,19 +247,21 @@ export function generatePhoneObject(phone) {
 
 export async function getPhonesFromDB(id) {
   try {
+    let phoneToReturn,phonesToReturn;
     // Condición si id es un string
     if (typeof id === "string") {
-      let phoneToReturn = await db.Phone.findByPk(id, {
+      phoneToReturn = await db.Phone.findByPk(id, {
         include: phoneIncludeArray,
       });
       if (!phoneToReturn) return null;
       phoneToReturn = phoneToReturn && getDeepCopy(phoneToReturn);
+      setPhoneKeysToReturn(phoneToReturn)
       return phoneToReturn;
     }
 
     // Condición si id es un array
-    if (Array.isArray(id)) {
-      let phonesToReturn = await db.Phone.findAll({
+    else if (Array.isArray(id)) {
+      phonesToReturn = await db.Phone.findAll({
         where: {
           id: id, // id es un array, se hace un WHERE id IN (id)
         },
@@ -266,21 +269,25 @@ export async function getPhonesFromDB(id) {
       });
       if (!phonesToReturn || !phonesToReturn.length) return null;
       phonesToReturn = getDeepCopy(phonesToReturn);
-      return phonesToReturn;
     }
 
     // Condición si id es undefined
-    if (id === undefined) {
-      let phonesToReturn = await db.Phone.findAll({
+    else if (id === undefined) {
+      phonesToReturn = await db.Phone.findAll({
         include: phoneIncludeArray,
       });
       if (!phonesToReturn || !phonesToReturn.length) return null;
       phonesToReturn = getDeepCopy(phonesToReturn);
-      return phonesToReturn;
     }
+    phonesToReturn.forEach(phone => setPhoneKeysToReturn(phone));
+    return phonesToReturn;
   } catch (error) {
     console.log("Falle en getPhonesFromDB");
     console.error(error);
     return null;
   }
+}
+
+function setPhoneKeysToReturn(phone){
+  deleteSensitiveUserData(phone.user);
 }

@@ -52,6 +52,9 @@ import {
   handleCreateMercadoPagoOrder,
 } from "./apiPaymentController.js";
 import { MercadoPagoConfig } from "mercadopago";
+import { getZonePricesFromDB } from "./apiShippingController.js";
+import { HTTP_STATUS } from "../../utils/staticDB/httpStatusCodes.js";
+import { deleteSensitiveUserData } from "./apiUserController.js";
 const env = process.env.NODE_ENV === "dev";
 // Agrega credenciales
 const mpClient = new MercadoPagoConfig({
@@ -101,9 +104,11 @@ const controller = {
         //Si hay errores en el back...
         //Para saber los parametros que llegaron..
         let { errorsParams, errorsMapped } = getMappedErrors(errors);
-        return res.status(422).json({
+        return console.log(errorsParams, errorsMapped);
+        
+        return res.status(HTTP_STATUS.BAD_REQUEST.code).json({
           meta: {
-            status: 422,
+            status: HTTP_STATUS.BAD_REQUEST.code,
             url: "/api/order",
             method: "POST",
           },
@@ -127,35 +132,39 @@ const controller = {
         shipping_type_id,
         variationsFromDB, //Del middleware
       } = req.body;
+      
       // Si esta logueado y no tenia los nros y direcciones armadas...
       if (!billingAddress.id && user_id) {
         let billingAddressObjToDB = generateAddressObject(billingAddress);
         billingAddressObjToDB.user_id = user_id; //Si hay usuario loggeado lo agrego a esta
         let createdAddress = await insertAddressToDB(billingAddressObjToDB);
-        if (!createdAddress) return res.status(502).json();
+        if (!createdAddress) return res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR.code).json();
         billingAddress.id = billingAddressObjToDB.id; //lo dejo seteado asi despues puedo acceder
       } else if (billingAddress?.id) {
         //Si vino el id, busco la address y la dejo desde db porlas
         billingAddress = await getAddresesFromDB(billingAddress.id);
       }
-      if (!shippingAddress.id && user_id) {
-        let shippingAddressObjToDB = generateAddressObject(shippingAddress);
-        shippingAddressObjToDB.user_id = user_id; //Si hay usuario lo agrego a esta
-        let createdAddress = await insertAddressToDB(shippingAddressObjToDB);
-        if (!createdAddress) return res.status(502).json();
-        shippingAddress.id = shippingAddressObjToDB.id; //lo dejo seteado asi despues puedo acceder
-      } else if (shippingAddress?.id) {
-        //Si vino el id, busco la address y la dejo desde db porlas
-        shippingAddress = await getAddresesFromDB(shippingAddress.id);
+      if(shipping_type_id == 1){
+        if (shippingAddress && !shippingAddress?.id && user_id) {
+          let shippingAddressObjToDB = generateAddressObject(shippingAddress);
+          shippingAddressObjToDB.user_id = user_id; //Si hay usuario lo agrego a esta
+          let createdAddress = await insertAddressToDB(shippingAddressObjToDB);
+          if (!createdAddress) return res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR.code).json();
+          shippingAddress.id = shippingAddressObjToDB.id; //lo dejo seteado asi despues puedo acceder
+        } else if (shippingAddress && shippingAddress?.id) {
+          //Si vino el id, busco la address y la dejo desde db porlas
+          shippingAddress = await getAddresesFromDB(shippingAddress.id);
+        }
       }
+      
       if (!phoneObj?.id && user_id) {
         let phoneObjToDB = generatePhoneObject({ ...phoneObj, user_id });
         let createdPhone = await insertPhoneToDB(phoneObjToDB);
-        if (!createdPhone) return res.status(502).json();
-        if (user_id) phoneObjToDB.user_id = user_id; //Si hay usuario lo agrego a esta
+        if (!createdPhone) return res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR.code).json();
       } else if (phoneObj?.id) {
-        phoneObj = getPhonesFromDB(phoneObj.id);
-      }
+        phoneObj = await getPhonesFromDB(phoneObj.id);
+      };
+      
       // Armo el objeto del pedido
       const randomString = generateRandomNumber(10);
       orderDataToDB = {
@@ -173,7 +182,27 @@ const controller = {
         shipping_type_id,
         payment_type_id,
       };
+      // Tema total price
+      let orderTotalPrice = 0;
+      // Tema shipping. Si es envio a domicilio le tengo que sumar el coste de shipping por el country
+      if (orderDataToDB.shipping_type_id == 1) {
+        //Envio a domicilio
+        let zoneCountryToCheckPrice = orderDataToDB.shippingAddress.country_id;
+        let dbCountry = countries.find(
+          (count) => count.id == zoneCountryToCheckPrice
+        );
+        let shippingZonePrices = await getZonePricesFromDB({
+          id: dbCountry.zone_id,
+        });
+        //Le sumo al totalPrice
+        orderTotalPrice +=
+          orderDataToDB.payment_type_id == 1
+            ? parseFloat(shippingZonePrices.ars_price)
+            : parseFloat(shippingZonePrices.usd_price);
+            
+      }
       createOrderEntitiesSnapshot(orderDataToDB); //Funcion que saca "foto" de las entidades
+
       // armo los orderItems
       let orderItemsToDB = [];
       // Voy por las variaciones para restar stock
@@ -220,12 +249,13 @@ const controller = {
       }));
       // Hasta aca ya arme todo. (BillingAddress - Order - OrderItem - ShippingAddress) ==> Tengo que insertar en la DB
 
-      // Tema total price
-      let orderTotalPrice = 0;
       orderItemsToDB.forEach((item) => {
         orderTotalPrice += parseFloat(item.price) * parseInt(item.quantity);
       });
+      // Dejo seteado el total
       orderDataToDB.total = orderTotalPrice;
+      
+      
       // Hago los insert en la base de datos
       let orderCreated = await db.Order.create(
         {
@@ -252,7 +282,6 @@ const controller = {
           },
         });
       }
-
       // Aca genero el url de paypal o de mp dependiendo que paymentTypeVino
       let paymentURL, paymentOrderId;
       if (orderCreated.payment_type_id == 1) {
@@ -274,7 +303,10 @@ const controller = {
         let paymentOrderId = getTokenFromUrl(paymentURL);
         orderDataToDB.paypal_order_id = paymentOrderId;
         // Le actualizo el paypal_rder_id en db
-        await db.Order.update({paypal_order_id: paymentOrderId}, {where: { id: orderDataToDB.id }})
+        await db.Order.update(
+          { paypal_order_id: paymentOrderId },
+          { where: { id: orderDataToDB.id } }
+        );
       }
 
       // Mando la respuesta
@@ -365,10 +397,10 @@ const controller = {
       const {
         body: { order_status_id },
       } = req;
-      if(order_status_id == 6){
+      if (order_status_id == 6) {
         //La quiere anular
         const disableResponse = await disableCreatedOrder(orderId);
-      } else{
+      } else {
         //Aca es simplemente una modificacion
         await db.Order.update(
           { order_status_id },
@@ -379,7 +411,7 @@ const controller = {
           }
         );
       }
-      
+
       return res.status(200).json({
         ok: true,
       });
@@ -481,9 +513,9 @@ function createOrderEntitiesSnapshot(obj) {
   let billingAddressCountryName = countries?.find(
     (count) => count.id == billingAddress.country_id
   )?.name;
-  let shippingAddressCountryName = countries?.find(
-    (count) => count.id == shippingAddress.country_id
-  )?.name;
+  let shippingAddressCountryName = shipping_type_id == 1 ? countries?.find(
+    (count) => count.id == shippingAddress?.country_id
+  )?.name : null;
   //Creo el snapshot de billingAddress
   obj.billing_address_street = billingAddress.street || "";
   obj.billing_address_detail = billingAddress.detail || "";
@@ -547,6 +579,7 @@ function setOrderKeysToReturn(order) {
     return acum + parseInt(item.quantity) * parseFloat(item.price || 0);
   }, 0);
   order.shippingCost = parseFloat(order.total) - order.orderItemsPurchasedPrice;
+  deleteSensitiveUserData(order.user);
 }
 
 const restoreStock = async (order) => {
@@ -557,10 +590,10 @@ const restoreStock = async (order) => {
         quantity: orderItem.quantity,
       }));
       for (const item of OrderItemsToRestore) {
-        await db.Variation.increment('quantity', { 
-          by: item.quantity,  // Aumenta el stock en 10
-          where: { id:item.id } // Filtra por el ID del producto
-        })
+        await db.Variation.increment("quantity", {
+          by: item.quantity, // Aumenta el stock en 10
+          where: { id: item.id }, // Filtra por el ID del producto
+        });
       }
       console.log("Stock restaurado correctamente");
     }
@@ -571,8 +604,8 @@ const restoreStock = async (order) => {
 
 export async function disableCreatedOrder(orderID) {
   try {
-    let orderFromDB = await getOrdersFromDB({id: orderID});
-    if(!orderFromDB)return false;
+    let orderFromDB = await getOrdersFromDB({ id: orderID });
+    if (!orderFromDB) return false;
     //La deshabilito
     await db.Order.update(
       {
@@ -584,7 +617,7 @@ export async function disableCreatedOrder(orderID) {
         },
       }
     );
-    
+
     await restoreStock(orderFromDB);
     return true;
   } catch (error) {

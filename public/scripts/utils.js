@@ -503,8 +503,8 @@ export function buildProductBodyData(form) {
         'input[name="variation-stock"]'
       ).value;
       bodyDataToReturn.variations.push({
-        tacoId,
-        sizeId,
+        taco_id: tacoId,
+        size_id: sizeId,
         quantity: stock,
       });
     });
@@ -710,7 +710,6 @@ export async function handleProductFetch(bodyData, method) {
     });    
     response = await response.json()
     if (response.ok) {
-      response = await response.json()
       //Aca dio ok, entonces al ser de un usuario actualizo al usuarioLogged.phones
       if (method == "POST") {
         //Aca agrego

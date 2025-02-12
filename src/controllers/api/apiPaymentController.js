@@ -76,7 +76,7 @@ export async function createPaypalOrder(order) {
       application_context: {
         return_url: process.env.BASE_URL + "/completar-pago",
         cancel_url: process.env.BASE_URL + "/cancelar-orden",
-        // shipping_preference: "NO_SHIPPING",
+        shipping_preference: "NO_SHIPPING",
         user_action: "PAY_NOW",
         brand_name: "neotango",
       },

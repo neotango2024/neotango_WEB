@@ -21,6 +21,7 @@ import countries from "../../utils/staticDB/countries.js";
 
 import { getMappedErrors } from "../../utils/helpers/getMappedErrors.js";
 import { HTTP_STATUS } from "../../utils/staticDB/httpStatusCodes.js";
+import { deleteSensitiveUserData } from "./apiUserController.js";
 
 // ENV
 
@@ -250,20 +251,21 @@ export function generateAddressObject(address) {
 
 export async function getAddresesFromDB(id){
   try {
-  
+    let addressesToReturn, addressToReturn;
     // Condición si id es un string
     if (typeof id === "string") {
-      let addressToReturn = await db.Address.findByPk(id,{
+      addressToReturn = await db.Address.findByPk(id,{
         include: addressIncludeArray
       });
       if(!addressToReturn)return null
       addressToReturn = addressToReturn && getDeepCopy(addressToReturn);
+      setAddressKeysToReturn(addressToReturn)
       return addressToReturn;
     }
 
     // Condición si id es un array
-    if (Array.isArray(id)) {
-      let addressesToReturn = await db.Address.findAll({
+    else if (Array.isArray(id)) {
+      addressesToReturn = await db.Address.findAll({
         where: {
           id: id, // id es un array, se hace un WHERE id IN (id)
         },
@@ -271,21 +273,25 @@ export async function getAddresesFromDB(id){
       });
       if(!addressesToReturn || !addressesToReturn.length)return null
       addressesToReturn = getDeepCopy(addressesToReturn);
-      return addressesToReturn;
+      
     }
-
     // Condición si id es undefined
-    if (id === undefined) {
-      let addressesToReturn = await db.Address.findAll({
+    else if (id === undefined) {
+      addressesToReturn = await db.Address.findAll({
         include: addressIncludeArray
       });
       if(!addressesToReturn || !addressesToReturn.length)return null
       addressesToReturn = getDeepCopy(addressesToReturn);
-      return addressesToReturn;
     }
+    addressToReturn.forEach(address => setAddressKeysToReturn(address));
+    return addressesToReturn;
   } catch (error) {
     console.log("Falle en getUserAddresesFromDB");
     console.error(error);
     return null;
   }
+}
+
+function setAddressKeysToReturn(address){
+  deleteSensitiveUserData(address.user);
 }

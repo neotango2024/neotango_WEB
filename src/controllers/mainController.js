@@ -1,3 +1,4 @@
+import db from "../database/models/index.js";
 import { categories } from "../utils/staticDB/categories.js";
 import sizes from "../utils/staticDB/sizes.js";
 import tacos from "../utils/staticDB/tacos.js";

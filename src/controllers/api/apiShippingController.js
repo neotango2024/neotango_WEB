@@ -2,14 +2,15 @@ import zones from "../../utils/staticDB/zones.js";
 import db from "../../database/models/index.js";
 import minDecimalPlaces from "../../utils/helpers/minDecimalPlaces.js";
 import { HTTP_STATUS } from "../../utils/staticDB/httpStatusCodes.js";
+import getDeepCopy from "../../utils/helpers/getDeepCopy.js";
 const { ShippingZonePrice } = db;
 
 const controller = {
     getShippingZonesWithPrices: async (req, res) => {
         try {
-            const shippingZonesPrices = await getZonePricesFromDB();
+            const shippingZonesPrices = await getZonePricesFromDB({});
             (zones||[]).forEach(zone => {
-                const zonePrice = shippingZonesPrices.find(zonePrice => zonePrice.zone_id === zone.id);
+                const zonePrice = shippingZonesPrices?.find(zonePrice => zonePrice.zone_id === zone.id);
                 if(!zonePrice)return
                 zone.price = {
                     usd_price: minDecimalPlaces(zonePrice.usd_price),
@@ -75,7 +76,7 @@ export default controller;
 export async function getZonePricesFromDB({ id = undefined }) {
   try {
     let zonePriceToReturn, zonePricesToReturn;
-    if (typeof id === "string") {
+    if (typeof id === "string" || typeof id === "number") {
       zonePriceToReturn = await db.ShippingZonePrice.findByPk(id);
       if (!zonePriceToReturn) return null;
       zonePriceToReturn = zonePriceToReturn && getDeepCopy(zonePriceToReturn);
@@ -99,7 +100,7 @@ export async function getZonePricesFromDB({ id = undefined }) {
 
     return zonePricesToReturn;
   } catch (error) {
-    console.log(`Falle en getOrders`);
+    console.log(`Falle en getZonePricesFromDB`);
     return console.log(error);
   }
 };
