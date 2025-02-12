@@ -1095,4 +1095,8 @@ export function activateCopyMsg(){
         copyPDiv?.classList.remove("copy_p_msg_active");
         
       }, 1000);
+};
+
+export function isOnPage(path) {
+  return window.location.pathname.replace(/\/$/, "").endsWith(path);
 }

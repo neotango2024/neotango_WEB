@@ -4,7 +4,7 @@ const SCREEN_WIDTH = window.innerWidth;
 
 import { translations } from "../constants/constants.js";
 import { settedLanguage, translateProductCards } from "./languageHandler.js";
-import { productsFromDB, setProductsFromDB } from "./utils.js";
+import { isOnPage, productsFromDB, setProductsFromDB } from "./utils.js";
 const companyInfoTranslations = translations.companyInfo;
 
 const products = [
@@ -75,7 +75,7 @@ const products = [
 
 
 window.addEventListener('load', async ()=>{
-  if(!window.location.pathname.endsWith('/')) return;
+  if(isOnPage('/')) return;
 
   const slides = document.querySelectorAll('.slider-img-container');
   const dotsContainer = document.querySelector('.dots-container');

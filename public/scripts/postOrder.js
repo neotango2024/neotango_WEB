@@ -1,15 +1,16 @@
 import { generatePostOrderCard } from "./componentRenderer.js";
-import { activateCopyMsg, copyElementValue } from "./utils.js";
+import { activateCopyMsg, copyElementValue, isOnPage } from "./utils.js";
 const postOrderExportObject = {
     pageConstructor: null,
 }
 window.addEventListener("load", async () => {
   try {
+    if(!isOnPage('post-compra'))return;
     // Obtén el parámetro `order` de la URL
     const urlParams = new URLSearchParams(window.location.search);
     const orderTraIdFromURL = urlParams.get("orderId");
     const orderShippingTypeIdFromURL = urlParams.get("shippingTypeId");
-
+    
     postOrderExportObject.pageConstructor = function(){
         const main =  document.querySelector('.main');
         main.innerHTML = '';

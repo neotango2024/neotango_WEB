@@ -390,17 +390,32 @@ const controller = {
       const { orderId } = req.params;
       if (!orderId) {
         console.log("No order id provided to update");
-        return res.status(400).json({
+        return res.status(HTTP_STATUS.BAD_REQUEST.code).json({
           ok: false,
         });
       }
+      
       const {
         body: { order_status_id },
       } = req;
+      const orderFromDB = await getOrdersFromDB({id: orderId});
+      if(!orderFromDB) return res.status(HTTP_STATUS.NOT_FOUND.code).json({
+        ok: false,
+      });
       if (order_status_id == 6) {
         //La quiere anular
         const disableResponse = await disableCreatedOrder(orderId);
       } else {
+        //Esto es para ver si estaba cancelada y ahora la quiere
+        const wasCanceled = orderFromDB.order_status_id == 6; 
+        let stockWasDiscounted = true;
+        if(wasCanceled){
+          stockWasDiscounted = await discountStockFromDB(orderFromDB); //Le saco los items de stock
+        };
+        if(!stockWasDiscounted) return res.status(HTTP_STATUS.CONFLICT.code).json({
+          ok: false,
+          msg: "No se puede modificar ya que no hay stocks de algunos productos"
+        });
         //Aca es simplemente una modificacion
         await db.Order.update(
           { order_status_id },
@@ -412,12 +427,12 @@ const controller = {
         );
       }
 
-      return res.status(200).json({
+      return res.status(HTTP_STATUS.OK.code).json({
         ok: true,
       });
     } catch (error) {
       console.log(`error in updateOrderStatus: ${error}`);
-      return res.status(500).json({
+      return res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR.code).json({
         ok: false,
         data: null,
       });
@@ -442,7 +457,7 @@ export async function getOrdersFromDB({ id, limit, offset, user_id }) {
       orderToReturn = await db.Order.findByPk(id, {
         include: orderIncludeArray,
         order: [
-          ["createdAt", "ASC"], // ASC para orden ascendente, DESC para descendente
+          ["created_at", "ASC"], // ASC para orden ascendente, DESC para descendente
         ],
       });
       if (!orderToReturn) return null;
@@ -458,7 +473,7 @@ export async function getOrdersFromDB({ id, limit, offset, user_id }) {
         },
         include: orderIncludeArray,
         order: [
-          ["createdAt", "ASC"], // ASC para orden ascendente, DESC para descendente
+          ["created_at", "ASC"], // ASC para orden ascendente, DESC para descendente
         ],
       });
     }
@@ -605,6 +620,43 @@ const restoreStock = async (order) => {
     }
   } catch (error) {
     console.error("Error restaurando stock:", error);
+  }
+};
+export const discountStockFromDB = async (order) => {
+  try {
+    if (order.orderItems && order.orderItems.length > 0) {
+      const orderItemsToRestore = order.orderItems.map((orderItem) => ({
+        id: orderItem.variation_id,
+        quantity: orderItem.quantity,
+      }));
+
+      let variationsToFetch = orderItemsToRestore.map(variation => variation.id);
+      let variationsFromDB = await getVariationsFromDB(variationsToFetch);
+
+      // Verificar si todos los productos tienen stock suficiente
+      const canDiscountAll = orderItemsToRestore.every(item => {
+        const variation = variationsFromDB.find(v => v.id === item.id);
+        return variation && variation.quantity >= item.quantity;
+      });
+
+      if (!canDiscountAll) {
+        console.error("Stock insuficiente para uno o más productos.");
+        return false;
+      }
+
+      // Descontar stock
+      for (const item of orderItemsToRestore) {
+        await db.Variation.decrement("quantity", {
+          by: item.quantity, // Resta el stock
+          where: { id: item.id }, // Filtra por el ID del producto
+        });
+      }
+
+      console.log("Stock descontado correctamente");
+      return true;
+    }
+  } catch (error) {
+    console.error("Error descontando stock:", error);
   }
 };
 

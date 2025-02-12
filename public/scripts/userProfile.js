@@ -690,7 +690,7 @@ const handleChangeOrderStatus = async (e, order) => {
   try {
     const newOrderStatus = e.target.value;
     activateContainerLoader(modal, true);
-    const statusResponse = await fetch(`/api/order/order-status/${order.id}`, {
+    let statusResponse = await fetch(`/api/order/order-status/${order.id}`, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
@@ -706,7 +706,12 @@ const handleChangeOrderStatus = async (e, order) => {
       ordersFromDB[orderIndexToModify].order_status_id = newOrderStatus;     
        
       return userProfileExportObj.pageConstructor();
-    }
+    } 
+    //Aca fallo, cierro el modal y mando mensaje
+    statusResponse = await statusResponse.json();
+    closeModal();
+    showCardMessage(false,statusResponse.msg);
+    return
   } catch (error) {
     return console.log(error);
     

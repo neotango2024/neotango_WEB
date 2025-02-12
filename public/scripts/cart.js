@@ -23,6 +23,7 @@ import {
   handleNewAddressButtonClick,
   handleNewPhoneButtonClick,
   isInDesktop,
+  isOnPage,
   removeIndexesFromArray,
   setShippingZones,
   setVariationsFromDB,
@@ -34,10 +35,9 @@ let cartExportObj = {
   paintCheckoutPhoneSelect: null,
   paintCheckoutAddressesSelect: null,
 };
-
 window.addEventListener("DOMContentLoaded", async () => {
   try {
-    if (!window.location.pathname.endsWith("/carro")) return;
+    if (isOnPage(carro)) return;
     const main = document.querySelector(".main");
     const cartProductsWrapper = document.querySelector(
       ".cart-products-cards-wrapper"
