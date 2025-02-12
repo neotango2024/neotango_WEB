@@ -149,6 +149,22 @@ window.addEventListener("load", async () => {
       if (productDetailsSection) productDetailsSection.appendChild(buttonContainer);
       paintAddToCartButton();
     };
+    
+    productId = getProductIdFromUrl(); //Obtengo el id del producto
+    await setProductsFromDB({ id: productId }); //Seteo el producto
+   
+    const productFromDB = (productsFromDB?.length && productsFromDB[0]) || null;
+    if (!productFromDB) return (window.location.href = "/tienda"); //Lo mando a la tienda si no encontro
+    let productCategoryID = productFromDB?.category?.id;
+    const relatedProducts = await fetchDBProducts({ categoryId: productCategoryID, limit: 4 }); //Aca seteo los related
+    
+    document.title = isInSpanish
+      ? `Tienda - ${productFromDB.es_name}`
+      : `Store - ${productFromDB.eng_name}`;
+    // Una vez que esta despintp y pinto
+    // hidePlaceHolders();
+    createImagesContainer(productFromDB?.files);
+    checkForImageClick();
     productDetailExportObj.paintRelatedProductCards = function () {
       const relatedProductCardWrapper = document.querySelector(
         ".related-products-section .product-cards-wrapper"
@@ -165,22 +181,6 @@ window.addEventListener("load", async () => {
         relatedProductCardWrapper.appendChild(cardElement)
       });
     };
-    productId = getProductIdFromUrl(); //Obtengo el id del producto
-    await setProductsFromDB({ id: productId }); //Seteo el producto
-   
-    const productFromDB = (productsFromDB?.length && productsFromDB[0]) || null;
-    if (!productFromDB) return (window.location.href = "/tienda"); //Lo mando a la tienda si no encontro
-    let productCategoryID = productFromDB?.category?.id;
-    const relatedProducts = await fetchDBProducts({ categoryId: productCategoryID, limit: 4 }); //Aca seteo los related
-    console.log(relatedProducts);
-    
-    document.title = isInSpanish
-      ? `Tienda - ${productFromDB.es_name}`
-      : `Store - ${productFromDB.eng_name}`;
-    // Una vez que esta despintp y pinto
-    // hidePlaceHolders();
-    createImagesContainer(productFromDB?.files);
-    checkForImageClick();
     relatedProducts.length && productDetailExportObj.paintRelatedProductCards(); //Pinto los related
     productDetailExportObj.createProductDetailsSection(productFromDB);
     scrollToTop();
