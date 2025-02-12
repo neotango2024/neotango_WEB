@@ -9,8 +9,6 @@ const userIsLoggedMiddleware = async (req, res, next) => {
     try {
         const { cookies } = req;
         const userAccessToken = cookies.userAccessToken;
-
-
         // 2️⃣ Si no hay cookie de adminAuth, revisar userAccessToken
         if (userAccessToken) {
             try {
@@ -24,13 +22,12 @@ const userIsLoggedMiddleware = async (req, res, next) => {
 
                 // Consultar en la base de datos si existe el id
                 const userFromDB = await getUsersFromDB(decodedUserToken.id);
-                
                 if (!userFromDB) {
                     console.warn("User not found in database");
                     res.clearCookie("userAccessToken"); // Limpiar cookie si el usuario no existe
                     return res.redirect('/')
                 }
-                    return next();
+                return next();
 
             } catch (err) {
                 console.error("Error verifying userIsLoggedMiddleware:", err);

@@ -195,8 +195,8 @@ window.addEventListener("load", async () => {
       const imagesWrapper = document.createElement("div");
       imagesWrapper.className = "images-wrapper";
 
-      const smallImagesContainer = document.createElement("div");
-      smallImagesContainer.className = "small-images-container tablet-only";
+      // const smallImagesContainer = document.createElement("div");
+      // smallImagesContainer.className = "small-images-container tablet-only";
 
       productFiles.forEach((file, index) => {
         // Crear imagen grande
@@ -224,7 +224,7 @@ window.addEventListener("load", async () => {
           smallImage.className = "small-image-element";
           smallImage.setAttribute("data-file_id", file.id);
           smallImage.loading = "lazy";
-          smallImagesContainer.appendChild(smallImage);
+          //smallImagesContainer.appendChild(smallImage);
         }
       });
 
@@ -246,7 +246,7 @@ window.addEventListener("load", async () => {
       productImagesSection.innerHTML = ""; //lo limpio
       if (productImagesSection) {
         productImagesSection.appendChild(imagesWrapper);
-        productImagesSection.appendChild(smallImagesContainer);
+        //productImagesSection.appendChild(smallImagesContainer);
       }
     }
 
