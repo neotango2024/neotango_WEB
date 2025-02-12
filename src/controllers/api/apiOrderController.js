@@ -209,7 +209,7 @@ const controller = {
           taco: variationFromDB.taco?.name,
           size: variationFromDB.size?.size,
           discount: 0, //Si hace el upgrade va a poder setear esto,
-          sku: variationFromDB.product?.sku
+          sku: variationFromDB.product?.sku,
         };
         orderItemsToDB.push(orderItemData);
       });
@@ -237,7 +237,7 @@ const controller = {
           include: ["orderItems"],
         }
       );
-      
+
       //Si la orden se creo ok, hago el bulkupdate de las variations
       variationsFromDB.length &&
         (await db.Variation.bulkCreate(variationsFromDB, {
@@ -264,13 +264,17 @@ const controller = {
           throw new Error("Could not generate paypal paymentURL");
       } else if (orderCreated.payment_type_id == 2) {
         // PAYPAL
-        paymentURL = await createPaypalOrder({...orderDataToDB,orderItemsToDB}); //Genero el link para enviar a pasarela de pagos paypal
+        paymentURL = await createPaypalOrder({
+          ...orderDataToDB,
+          orderItemsToDB,
+        }); //Genero el link para enviar a pasarela de pagos paypal
         if (!paymentURL)
           throw new Error("Could not generate paypal paymentURL"); // Lanza un error y salta al catch
         // Obtengo el payment_order_id para pegarselo en el objeto
         let paymentOrderId = getTokenFromUrl(paymentURL);
         orderDataToDB.paypal_order_id = paymentOrderId;
-        // Actualizo en db :TODO:
+        // Le actualizo el paypal_rder_id en db
+        await db.Order.update({paypal_order_id: paymentOrderId}, {where: { id: orderDataToDB.id }})
       }
 
       // Mando la respuesta
@@ -287,20 +291,7 @@ const controller = {
       console.log(`Falle en apiOrderController.createOrder`);
       console.log(error);
       // aca dio error, tengo que cancelar la compra si es que se creo
-      const orderCreatedToDisable = await getOrdersFromDB(orderDataToDB.id);
-      if (orderCreatedToDisable) {
-        //La deshabilito
-        await db.Order.update(
-          {
-            order_status_id: 5,
-          },
-          {
-            where: {
-              id: orderCreatedToDisable.id,
-            },
-          }
-        );
-      }
+      const disableResponse = await disableCreatedOrder(orderDataToDB.id);
       return res.status(500).json({ error });
     }
   },
@@ -374,14 +365,21 @@ const controller = {
       const {
         body: { order_status_id },
       } = req;
-      await db.Order.update(
-        { order_status_id },
-        {
-          where: {
-            id: orderId,
-          },
-        }
-      );
+      if(order_status_id == 6){
+        //La quiere anular
+        const disableResponse = await disableCreatedOrder(orderId);
+      } else{
+        //Aca es simplemente una modificacion
+        await db.Order.update(
+          { order_status_id },
+          {
+            where: {
+              id: orderId,
+            },
+          }
+        );
+      }
+      
       return res.status(200).json({
         ok: true,
       });
@@ -455,7 +453,8 @@ export async function getOrdersFromDB({ id, limit, offset, user_id }) {
 }
 export async function getOneOrderFromDB(searchCriteria) {
   try {
-    if (!searchCriteria || Object.keys(searchCriteria).length === 0) return null;
+    if (!searchCriteria || Object.keys(searchCriteria).length === 0)
+      return null;
 
     let orderToReturn = await db.Order.findOne({
       where: searchCriteria, // Permite búsqueda dinámica
@@ -473,7 +472,6 @@ export async function getOneOrderFromDB(searchCriteria) {
     return null; // No retornar console.log, sino null
   }
 }
-
 
 //Esta funcion toma el objeto y le hace una "foto" de las entidades que luego pueden cambiar
 //En db necesitamos almacenar los datos que perduren, ej si se cambia la address tiene que
@@ -551,16 +549,46 @@ function setOrderKeysToReturn(order) {
   order.shippingCost = parseFloat(order.total) - order.orderItemsPurchasedPrice;
 }
 
-export const restoreStock = async (OrderItemsToRestore) => {
+const restoreStock = async (order) => {
   try {
-    for (const item of OrderItemsToRestore) {
-      await db.Variation.increment(
-        { quantity: item.quantity }, // Suma la cantidad devuelta al stock
-        { where: { id: item.id } }
-      );
+    if (order.orderItems && order.orderItems.length > 0) {
+      const OrderItemsToRestore = order.orderItems.map((orderItem) => ({
+        id: orderItem.variation_id,
+        quantity: orderItem.quantity,
+      }));
+      for (const item of OrderItemsToRestore) {
+        await db.Variation.increment('quantity', { 
+          by: item.quantity,  // Aumenta el stock en 10
+          where: { id:item.id } // Filtra por el ID del producto
+        })
+      }
+      console.log("Stock restaurado correctamente");
     }
-    console.log("Stock restaurado correctamente");
   } catch (error) {
     console.error("Error restaurando stock:", error);
   }
 };
+
+export async function disableCreatedOrder(orderID) {
+  try {
+    let orderFromDB = await getOrdersFromDB({id: orderID});
+    if(!orderFromDB)return false;
+    //La deshabilito
+    await db.Order.update(
+      {
+        order_status_id: 6,
+      },
+      {
+        where: {
+          id: orderID,
+        },
+      }
+    );
+    
+    await restoreStock(orderFromDB);
+    return true;
+  } catch (error) {
+    console.log(error);
+    return false;
+  }
+}

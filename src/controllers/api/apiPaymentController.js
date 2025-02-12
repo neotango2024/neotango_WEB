@@ -67,8 +67,8 @@ export async function createPaypalOrder(order) {
             currency_code: "USD",
             value: order.total, //Total de compra
             breakdown: {
-              item_total: { currency_code: "USD", value: order.total }, //Solo productos
-              shipping: { currency_code: "USD", value: '0'}, //Solo shipping
+              item_total: { currency_code: "USD", value: itemsTotal }, //Solo productos
+              shipping: { currency_code: "USD", value:  (order.total - itemsTotal)}, //Solo shipping
             },
           },
         },
@@ -76,7 +76,7 @@ export async function createPaypalOrder(order) {
       application_context: {
         return_url: process.env.BASE_URL + "/completar-pago",
         cancel_url: process.env.BASE_URL + "/cancelar-orden",
-        shipping_preference: "NO_SHIPPING",
+        // shipping_preference: "NO_SHIPPING",
         user_action: "PAY_NOW",
         brand_name: "neotango",
       },

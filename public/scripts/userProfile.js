@@ -246,8 +246,6 @@ window.addEventListener("load", async () => {
     //Recien aca cargo las ordenes
     if (!userOrders.length) userOrders = await getUserOrders();
     userOrders.forEach((order) => {
-      console.log(order);
-      
       const orderCardElement = orderCard(order);
       orderCardElement.addEventListener("click", () => {
         let orderModalElement = generateOrderDetailModal(order);
@@ -517,12 +515,12 @@ const getTotalUsdAndPesosAccumulators = (orders) => {
   let pesosSalesNumber = 0;
 
   orders.forEach((order) => {
-    const { currency_id, total } = order;
+    const { payment_type_id, total } = order;
 
-    if (currency_id === 1) {
-      dolarSalesNumber += total;
+    if (payment_type_id == 2) {
+      dolarSalesNumber += parseFloat(total);
     } else {
-      pesosSalesNumber += total;
+      pesosSalesNumber += parseFloat(total);
     }
   });
 
@@ -598,7 +596,8 @@ const handleOrderRowClick = async (order) => {
   handlePageModal(true);
   addOrderStatusSelectEventListener(order);
   // Ahora busco los orderItems y sus fotos
-  let idsToFetch = order.orderItems?.map((item) => item.product_id);
+  let idsToFetch = order.orderItems?.map((item) => item.variation?.product_id);
+
   let productsAlreadyFetched = productsFromDB?.map((prod) => prod.id);
   let productsAlreadyFetchedSet = new Set(productsAlreadyFetched);
   idsToFetch = idsToFetch.filter((id) => !productsAlreadyFetchedSet.has(id));
@@ -622,12 +621,11 @@ const handleOrderRowClick = async (order) => {
   );
   //Ahora pinto en la tabla de products
   order.orderItems.forEach((orderItem) => {
-    orderItem.product = productsMap.get(orderItem.product_id) || null;
+    orderItem.product = productsMap.get(orderItem.variation?.product_id) || null;
     // Armo el html de la fila
     // Obtener la imagen del producto o la default
     let productImage = "./img/product/default.png";
-    let srcset = "";
-
+    let srcset = "";  
     if (orderItem.product?.files?.length) {
       const firstFile = orderItem.product.files[0];
       productImage =

@@ -7,7 +7,7 @@ const { ShippingZonePrice } = db;
 const controller = {
     getShippingZonesWithPrices: async (req, res) => {
         try {
-            const shippingZonesPrices = await ShippingZonePrice.findAll();
+            const shippingZonesPrices = await getZonePricesFromDB();
             (zones||[]).forEach(zone => {
                 const zonePrice = shippingZonesPrices.find(zonePrice => zonePrice.zone_id === zone.id);
                 if(!zonePrice)return
@@ -71,3 +71,35 @@ const controller = {
 }
 
 export default controller;
+
+export async function getZonePricesFromDB({ id = undefined }) {
+  try {
+    let zonePriceToReturn, zonePricesToReturn;
+    if (typeof id === "string") {
+      zonePriceToReturn = await db.ShippingZonePrice.findByPk(id);
+      if (!zonePriceToReturn) return null;
+      zonePriceToReturn = zonePriceToReturn && getDeepCopy(zonePriceToReturn);
+      return zonePriceToReturn;
+    }
+    // Condición si id es un array
+    else if (Array.isArray(id)) {
+      zonePricesToReturn = await db.ShippingZonePrice.findAll({
+        where: {
+          id: id, // id es un array, se hace un WHERE id IN (id)
+        }
+      });
+    }
+    // Condición si id es undefined
+    else if (id === undefined) {
+      zonePricesToReturn = await db.ShippingZonePrice.findAll();
+    } 
+
+    if (!zonePricesToReturn || !zonePricesToReturn.length) return [];
+    zonePricesToReturn = getDeepCopy(zonePricesToReturn);
+
+    return zonePricesToReturn;
+  } catch (error) {
+    console.log(`Falle en getOrders`);
+    return console.log(error);
+  }
+};

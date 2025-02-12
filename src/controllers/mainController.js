@@ -1,7 +1,7 @@
 import { categories } from "../utils/staticDB/categories.js";
 import sizes from "../utils/staticDB/sizes.js";
 import tacos from "../utils/staticDB/tacos.js";
-import { getOneOrderFromDB, getOrdersFromDB, restoreStock } from "./api/apiOrderController.js";
+import { getOneOrderFromDB, getOrdersFromDB, disableCreatedOrder } from "./api/apiOrderController.js";
 import { capturePaypalPayment } from "./api/apiPaymentController.js";
 import { findProductsInDb } from "./api/apiProductController.js";
 import { getUsersFromDB } from "./api/apiUserController.js";
@@ -117,7 +117,8 @@ const controller = {
             },
           }
         );
-        return res.render(`completeOrder`);
+        let updatedOrder = await getOrdersFromDB({id: orderFromDB.id})
+        return res.send(updatedOrder);
       } else {
         // ❌ Manejar error de pago
         res.redirect(`/cancelar-orden?token=${token}`); //Redirijo para cancelar la orden
@@ -133,25 +134,7 @@ const controller = {
       let { token } = req.query;
       const orderCreatedToDisable = await getOneOrderFromDB({ paypal_order_id: token });
       if (orderCreatedToDisable) {
-        //La deshabilito
-        await db.Order.update(
-          {
-            order_status_id: 5, //Cancelada
-          },
-          {
-            where: {
-              id: orderCreatedToDisable.id,
-            },
-          }
-        );
-        //  Aca tengo que devolver al stock las variantes pedidas
-        if (orderCreatedToDisable.orderItems && orderCreatedToDisable.orderItems.length > 0) {
-          const OrderItemsToRestore = orderCreatedToDisable.orderItems.map(orderItem => ({
-            id: orderItem.variation_id,
-            quantity: orderItem.quantity
-          }));
-          await restoreStock(OrderItemsToRestore);
-        }
+        await disableCreatedOrder(orderCreatedToDisable.id);
       };
       return res.redirect("/");
     } catch (error) {

@@ -31,7 +31,7 @@ export default (sequelize, dataTypes) => {
             as: 'order',
             foreignKey: 'order_id'
         });
-        OrderItem.belongsTo(models.Product, {
+        OrderItem.belongsTo(models.Variation, {
             as: 'variation',
             foreignKey: 'variation_id'
         });

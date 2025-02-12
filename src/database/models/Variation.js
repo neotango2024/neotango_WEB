@@ -23,10 +23,14 @@ export default (sequelize, dataTypes) => {
     const Variation = sequelize.define(alias, cols, config);
 
     Variation.associate = (models) => {
-        const { Product } = models;
+        const { Product, OrderItem} = models;
         Variation.belongsTo(Product, {
             as: 'product',
             foreignKey: 'product_id'
+        })
+        Variation.hasMany(OrderItem, {
+            as: 'orderItems',
+            foreignKey: 'variation_id'
         })
     };
 
