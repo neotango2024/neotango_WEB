@@ -441,6 +441,9 @@ export async function getOrdersFromDB({ id, limit, offset, user_id }) {
     if (typeof id === "string") {
       orderToReturn = await db.Order.findByPk(id, {
         include: orderIncludeArray,
+        order: [
+          ["createdAt", "ASC"], // ASC para orden ascendente, DESC para descendente
+        ],
       });
       if (!orderToReturn) return null;
       orderToReturn = orderToReturn && getDeepCopy(orderToReturn);
@@ -454,6 +457,9 @@ export async function getOrdersFromDB({ id, limit, offset, user_id }) {
           id: id, // id es un array, se hace un WHERE id IN (id)
         },
         include: orderIncludeArray,
+        order: [
+          ["createdAt", "ASC"], // ASC para orden ascendente, DESC para descendente
+        ],
       });
     }
     // Condición si id es undefined

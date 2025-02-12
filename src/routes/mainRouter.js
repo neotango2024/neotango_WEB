@@ -13,6 +13,7 @@ router.get('/perfil', userIsLoggedMiddleware, mainController.userProfile);
 router.get('/nosotros',mainController.aboutUs);
 router.get('/faq',mainController.faq);
 router.get('/contacto',mainController.contact);
+router.get('/post-compra',mainController.postOrder);
 router.get('/logout',getLastURL,mainController.logout);
 // PAYPAL
 router.get('/completar-pago',mainController.completePayment);

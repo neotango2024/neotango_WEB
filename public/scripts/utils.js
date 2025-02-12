@@ -1075,3 +1075,24 @@ export function getDeepCopy(arg) {
 export function removeIndexesFromArray(arr, indexesToRemove) {
   return arr.filter((_, index) => !indexesToRemove.includes(index));
 }
+export function copyToClipboard(container) {
+  container.select();
+  document.execCommand("copy");
+  container.blur();
+}
+export function copyElementValue(value) {
+  const textareaToCopyMails = document.createElement("textarea");
+  textareaToCopyMails.innerHTML = value;
+  document.body.appendChild(textareaToCopyMails);
+  copyToClipboard(textareaToCopyMails);
+  textareaToCopyMails.remove();
+}
+export function activateCopyMsg(){
+  const copyPDiv = document.querySelector(".copy_p_msg.ui.message");
+  copyPDiv.innerHTML = isInSpanish ? '¡Copiado!' : 'Copied!'
+  copyPDiv?.classList.add("copy_p_msg_active");
+      setTimeout(() => {
+        copyPDiv?.classList.remove("copy_p_msg_active");
+        
+      }, 1000);
+}
