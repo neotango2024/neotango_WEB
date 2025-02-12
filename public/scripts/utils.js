@@ -745,14 +745,14 @@ export async function handleUserLoginFetch(bodyData) {
     if (response.ok) {
       //Esta es la respuesta de las credenciales
       //Aca dio ok, entonces al ser de un usuario actualizo al usuarioLogged.phones
-      showCardMessage(true, isInSpanish ? response.msg.es : response.msg);
+      showCardMessage(true, isInSpanish ? response.msg.es : response.msg.en);
       await checkForUserLogged();
       const bodyName = document.querySelector("body").dataset.page_name;
       // Esto es porque si pasa de no estar logeado a estarlo, pinto los productos del carro
       if (bodyName == "cart") await cartExportObj.pageConstructor();
       return true;
     }
-    showCardMessage(false, isInSpanish ? response.msg.es : response.msg);
+    showCardMessage(false, isInSpanish ? response.msg.es : response.msg.en);
     return false;
   }
   let msg = isInSpanish

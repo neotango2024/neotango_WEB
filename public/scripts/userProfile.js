@@ -246,6 +246,8 @@ window.addEventListener("load", async () => {
     //Recien aca cargo las ordenes
     if (!userOrders.length) userOrders = await getUserOrders();
     userOrders.forEach((order) => {
+      console.log(order);
+      
       const orderCardElement = orderCard(order);
       orderCardElement.addEventListener("click", () => {
         let orderModalElement = generateOrderDetailModal(order);

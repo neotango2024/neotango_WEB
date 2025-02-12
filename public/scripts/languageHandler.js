@@ -51,7 +51,7 @@ const checkForLanguageSelection = () => {
 }
 
 //Se ejecuta cuando carga la pagina para ver que idioma esta establecido
-const decideLanguageInsertion = () => {
+export const decideLanguageInsertion = () => {
     const localStorageItem = getLocalStorageItem('payment_type_id');
     const languageToSetID = userLogged  ? userLogged.payment_type_id : localStorageItem ? localStorageItem : null;
     if(languageToSetID) {
@@ -66,7 +66,7 @@ const decideLanguageInsertion = () => {
 
 //Agarra los src de las imagenes del modal
 const handleChangeLanguage = async(param) => { //param es 1/2    
-    updateLanguage(param); //Updateo tanto en localStorage como en la variable que se comparte 
+    await updateLanguage(param); //Updateo tanto en localStorage como en la variable que se comparte 
     //Agarro las banderas del modal
     const modalImgs = document.querySelectorAll('.modal-flag-container img');
     modalImgs.forEach(img => {
@@ -136,7 +136,12 @@ const updateLanguage = async (lang)=>{
             body: JSON.stringify({
                 payment_type_id: lang
             }),
-          });
+        });
+        console.log(response);
+        
+        if(response.ok){
+            userLogged.payment_type_id = lang
+        }
     } else{
         setLocalStorageItem('payment_type_id', lang); //Seteo en base al parametro el lenguaje
     }

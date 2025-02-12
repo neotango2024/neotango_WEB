@@ -1,9 +1,8 @@
 import { userLogged } from "./checkForUserLogged.js";
 import {
   checkoutCard,
-  createAddressModal,
-  createPhoneModal,
   form,
+  generatePaymentButtonElement,
 } from "./componentRenderer.js";
 import {
   countriesFromDB,
@@ -11,27 +10,19 @@ import {
   setCountries,
   setPaymentTypes,
   setShippingTypes,
-  setSizes,
-  setTacos,
   shippingTypesFromDB,
-  sizesFromDB,
-  tacosFromDB,
 } from "./getStaticTypesFromDB.js";
-import { isInSpanish, settedLanguage } from "./languageHandler.js";
+import { isInSpanish } from "./languageHandler.js";
 import {
   deleteLocalStorageItem,
   getLocalStorageItem,
   setLocalStorageItem,
 } from "./localStorage.js";
 import {
-  activateContainerLoader,
   displayBigNumbers,
   handleNewAddressButtonClick,
   handleNewPhoneButtonClick,
-  handlePageModal,
-  handlePhoneFetch,
   isInDesktop,
-  productsFromDB,
   removeIndexesFromArray,
   setShippingZones,
   setVariationsFromDB,
@@ -43,9 +34,7 @@ let cartExportObj = {
   paintCheckoutPhoneSelect: null,
   paintCheckoutAddressesSelect: null,
 };
-const mp = new MercadoPago("APP_USR-1fcc821e-5223-4cdd-9c00-5c5fb7789542", {
-  locale: 'es-AR'
-})
+
 window.addEventListener("DOMContentLoaded", async () => {
   try {
     if (!window.location.pathname.endsWith("/carro")) return;
@@ -129,10 +118,10 @@ window.addEventListener("DOMContentLoaded", async () => {
           : "There are no products on your cart!"
       }</p>
       <p class="no-cart-p">
-        ${isInSpanish 
-           ? 'Los productos que agregues se verán aquí'
-           :
-           'Items added will be shown here'
+        ${
+          isInSpanish
+            ? "Los productos que agregues se verán aquí"
+            : "Items added will be shown here"
         }
       </p>`;
       //Pinto disabled el boton de finalizar compra
@@ -140,10 +129,6 @@ window.addEventListener("DOMContentLoaded", async () => {
         ".section-handler-button"
       );
       sectionHandlerBtns.forEach((btn) => btn.classList.add("disabled"));
-    }
-
-    function constructPaypalBtn(){
-      // paypal btn
     }
 
     function checkForSectionButtons() {
@@ -158,7 +143,6 @@ window.addEventListener("DOMContentLoaded", async () => {
           try {
             if (btn.classList.contains("finalize-order-button")) {
               if (sectionIndex == 0) {
-                constructMercadoPagoBtn();
                 sectionIndex++;
                 btn.classList.add("loading");
                 let checkoutCards = Array.from(
@@ -192,20 +176,26 @@ window.addEventListener("DOMContentLoaded", async () => {
                 cartExportObj.pageConstructor();
               } else if (sectionIndex == 1) {
                 //Aca ya esta tocando para pagar ==> armo la orden y genero el fetch
-                let form = document.querySelector('.checkout-form');
+                let form = document.querySelector(".checkout-form");
+                let formIsOK = checkCartFormIsComplete(form);
+                if(!formIsOK){
+                  //Aca tengo que mostrarle al cliente que esta mal
+                  return
+                }
                 let body = generateCheckoutFormBodyToFetch(form);
+                btn.classList.add('loading','disabled')
                 // Aca ya tengo todo ==> Hago el fetch
-                const response = await fetch('/api/order', {
-                  method: 'POST',
-                  headers: { 
-                    "Content-Type": "application/json"
+                const response = await fetch("/api/order", {
+                  method: "POST",
+                  headers: {
+                    "Content-Type": "application/json",
                   },
-                  body: JSON.stringify(body)
+                  body: JSON.stringify(body),
                 });
                 const preferenceResponse = await response.json();
                 window.location.href = preferenceResponse.url;
-              };
-              return
+              }
+              return;
             }
             //ACa limipio el checkout section
             const checkoutSectionForm = document.querySelector(
@@ -236,15 +226,16 @@ window.addEventListener("DOMContentLoaded", async () => {
         let cartProductFromDB = cartProducts.find(
           (cartItem) => cartItem.variation_id == cardVariationID
         );
-        
-        
+
         const productPrice = isInSpanish
           ? parseFloat(cartProductFromDB.product?.ars_price)
           : parseFloat(cartProductFromDB.product?.usd_price);
         addBtn.addEventListener("click", () => {
-          cartProductFromDB.quantity ++
-          if(cartProductFromDB.quantity == cartProductFromDB.maxQuantityAvailable){
-            addBtn.classList.add('disabled')
+          cartProductFromDB.quantity++;
+          if (
+            cartProductFromDB.quantity == cartProductFromDB.maxQuantityAvailable
+          ) {
+            addBtn.classList.add("disabled");
           }
           let actualQuantitySpan = card.querySelector(".card_product_amount");
           actualQuantitySpan.innerHTML =
@@ -260,9 +251,9 @@ window.addEventListener("DOMContentLoaded", async () => {
           modifyDetailList();
         });
         minusBtn.addEventListener("click", () => {
-          cartProductFromDB.quantity --
+          cartProductFromDB.quantity--;
           //Activo el + denuevo
-          addBtn.classList.remove('disabled')
+          addBtn.classList.remove("disabled");
           let actualQuantitySpan = card.querySelector(".card_product_amount");
           actualQuantitySpan.innerHTML =
             parseInt(actualQuantitySpan.innerHTML) - 1;
@@ -336,9 +327,9 @@ window.addEventListener("DOMContentLoaded", async () => {
         productCost += unityPrice * totalUnits;
         totalCost += unityPrice * totalUnits;
       });
-      productLengthElement.innerHTML = `${productLength} producto${
-        productLength == 1 ? "" : "s"
-      }`;
+      productLengthElement.innerHTML = isInSpanish
+        ? `${productLength} producto${productLength == 1 ? "" : "s"}`
+        : `${productLength} product${productLength == 1 ? "" : "s"}`;
       productCostElement.innerHTML = `$${displayBigNumbers(productCost)}`;
       totalCostElement.innerHTML = `$${displayBigNumbers(totalCost)}`;
     }
@@ -443,7 +434,6 @@ window.addEventListener("DOMContentLoaded", async () => {
               name: "use-same-addresses",
               type: "switchCheckbox",
               value: 1,
-              required: true,
               width: 100,
               contClassNames: "same-address-checkbox-container",
               inpClassNames: "",
@@ -497,28 +487,36 @@ window.addEventListener("DOMContentLoaded", async () => {
       );
       const phoneFieldContainer = document.querySelector(".phone-container");
       let buttonLabel = isInSpanish ? "Agregar" : "Add";
+      // Puede agregar si: esta loggeado y tiene menos de 4, si no esta loggeado 
+      const userCanAddPhone = userLogged ? userLogged.phones?.length < 4 : true;
+      const userCanAddAddress = userLogged ? userLogged.addresses?.length < 4 : true;
+      
       // agrego los botones
-      await addButton(
+      userCanAddPhone && await addButton(
         phoneFieldContainer,
         buttonLabel,
+        'phone',
         handleNewPhoneButtonClick
       );
-      await addButton(
+      userCanAddAddress && await addButton(
         shippingAddressFieldContainer,
         buttonLabel,
+        'address',
         handleNewAddressButtonClick
       );
-      await addButton(
+      userCanAddAddress && await addButton(
         billingAddressFieldContainer,
         buttonLabel,
+        'address',
         handleNewAddressButtonClick
       );
     }
-    async function addButton(container, buttonText, cb) {
+    async function addButton(container, buttonText, entity, cb) {
       const button = document.createElement("button");
       button.type = "button";
       button.textContent = buttonText;
       button.className = "add-new-field-btn";
+      button.dataset.entity = entity;
       button.addEventListener("click", async () => await cb());
       // Buscar el input dentro del container para posicionar el botón antes
       const input = container.querySelector("input, select, textarea"); // Busca el input, select o textarea
@@ -566,6 +564,12 @@ window.addEventListener("DOMContentLoaded", async () => {
           options.length == 1 ? true : option.default ? true : false;
         userPhoneSelect.appendChild(optionElement);
       });
+      if(userLogged && options?.length >= 4){
+        //Aca es un usuario que ya agrego el maximo
+        //Despinto los botones de add
+        const addButtons = document.querySelectorAll('.add-new-field-btn[data-entity="phone"]');
+        addButtons.forEach(btn=>btn.classList.add('hidden'));
+      }
     };
 
     cartExportObj.paintCheckoutAddressesSelect = async function () {
@@ -622,6 +626,12 @@ window.addEventListener("DOMContentLoaded", async () => {
           setDetailContainer();
           return;
         });
+        if(userLogged && userLogged?.addresses.length >= 4){
+          //Aca es un usuario que ya agrego el maximo
+          //Despinto los botones de add
+          const addButtons = document.querySelectorAll('.add-new-field-btn[data-entity="address"]');
+          addButtons.forEach(btn=>btn.classList.add('hidden'));
+        }
       } catch (error) {
         return console.log(error);
       }
@@ -647,9 +657,11 @@ window.addEventListener("DOMContentLoaded", async () => {
           setDetailContainer();
           if (e.target.checked) {
             modifyBillingLabel(false); //cambio el label
+            shippingAddressField.querySelector('select').required = false;
             return shippingAddressField.classList.add("hidden");
           }
           modifyBillingLabel(true); // Cambio el label
+          shippingAddressField.querySelector('select').required = true;
           return shippingAddressField.classList.remove("hidden");
         });
       }
@@ -657,17 +669,18 @@ window.addEventListener("DOMContentLoaded", async () => {
         shippingTypeSelect.dataset.listened = true;
         shippingTypeSelect.addEventListener("change", (e) => {
           try {
-            modifyBillingLabel(true)
+            modifyBillingLabel(true);
             if (e.target.value == 1) {
               //Envio a domicilio, pinto el checkbox y el shipping Address
               shippingAddressField.classList.remove("hidden");
+              shippingAddressField.querySelector('select').required = true;
               setShippingCost();
               setDetailContainer();
-              
               return useSameAddressCheckboxContainer.classList.remove("hidden");
             }
             //Aca pinto retiro por el local, escondo el checkbox y el shippingAddress y pongo el 0 shipping cost
             shippingAddressField.classList.add("hidden");
+            shippingAddressField.querySelector('select').required = false;
             useSameAddressCheckboxContainer.classList.add("hidden");
             useSameAddressCheckbox.checked = false; //Lo dejo false
             shippingCost = 0;
@@ -681,7 +694,7 @@ window.addEventListener("DOMContentLoaded", async () => {
       }
     }
     //Crea la tarjeta de Detalle
-    function createCartDetailContainer(index) {
+    function createCartDetailContainer() {
       const productsLength = cartProducts?.length || 0;
       let productsCost = 0;
       cartProducts?.forEach((cartItem) => {
@@ -716,7 +729,9 @@ window.addEventListener("DOMContentLoaded", async () => {
       const productLengthElement = document.createElement("p");
       productLengthElement.className = "detail-row-p detail-row-product-length";
       productLengthElement.textContent = `${productsLength} ${
-        isInSpanish ? "productos" : "products"
+        isInSpanish
+          ? `producto${productsLength > 1 ? "s" : ""}`
+          : `product${productsLength > 1 ? "s" : ""}`
       }`;
       productRow.appendChild(productLengthElement);
 
@@ -785,23 +800,21 @@ window.addEventListener("DOMContentLoaded", async () => {
       container.appendChild(detailListContainer);
 
       // Crear botón de finalizar compra
-      let finalizeButton;  
-      finalizeButton = document.createElement("button");
-      finalizeButton.className =
-        "ui button negative finalize-order-button section-handler-button";
+      let finalizeButton;
+
+      if (sectionIndex === 0) {
+        finalizeButton = document.createElement("button");
+        finalizeButton.className =
+          "ui button negative finalize-order-button section-handler-button";
         finalizeButton.type = "button";
-        if(sectionIndex === 0){ 
-        if(cartProducts.length === 0) finalizeButton.className += ' disabled'
+        if (cartProducts.length === 0) finalizeButton.classList.add("disabled");
         finalizeButton.textContent = isInSpanish
           ? "Finalizar compra"
           : "Go to checkout";
-        } else {
-          finalizeButton.textContent = isInSpanish
-          ? "Ir al pago"
-          : "Go to payment";
-        }
-        container.appendChild(finalizeButton)
-
+      } else {
+        finalizeButton = generatePaymentButtonElement();
+      }
+      container.appendChild(finalizeButton);
 
       return container;
     }
@@ -818,7 +831,7 @@ window.addEventListener("DOMContentLoaded", async () => {
       await setVariationsFromDB(variationIdsToFetch); //seteo los variations
       if (!variationsFromDB.length) return;
       let indexesToRemoveFromCart = [];
-      cartProducts.forEach((cartItem,i) => {
+      cartProducts.forEach((cartItem, i) => {
         const variationFromDB = variationsFromDB?.find(
           (variation) => variation.id == cartItem.variation_id
         );
@@ -828,17 +841,19 @@ window.addEventListener("DOMContentLoaded", async () => {
         cartItem.taco = variationFromDB?.taco;
         cartItem.maxQuantityAvailable = variationFromDB?.quantity;
         //Si esta pidiendo mas le dejo el stock que tiene el producto
-        if(cartItem.quantity > variationFromDB?.quantity) {
-          if(variationFromDB.quantity == 0){
-            indexesToRemoveFromCart.push(i)
+        if (cartItem.quantity > variationFromDB?.quantity) {
+          if (variationFromDB.quantity == 0) {
+            indexesToRemoveFromCart.push(i);
           }
-          
+
           cartItem.quantity = variationFromDB?.quantity;
         }
       });
       //si hay productos sin stock los saco antes de pintarlos
-      cartProducts = indexesToRemoveFromCart.length ? removeIndexesFromArray(cartProducts,indexesToRemoveFromCart) : cartProducts;
-      
+      cartProducts = indexesToRemoveFromCart.length
+        ? removeIndexesFromArray(cartProducts, indexesToRemoveFromCart)
+        : cartProducts;
+
       return;
     }
     function updateGuestCart() {
@@ -858,7 +873,7 @@ window.addEventListener("DOMContentLoaded", async () => {
         delete cartProduct.productFromDB;
         setLocalStorageItem("cartItems", cartProduct, true);
       });
-    };
+    }
 
     function setShippingCost() {
       // Convierte el array en un Map para acceso rápido
@@ -892,7 +907,7 @@ window.addEventListener("DOMContentLoaded", async () => {
       shippingCost = isInSpanish
         ? zoneFromDB?.price?.ars_price || 0
         : zoneFromDB?.price?.usd_price || 0;
-    };
+    }
 
     function generateCheckoutFormBodyToFetch(form) {
       let bodyData = {
@@ -946,7 +961,7 @@ window.addEventListener("DOMContentLoaded", async () => {
       }
 
       return bodyData;
-    };
+    }
     function modifyBillingLabel(justBilling) {
       //ESto modifica la label del form
       const billingAddressLabel = document.querySelector(
@@ -962,18 +977,33 @@ window.addEventListener("DOMContentLoaded", async () => {
         ? "Dirección de Facturación & Envio"
         : "Billing & Shipping Address";
       return;
-    };
+    }
+
+    function checkCartFormIsComplete(form){
+      const requiredElements = form.querySelectorAll('[required');
+      let formIsOK = true;
+      requiredElements.forEach(element => {
+        element.classList.remove('error-input');
+        if(!element.value){
+          element.classList.add('error-input');
+          formIsOK = false;
+        };
+        if(!element.dataset.listened){
+          element.dataset.listened = true;
+          element.addEventListener('input',()=>{
+            element.classList.remove('error-input');
+            if(!element.value) element.classList.add('error-input');
+          })
+        }
+        
+      });
+      return formIsOK;
+    }
   } catch (error) {
     console.log("falle");
     return console.log(error);
   }
 });
 
-function constructMercadoPagoBtn(){
-    const finalizeBtn = document.querySelectorAll('.finalize-order-button');
-    finalizeBtn[1].classList.add('hidden');
-    const mpButton = document.createElement('div');
-    mpButton.className = "mp-button";
-}
 
 export { cartExportObj };

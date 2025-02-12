@@ -7,7 +7,7 @@ export default (sequelize, dataTypes) => {
             primaryKey: true
         },
         order_id: { type: dataTypes.STRING(36) },
-        product_id: { type: dataTypes.STRING(36) },
+        variation_id: { type: dataTypes.STRING(36) }, //Dejo la variation en vez del producto para poder manejar mejor el stock
         eng_name: {type: dataTypes.STRING(255)},
         es_name: {type: dataTypes.STRING(255)},
         price: { type: dataTypes.DECIMAL(10,2) },
@@ -32,8 +32,8 @@ export default (sequelize, dataTypes) => {
             foreignKey: 'order_id'
         });
         OrderItem.belongsTo(models.Product, {
-            as: 'product',
-            foreignKey: 'product_id'
+            as: 'variation',
+            foreignKey: 'variation_id'
         });
     };
 

@@ -120,8 +120,6 @@ const toggleShopDropdown = () => {
     arrow.classList.toggle('arrow-active');
 }
 
-
-
 const checkForUserIconClicks = () => {
     const userIcon = document.querySelector('.user-icon');
     userIcon.addEventListener('click', async () => {

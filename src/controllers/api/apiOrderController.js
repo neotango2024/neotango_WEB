@@ -46,13 +46,17 @@ import { getMappedErrors } from "../../utils/helpers/getMappedErrors.js";
 import currencies from "../../utils/staticDB/currencies.js";
 import { paymentTypes } from "../../utils/staticDB/paymentTypes.js";
 import { shippingTypes } from "../../utils/staticDB/shippingTypes.js";
-import { createPaypalOrder, getTokenFromUrl, handleCreateMercadoPagoOrder } from "./apiPaymentController.js";
-import { MercadoPagoConfig } from 'mercadopago';
-const env = process.env.NODE_ENV === 'dev';
+import {
+  createPaypalOrder,
+  getTokenFromUrl,
+  handleCreateMercadoPagoOrder,
+} from "./apiPaymentController.js";
+import { MercadoPagoConfig } from "mercadopago";
+const env = process.env.NODE_ENV === "dev";
 // Agrega credenciales
-const mpClient = new MercadoPagoConfig({ 
+const mpClient = new MercadoPagoConfig({
   accessToken: process.env.MERCADO_PAGO_ACCESS_TOKEN,
-  sandbox: process.env.NODE_ENV ?? false
+  sandbox: process.env.NODE_ENV ?? false,
 });
 // ENV
 const webTokenSecret = process.env.JSONWEBTOKEN_SECRET;
@@ -197,14 +201,15 @@ const controller = {
         let orderItemData = {
           id: uuidv4(),
           order_id: orderDataToDB.id,
-          product_id: variationFromDB.product_id,
+          variation_id: variationFromDB.id,
           eng_name: orderItemEnName,
           es_name: orderItemEsName,
           price: orderItemPrice,
           quantity: orderItemQuantity,
           taco: variationFromDB.taco?.name,
           size: variationFromDB.size?.size,
-          discount: 0, //Si hace el upgrade va a poder setear esto
+          discount: 0, //Si hace el upgrade va a poder setear esto,
+          sku: variationFromDB.product?.sku
         };
         orderItemsToDB.push(orderItemData);
       });
@@ -232,12 +237,13 @@ const controller = {
           include: ["orderItems"],
         }
       );
+      
       //Si la orden se creo ok, hago el bulkupdate de las variations
       variationsFromDB.length &&
         (await db.Variation.bulkCreate(variationsFromDB, {
           updateOnDuplicate: ["quantity"],
         }));
-    
+
       // Borro los temp items si es que viene usuario loggeado
       if (user_id) {
         await db.TempCartItem.destroy({
@@ -245,20 +251,26 @@ const controller = {
             user_id,
           },
         });
-      };
-      
+      }
+
       // Aca genero el url de paypal o de mp dependiendo que paymentTypeVino
       let paymentURL, paymentOrderId;
       if (orderCreated.payment_type_id == 1) {
-        paymentURL = await handleCreateMercadoPagoOrder(orderItemsToDB, mpClient);
-        if(!paymentURL) throw new Error("Could not generate paypal paymentURL");
+        paymentURL = await handleCreateMercadoPagoOrder(
+          orderItemsToDB,
+          mpClient
+        );
+        if (!paymentURL)
+          throw new Error("Could not generate paypal paymentURL");
       } else if (orderCreated.payment_type_id == 2) {
         // PAYPAL
-        paymentURL = await createPaypalOrder(); //Genero el link para enviar a pasarela de pagos paypal
-        if(!paymentURL) throw new Error("Could not generate paypal paymentURL"); // Lanza un error y salta al catch
+        paymentURL = await createPaypalOrder({...orderDataToDB,orderItemsToDB}); //Genero el link para enviar a pasarela de pagos paypal
+        if (!paymentURL)
+          throw new Error("Could not generate paypal paymentURL"); // Lanza un error y salta al catch
         // Obtengo el payment_order_id para pegarselo en el objeto
         let paymentOrderId = getTokenFromUrl(paymentURL);
-        orderDataToDB.paypal_order_id = paymentOrderId; 
+        orderDataToDB.paypal_order_id = paymentOrderId;
+        // Actualizo en db :TODO:
       }
 
       // Mando la respuesta
@@ -389,7 +401,7 @@ let orderIncludeArray = [
   "user",
   {
     association: "orderItems",
-    include: ["product"],
+    include: ["variation"],
   },
 ];
 
@@ -441,6 +453,27 @@ export async function getOrdersFromDB({ id, limit, offset, user_id }) {
     return console.log(error);
   }
 }
+export async function getOneOrderFromDB(searchCriteria) {
+  try {
+    if (!searchCriteria || Object.keys(searchCriteria).length === 0) return null;
+
+    let orderToReturn = await db.Order.findOne({
+      where: searchCriteria, // Permite búsqueda dinámica
+      include: orderIncludeArray,
+    });
+
+    if (!orderToReturn) return null;
+
+    orderToReturn = getDeepCopy(orderToReturn);
+    setOrderKeysToReturn(orderToReturn);
+
+    return orderToReturn;
+  } catch (error) {
+    console.error(`Falle en getOrderFromDB:`, error);
+    return null; // No retornar console.log, sino null
+  }
+}
+
 
 //Esta funcion toma el objeto y le hace una "foto" de las entidades que luego pueden cambiar
 //En db necesitamos almacenar los datos que perduren, ej si se cambia la address tiene que
@@ -463,13 +496,27 @@ function createOrderEntitiesSnapshot(obj) {
   obj.billing_address_country_name = billingAddressCountryName || "";
   //Mismo con shippingAddress
   const shippingAddressNotRequired = shipping_type_id == 2; //Retiro por local
-  obj.shipping_address_street = shippingAddressNotRequired ? null : shippingAddress.street || "";
-  obj.shipping_address_detail = shippingAddressNotRequired ? null : shippingAddress.detail || "";
-  obj.shipping_address_city = shippingAddressNotRequired ? null : shippingAddress.city || "";
-  obj.shipping_address_province = shippingAddressNotRequired ? null : shippingAddress.province || "";
-  obj.shipping_address_zip_code = shippingAddressNotRequired ? null : shippingAddress.zip_code || "";
-  obj.shipping_address_label = shippingAddressNotRequired ? null : shippingAddress.label || "";
-  obj.shipping_address_country_name = shippingAddressNotRequired ? null : shippingAddressCountryName || "";
+  obj.shipping_address_street = shippingAddressNotRequired
+    ? null
+    : shippingAddress.street || "";
+  obj.shipping_address_detail = shippingAddressNotRequired
+    ? null
+    : shippingAddress.detail || "";
+  obj.shipping_address_city = shippingAddressNotRequired
+    ? null
+    : shippingAddress.city || "";
+  obj.shipping_address_province = shippingAddressNotRequired
+    ? null
+    : shippingAddress.province || "";
+  obj.shipping_address_zip_code = shippingAddressNotRequired
+    ? null
+    : shippingAddress.zip_code || "";
+  obj.shipping_address_label = shippingAddressNotRequired
+    ? null
+    : shippingAddress.label || "";
+  obj.shipping_address_country_name = shippingAddressNotRequired
+    ? null
+    : shippingAddressCountryName || "";
   //Ahora creo el de phone
   let phoneCode = countries?.find(
     (count) => count.id == phoneObj.country_id
@@ -490,7 +537,7 @@ function setOrderKeysToReturn(order) {
     (payType) => payType.id == order.payment_type_id
   );
   order.shippingType = shippingTypes.find(
-    (shipType) => shipType.id == order.shipping_types_id
+    (shipType) => shipType.id == order.shipping_type_id
   );
   order.currencyType = currencies?.find(
     (curType) => curType.id == order.currency_id
@@ -503,3 +550,17 @@ function setOrderKeysToReturn(order) {
   }, 0);
   order.shippingCost = parseFloat(order.total) - order.orderItemsPurchasedPrice;
 }
+
+export const restoreStock = async (OrderItemsToRestore) => {
+  try {
+    for (const item of OrderItemsToRestore) {
+      await db.Variation.increment(
+        { quantity: item.quantity }, // Suma la cantidad devuelta al stock
+        { where: { id: item.id } }
+      );
+    }
+    console.log("Stock restaurado correctamente");
+  } catch (error) {
+    console.error("Error restaurando stock:", error);
+  }
+};

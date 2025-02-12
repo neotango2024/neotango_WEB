@@ -2,6 +2,7 @@ import { userLogged } from "./checkForUserLogged.js";
 import {
   categoriesFromDB,
   countriesFromDB,
+  paymentTypesFromDB,
   setCategories,
   setCountries,
   setSizes,
@@ -11,6 +12,7 @@ import {
   tacosFromDB,
 } from "./getStaticTypesFromDB.js";
 import { isInSpanish, settedLanguage } from "./languageHandler.js";
+import { getLocalStorageItem } from "./localStorage.js";
 import {
   handleAddressModalActions,
   handlePhoneModalActions,
@@ -382,7 +384,7 @@ export function orderCard(order) {
     imageDiv.className = "card-image";
 
     const img = document.createElement("img");
-    const imgSrc = orderItem.product?.files[0]?.file_urls[0].url;
+    const imgSrc = orderItem?.variation?.product?.files[0]?.file_urls[0].url;
     if (imgSrc) {
       img.src = imgSrc;
       img.alt = orderItem.name || `Producto-${i}`;
@@ -2683,4 +2685,27 @@ export function disableProductModal(product) {
   // Agregar el modal al cuerpo del documento
   document.body.appendChild(modal);
   return modal;
+}
+
+export function generatePaymentButtonElement(){
+  const paymentTypeID = userLogged ? userLogged.payment_type_id : getLocalStorageItem('payment_type_id');
+  const paymentType = paymentTypesFromDB.find(type=>type.id == paymentTypeID);
+  
+  let button;
+  button = document.createElement("button");
+  if(paymentTypeID == 2){
+    //Aca es paypal, armo el boton de paypal
+    button.className = "paypal-button pay-button ui button finalize-order-button section-handler-button";
+    // Crear botón
+    button.innerHTML = `
+    <span>Check out with</span><img src="/img/logo/${paymentType.bigFilename}" alt="PayPal">
+    `;
+  } else{
+    button.className = "mercadopago-button pay-button ui button finalize-order-button section-handler-button";
+    //MP
+    button.innerHTML = `
+        <img src="/img/logo/${paymentType.bigFilename}" alt="mercadoPago"><span>Pagar con Mercado Pago</span>
+     `;
+  };
+  return button
 }

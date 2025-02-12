@@ -34,6 +34,14 @@ export default [
     {
         id: 5,
         status: {
+            es: 'Pendiente de Pago',
+            en: 'Payment Pending'
+        },
+        class: 'yellow' //Amarillo
+    },
+    {
+        id: 6,
+        status: {
             es: 'Cancelada',
             en: 'Canceled'
         },

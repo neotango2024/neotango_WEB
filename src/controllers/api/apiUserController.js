@@ -22,8 +22,8 @@ import countries from "../../utils/staticDB/countries.js";
 import sendVerificationCodeMail from "../../utils/helpers/sendverificationCodeMail.js";
 import ordersStatuses from "../../utils/staticDB/ordersStatuses.js";
 import { getUserAddressesFromDB } from "./apiAddressController.js";
-import getFileType from "../../utils/helpers/getFileType.js";
-import { destroyFilesFromAWS, getFilesFromAWS, uploadFilesToAWS } from "../../utils/helpers/awsHandler.js";
+import { findVariationsById } from "./apiVariationsController.js";
+
 
 import { getMappedErrors } from "../../utils/helpers/getMappedErrors.js";
 import { getOrdersFromDB } from "./apiOrderController.js";
@@ -202,19 +202,19 @@ const controller = {
     try {
       let { userLoggedId } = req.query;
       let userOrders = await getOrdersFromDB({user_id: userLoggedId}) || [];
-      
+    
       // return res.send(ordersToPaint);
       //Una vez tengo todas las ordenes, obtengo todos los productos que quiero mostrar, y por cada uno hago el setKeysToReturn
       let idsToLook = [];
       userOrders?.forEach(order=>{
-        order.orderItems?.forEach(orderItem=>!idsToLook.includes(orderItem.product_id) && idsToLook.push(orderItem.product_id))
+        order.orderItems?.forEach(orderItem=>!idsToLook.includes(orderItem.variation_id) && idsToLook.push(orderItem.variation_id))
       });
       //Una vez obtenido, agarro los productos de DB para agarrar sus fotos
-      let productsFromDB = await findProductsInDb(idsToLook,null,true)
+      let variationsFromDB = await findVariationsById(idsToLook)
       userOrders?.forEach(order=>{
         order.orderItems?.forEach(orderItem=>{
-          let productFromDB = productsFromDB.find(prod=>prod.id == orderItem.product_id);
-          orderItem.product = productFromDB
+          let variationFromDB = variationsFromDB.find(prod=>prod.id == orderItem.variation_id);
+          orderItem.variation = variationFromDB
       })
       });
 

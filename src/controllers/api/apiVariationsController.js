@@ -128,7 +128,8 @@ let variationIncludeArray = [{
     include: [{
         association: 'files'
     }]
-}]
+}];
+
 export const findVariationsById = async (variationId) => { 
     try {
         let variationsArrayToReturn = [];

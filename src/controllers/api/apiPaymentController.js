@@ -16,9 +16,7 @@ import { HTTP_STATUS } from "../../utils/staticDB/httpStatusCodes.js";
 // way to replace __dirname in es modules
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-const controller = {
-  
-};
+const controller = {};
 
 export default controller;
 
@@ -35,8 +33,23 @@ async function generatePaypalAccessToken() {
   return response.data.access_token;
 }
 
-export async function createPaypalOrder() {
+export async function createPaypalOrder(order) {
   const accessToken = await generatePaypalAccessToken();
+  let itemsTotal = 0;
+  const itemsArray = order.orderItemsToDb?.map((orderItem) => {
+    itemsTotal += parseFloat(orderItem.price) * parseInt(orderItem.quantity);
+    return {
+      name: orderItem.eng_name,
+      description: "",
+      unit_amount: {
+        currency_code: "USD",
+        value: parseFloat(orderItem.price) /* Valor unitario*/,
+      },
+      quantity: orderItem.quantity,
+      category: "",
+      sku: orderItem.sku,
+    };
+  });
 
   const response = await axios({
     url: process.env.PAYPAL_BASE_URL + "/v2/checkout/orders",
@@ -49,92 +62,84 @@ export async function createPaypalOrder() {
       intent: "CAPTURE",
       purchase_units: [
         {
-          items: [
-            //Detalle de los productos
-            {
-              name: "T-Shirt",
-              description: "Super Fresh Shirt",
-              unit_amount: {
-                currency_code: "USD",
-                value: "20.00" /* Valor unitario*/,
-              },
-              quantity: "1",
-              category: "PHYSICAL_GOODS",
-              sku: "sku01",
-            },
-          ],
+          items: itemsArray,
           amount: {
             currency_code: "USD",
-            value: "30.00", //Total de compra
+            value: order.total, //Total de compra
             breakdown: {
-              item_total: { currency_code: "USD", value: "20.00" }, //Solo productos
-              shipping: { currency_code: "USD", value: "10.00" }, //Solo shipping
+              item_total: { currency_code: "USD", value: order.total }, //Solo productos
+              shipping: { currency_code: "USD", value: '0'}, //Solo shipping
             },
           },
         },
       ],
       application_context: {
-        return_url: process.env.BASE_URL + "/complete-order",
-        cancel_url: process.env.BASE_URL + "/cancel-order",
+        return_url: process.env.BASE_URL + "/completar-pago",
+        cancel_url: process.env.BASE_URL + "/cancelar-orden",
         shipping_preference: "NO_SHIPPING",
         user_action: "PAY_NOW",
         brand_name: "neotango",
       },
     }),
   });
-  return response?.data?.links?.find((link) => link.rel === "approve")?.href || undefined;
+  return (
+    response?.data?.links?.find((link) => link.rel === "approve")?.href ||
+    undefined
+  );
 }
 
-export async function capturePaypalPayment(orderId){
-    const accessToken = await generatePaypalAccessToken();
-    const response = await axios({
-        url: process.env.PAYPAL_BASE_URL + `/v2/checkout/orders/${orderId}/capture`,
-        method: POST,
-        headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${accessToken}`,
-          },
-    });
+export async function capturePaypalPayment(paypalOrderId) {
+  const accessToken = await generatePaypalAccessToken();
+  const response = await axios({
+    url:
+      process.env.PAYPAL_BASE_URL +
+      `/v2/checkout/orders/${paypalOrderId}/capture`,
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${accessToken}`,
+    },
+  });
 
-    return response.data
+  return response.data;
 }
 
 export function getTokenFromUrl(url) {
-    const parsedUrl = new URL(url);
-    return parsedUrl.searchParams.get('token'); // Obtiene el valor del parámetro 'token'
+  const parsedUrl = new URL(url);
+  return parsedUrl.searchParams.get("token"); // Obtiene el valor del parámetro 'token'
 }
 
 export async function handleCreateMercadoPagoOrder(orderItemsToDb, mpClient) {
-  try {   
+  try {
     let body = {
       items: [],
       back_urls: {
         success: "https://neotangoshoes.com/",
         failure: "https://quilmac.com.ar/",
-        pending: "https://www.google.com/"
+        pending: "https://www.google.com/",
       },
       auto_return: "approved",
       payment_methods: {
         excluded_payment_types: [
-          { id: "ticket" },  // Eliminar pagos en efectivo
-          { id: "atm" },     // Eliminar pagos por transferencias
-        ]
-      }
-    }
-    orderItemsToDb.forEach(item => {
+          { id: "ticket" }, // Eliminar pagos en efectivo
+          { id: "atm" }, // Eliminar pagos por transferencias
+        ],
+      },
+    };
+    orderItemsToDb.forEach((item) => {
       const mercadoPagoItemObject = {
         title: item.es_name,
         quantity: Number(item.quantity),
         unit_price: Number(item.price),
-        currency_id: "ARS"
-      }
+        currency_id: "ARS",
+      };
       body.items.push(mercadoPagoItemObject);
-    })
+    });
     const preference = new Preference(mpClient);
-    const result = await preference.create({body});
+    const result = await preference.create({ body });
     return result.init_point;
   } catch (error) {
-    console.log('error in mercadopago create')
-    console.log(error)
+    console.log("error in mercadopago create");
+    console.log(error);
   }
 }

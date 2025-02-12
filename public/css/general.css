@@ -14,6 +14,7 @@
   --dark-grey-color: #646464;
   --light-red-color: #ce7c7f;
   --red-color: #bf0c12;
+  --red-color-rgba: #bf0c1214;
   --background-grey: #f9f9f9;
   --box-shadow-color: rgba(0, 0, 0, 0.2);
   --black-transparent-color: rgba(0, 0, 0, 0.4);
@@ -94,18 +95,18 @@ body {
 .number_button * {
   color: #000;
 }
-textarea{
+textarea {
   resize: none;
 }
 .disabled {
   opacity: 0.4;
   pointer-events: none;
 }
-option[disabled]{
+option[disabled] {
   color: #aaa;
 }
 .margin-field {
-  margin: 10px ;
+  margin: 10px;
 }
 a {
   color: unset;
@@ -173,7 +174,7 @@ label {
   font-size: 1.25rem;
 }
 .view-message-container {
-  position: absolute;
+  position: fixed;
   bottom: 10px;
   right: 0;
   font-size: 0.8rem;
@@ -191,7 +192,7 @@ label {
 .green {
   color: #0c970c !important;
 }
-.bold{
+.bold {
   font-weight: bold;
 }
 .ui.toggle.checkbox input:checked ~ .box:before,
@@ -209,13 +210,13 @@ label {
   margin-left: 10px;
 }
 .loading-circle {
-    width: 30px;
-    height: 30px;
-    border-radius: 50%;
-    border: 5px solid #ddd;
-    border-top-color: var(--light-red-color);
-    animation: loading 1s linear infinite;
-} 
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  border: 5px solid #ddd;
+  border-top-color: var(--light-red-color);
+  animation: loading 1s linear infinite;
+}
 .remove-btn {
   position: absolute;
   top: 5px;
@@ -223,33 +224,89 @@ label {
   font-size: 1.2rem;
   cursor: pointer;
 }
-.border-left{
+.border-left {
   border-left: 1px solid var(--dark-grey-color);
 }
-.border-right{
+.border-right {
   border-right: 1px solid var(--dark-grey-color);
 }
-.border-top{
+.border-top {
   border-top: 1px solid var(--dark-grey-color);
 }
-.border-bottom{
+.border-bottom {
   border-bottom: 1px solid var(--dark-grey-color);
 }
-.align-end{
+.align-end {
   text-align: end;
 }
-.no-margin{
+.no-margin {
   margin: 0;
 }
-.grey{
+.grey {
   color: var(--dark-grey-color);
 }
 .input-error {
-  border: 1px solid red!important;
+  border: 1px solid red !important;
 }
 .disabled {
-  background-color: grey!important;
-  pointer-events: none!important;
+  background-color: grey !important;
+  pointer-events: none !important;
+}
+/* LOS BOTONES DE PAGO */
+.pay-button,
+.ui.button.pay-button {
+  width: 100%;
+  border: none;
+  padding: 10px 20px;
+  display: flex;
+  justify-content: space-evenly;
+  align-items: center;
+  border-radius: 5px;
+  cursor: pointer;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  transition: background-color 0.3s ease;
+}
+.pay-button span {
+  font-size: large;
+  font-weight: 600;
+}
+.paypal-button span {
+  color: #000;
+}
+.mercadopago-button span {
+  color: #fff;
+}
+
+.paypal-button,
+.ui.button.paypal-button {
+  background-color: #ffc439;
+}
+.paypal-button:hover {
+  background-color: #ffb300;
+}
+.mercadopago-button,
+.ui.button.mercadopago-button {
+  background-color: #2fb2fe;
+  color: #fff;
+}
+.mercadopago-button:hover {
+  background-color: #4ebeff;
+}
+.paypal-button img {
+  margin-left: 8px;
+  height: 30px;
+}
+.mercadopago-button img {
+  height: 35px;
+  margin-right: 8px;
+}
+.pay-button img {
+  width: auto;
+}
+input.error-input,
+select.error-input {
+  border: 1px solid var(--red-color) !important;
+  background-color: var(--red-color-rgba);
 }
 @keyframes loading {
   to {

@@ -9,10 +9,13 @@ router.get('/carro',mainController.cart);
 router.get('/verificar',mainController.userVerification);
 router.get('/categoria/:categoryId',mainController.productList);
 router.get('/producto/:id',mainController.productDetail);
-router.get('/perfil', userIsLoggedMiddleware, mainController.userProfile); //TODO: aca agregar middleware para chequear que este loggeado, de no estar index
+router.get('/perfil', userIsLoggedMiddleware, mainController.userProfile);
 router.get('/nosotros',mainController.aboutUs);
 router.get('/faq',mainController.faq);
 router.get('/contacto',mainController.contact);
 router.get('/logout',getLastURL,mainController.logout);
+// PAYPAL
+router.get('/completar-pago',mainController.completePayment);
+router.get('/cancelar-orden',mainController.cancelOrder);
 
 export default router;
