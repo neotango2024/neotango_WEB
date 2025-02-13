@@ -3,75 +3,9 @@ import {  productCard } from "./componentRenderer.js";
 const SCREEN_WIDTH = window.innerWidth;
 
 import { translations } from "../constants/constants.js";
-import { settedLanguage, translateProductCards } from "./languageHandler.js";
+import { isInSpanish, settedLanguage, translateProductCards } from "./languageHandler.js";
 import { productsFromDB, setProductsFromDB } from "./utils.js";
 const companyInfoTranslations = translations.companyInfo;
-
-const products = [
-    {
-    "name": "Ladeado Cuero negro negro negr",
-    "price": 180,
-    "quantity": 3,
-    "category": "Zapatos Mujer",
-    "filename": "IMG_5490.png"
-    },
-    {
-    "name": "Zapato Clásico 2",
-    "price": 250,
-    "quantity": 1,
-    "category": "Botines",
-    "filename": "IMG_5492.png"
-    },
-    {
-    "name": "Zapato Moderno 3",
-    "price": 130,
-    "quantity": 4,
-    "category": "Deportivos",
-    "filename": "IMG_5496.png"
-    },
-    {
-        "name": "Zapato Moderno 3",
-        "price": 130,
-        "quantity": 4,
-        "category": "Deportivos",
-        "filename": "IMG_5495.png"
-    },
-    {
-        "name": "Zapato Moderno 3",
-        "price": 130,
-        "quantity": 4,
-        "category": "Deportivos",
-        "filename": "IMG_5490.png"
-    },
-    {
-        "name": "Zapato Moderno 5",
-        "price": 130,
-        "quantity": 4,
-        "category": "Deportivos",
-        "filename": "IMG_5496.png"
-    },
-    {
-        "name": "Zapato Moderno 5",
-        "price": 130,
-        "quantity": 4,
-        "category": "Deportivos",
-        "filename": "IMG_5492.png"
-    },
-    {
-        "name": "Zapato Moderno 5",
-        "price": 130,
-        "quantity": 4,
-        "category": "Deportivos",
-        "filename": "IMG_5506.png"
-    },
-    {
-        "name": "Zapato Moderno 5",
-        "price": 130,
-        "quantity": 4,
-        "category": "Deportivos",
-        "filename": "IMG_5506.png"
-    },
-];
 
 
 window.addEventListener('load', async ()=>{
@@ -174,11 +108,13 @@ window.addEventListener('load', async ()=>{
   }
 
   await handleRenderFeatureProducts();
+  translateCompanyInfo()
 
 });
 
 export const translateCompanyInfo = () => {
   const infoItemContainers = document.querySelectorAll('.info-item-container');
+  const settedLanguage = isInSpanish ? 'es' : 'en';
   infoItemContainers?.forEach(item => {
     const itemDataset = item.dataset.translation;
     const itemTitle = item.querySelector('.info-title');
@@ -218,6 +154,10 @@ const handleRenderFeatureProducts = async () => {
 }
 
 export const handleTranslateFeatureProducts = () => {
+  const h3Element = document.querySelector('.page-title');
+  h3Element.textContent = isInSpanish ? 'Productos destacados' : 'Featured products';
+
   const container = document.querySelector('.products-carousel');
   translateProductCards(container);
+  
 }

@@ -6,7 +6,7 @@ import { productsFromDB, toggleBodyScrollableBehavior, toggleOverlay } from './u
 import { cartExportObj } from "./cart.js";
 import { productDetailExportObj } from "./productDetail.js";
 import { handleTranslateCategoryProducts, translateCategoryTitle, translateFilters } from "./productList.js";
-import { translateUserLabels, userProfileExportObj } from "./userProfile.js";
+import { userProfileExportObj } from "./userProfile.js";
 import { translateAboutUsContent } from "./aboutUs.js";
 import { translateFaqContent } from "./faq.js";
 
@@ -137,7 +137,6 @@ const updateLanguage = async (lang)=>{
                 payment_type_id: lang
             }),
         });
-        console.log(response);
         
         if(response.ok){
             userLogged.payment_type_id = lang

@@ -19,7 +19,7 @@ window.addEventListener('load', () => {
 
 export const translateContactContent = () => {
     const h1Element = document.querySelector('.page-title');
-    const lang = isInSpanish ? 'esp' : 'eng';
+    const lang = isInSpanish ? 'es' : 'en';
     h1Element.textContent = translations.contact.title[lang];
     const inputs = document.querySelectorAll('.input');
     inputs.forEach((inp, i) => {

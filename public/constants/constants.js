@@ -72,38 +72,38 @@ export const translations = {
         },
         2: {
             title: {
-                eng: 'Returns',
-                esp: 'Cambios',
+                en: 'Returns',
+                es: 'Cambios',
             },
             description: {
-                eng: 'In case you have purchased a defective item, Customer Service will process the change in the most accessible way according to the circumstances.',
-                esp: 'En el caso en que hayas adquirido un artículo defectuoso, el Servicio de atención al cliente procesará el cambio de la manera mas accesible de acuerdo a las circunstancias.'
+                en: 'In case you have purchased a defective item, Customer Service will process the change in the most accessible way according to the circumstances.',
+                es: 'En el caso en que hayas adquirido un artículo defectuoso, el Servicio de atención al cliente procesará el cambio de la manera mas accesible de acuerdo a las circunstancias.'
             },
             espDescription: {
-                esp: 'El cambio del artículo estará disponible para todos los clientes de Argentina siempre y cuando el artículo se devuelva en perfecto estado, sin haber sido utilizado, dentro de un plazo de 30 días a partir de la fecha de compra.'
+                es: 'El cambio del artículo estará disponible para todos los clientes de Argentina siempre y cuando el artículo se devuelva en perfecto estado, sin haber sido utilizado, dentro de un plazo de 30 días a partir de la fecha de compra.'
             }
         }
     },
     contact: {
         title: {
-            eng: 'Contact us',
-            esp: 'Contactános'
+            en: 'Contact us',
+            es: 'Contactános'
         },
         0: {
-            eng: 'Name',
-            esp: 'Nombre'
+            en: 'Name',
+            es: 'Nombre'
         },
         1: {
-            eng: 'Email',
-            esp: 'Email'
+            es: 'Email',
+            en: 'Email'
         },
         2: {
-            eng: 'Message',
-            esp: 'Mensaje'
+            es: 'Message',
+            en: 'Mensaje'
         },
         button: {
-            eng: 'Submit',
-            esp: 'Enviar'
+            es: 'Submit',
+            en: 'Enviar'
         }
     },
 };

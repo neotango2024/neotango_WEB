@@ -47,7 +47,6 @@
 .related-products-section{
     display: flex;
     flex-direction: column;
-    margin: 10vh 0;
 }
 .product-detail-section{
     display: flex;
@@ -121,6 +120,12 @@
     max-width: none;
     height: 60vh;
 }
+.product-images-section {
+    margin-top: 5vh;
+}
+.product-detail-section {
+    margin-bottom: 5vh;
+}
 @media(min-width: 768px){
 
     .ui.breadcrumb * {
@@ -128,19 +133,21 @@
     }
     .main{
         flex-direction: row;
-        flex-wrap: wrap;
         justify-content: space-between;
-        padding: 2vh 5vw;
+        padding: 5vh; 
+        align-items: center;
     }
     .product-images-section{
-        width: 60%;
-        height: 90vh;
+        width: 45%;
+        height: 50vh;
     }
     .product-detail-section{
-        width: 40%;
+        width: 45%;
+        max-width: 570px;
+        padding: 0;
     }
     .images-wrapper{
-        height: 45%;
+        height: 100%;
         margin-bottom: 3vh;
         scroll-snap-type: none;
         overflow-x: hidden;
@@ -210,16 +217,30 @@
         max-width: 250px;
     max-height: 300px;
     }
+    #taco-id, #size-id {
+        width: 150px;
+    }
 }
 @media(min-width: 1024px){
     .main{
         max-width: 1300px;
         margin: 0 auto;
         padding: 5vh;
+        flex-direction: row;
+        flex-wrap: wrap;
+        justify-content: space-between;
+        padding: 5vw; 
+        align-items: center;
     }
     .selects-wrapper{
-        margin-top: 5vh;
         justify-content: space-around;
+        margin-top: 15px;
+    }
+    .product-images-section {
+        margin-top: 0;
+    }
+    .related-products-section {
+        margin-top: 10vh;
     }
     .small-image-element:hover{
         opacity: .3;

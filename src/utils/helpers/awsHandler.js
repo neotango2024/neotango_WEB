@@ -52,16 +52,16 @@ export async function uploadFilesToAWS(object) {
             //Por cada foto subo otras 2 mas chicas para optimizar la carga
             {
               name: randomName + "-2x.webp", //original
-              width: Math.round(imageWidth * 1),
+              width: Math.round(imageWidth * 0.3),
             },
             {
               name: randomName + "-1x.webp",
-              width: Math.round(imageWidth * 0.5),
+              width: Math.round(imageWidth * 0.15),
             },
-            {
-              name: randomName + "-thumb.webp",
-              width: 20,
-            },
+            // {
+            //   name: randomName + "-thumb.webp",
+            //   width: 20,
+            // },
           ];  
           // Voy por cada size asi lo subo a aws
           for (let j = 0; j < imageSizes.length; j++) {

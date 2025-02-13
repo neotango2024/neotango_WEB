@@ -1503,7 +1503,7 @@ export function generateHeaderShopDropdown() {
       href: "/categoria/2",
     },
     {
-      text: isInSpanish ? "Zapatos de Mujer" : "Women shoes",
+      text: isInSpanish ? "Zapatos de mujer" : "Women shoes",
       href: "/categoria/1",
     },
   ];

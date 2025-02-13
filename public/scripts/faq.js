@@ -8,7 +8,6 @@ window.addEventListener('load', () => {
     imagePlaceHolders.classList.add('hidden');
     const titlePlaceholder = document.querySelector('.title-placeholder');
     titlePlaceholder.classList.add('hidden');
-    translateFaqContent();
 })
 
 export const translateFaqContent = () => {
@@ -20,16 +19,14 @@ export const translateFaqContent = () => {
     faqs.forEach((faq, i) => {
         const title = faq.querySelector('.faq-title');
         const description = faq.querySelector('.faq-description');
-
         title.textContent = translations.faq[i].title[lang];
-        console.log(translations.faq[i].title[lang])
         description.textContent = translations.faq[i].description[lang];
         const additionalDescription = faq.querySelector('.additional-faq-description');
-        if(additionalDescription && lang === 'eng'){
+        if(additionalDescription && lang === 'en'){
             additionalDescription.classList.add('hidden')
-        }
-        if(additionalDescription){
-            additionalDescription.textContent = translations.faq[i].espDescription['esp'];   
+        } 
+        else if(additionalDescription) {
+            additionalDescription.textContent = translations.faq[2].espDescription['es'];   
         }
     })
 } 
