@@ -83,6 +83,9 @@ const controller = {
       return res.redirect("/");
     }
   },
+  postOrder: (req,res) =>{
+    return res.render('postOrder')
+  },
   completePayment: async (req, res) => {
     const { token } = req.query; // ORDER_ID que devuelve PayPal
     if (!token) {
@@ -118,8 +121,8 @@ const controller = {
             },
           }
         );
-        let updatedOrder = await getOrdersFromDB({id: orderFromDB.id})
-        return res.send(updatedOrder);
+        let orderFromDB = await getOrdersFromDB({id: orderFromDB.id});
+        return res.redirect(`/post-compra?orderId=${orderFromDB.tra_id}?shippingTypeId=${orderFromDB.shipping_type_id}`);
       } else {
         // ❌ Manejar error de pago
         res.redirect(`/cancelar-orden?token=${token}`); //Redirijo para cancelar la orden

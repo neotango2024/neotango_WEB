@@ -1,0 +1,29 @@
+.whatsapp-link {
+    position: fixed;
+    bottom: 10px;
+    right: 10px;
+    z-index: 20;
+    border-radius: 5px;
+}
+
+.whatsapp-link img {
+    width: 50px;
+    height: 50px;
+    display: block;
+    margin: 0 auto;
+}
+
+/* MEDIA QUERIES */
+
+@media(min-width:1024px) {
+    .whatsapp-link {
+        right: 20px;
+        bottom: 20px;
+        /*transform: translateY(50%); */
+    }
+
+    .whatsapp-link img {
+        /* width: 50px;
+        height: 50px; */
+    }
+}

@@ -23,7 +23,9 @@ import {
   handleNewAddressButtonClick,
   handleNewPhoneButtonClick,
   isInDesktop,
+  isOnPage,
   removeIndexesFromArray,
+  scriptInitiator,
   setShippingZones,
   setVariationsFromDB,
   shippingZonesFromDB,
@@ -34,10 +36,10 @@ let cartExportObj = {
   paintCheckoutPhoneSelect: null,
   paintCheckoutAddressesSelect: null,
 };
-
 window.addEventListener("DOMContentLoaded", async () => {
   try {
-    if (!window.location.pathname.endsWith("/carro")) return;
+    if (!isOnPage('/carro')) return;
+    await scriptInitiator();
     const main = document.querySelector(".main");
     const cartProductsWrapper = document.querySelector(
       ".cart-products-cards-wrapper"
@@ -75,7 +77,8 @@ window.addEventListener("DOMContentLoaded", async () => {
         return console.log(error);
       }
     };
-
+    
+    
     // =========================================
     // funciones
     //Pinta la seccion de detalle
@@ -999,6 +1002,8 @@ window.addEventListener("DOMContentLoaded", async () => {
       });
       return formIsOK;
     }
+    cartExportObj.pageConstructor();
+
   } catch (error) {
     console.log("falle");
     return console.log(error);

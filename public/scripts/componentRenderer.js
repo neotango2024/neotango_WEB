@@ -2687,25 +2687,116 @@ export function disableProductModal(product) {
   return modal;
 }
 
-export function generatePaymentButtonElement(){
-  const paymentTypeID = userLogged ? userLogged.payment_type_id : getLocalStorageItem('payment_type_id');
-  const paymentType = paymentTypesFromDB.find(type=>type.id == paymentTypeID);
-  
+export function generatePaymentButtonElement() {
+  const paymentTypeID = userLogged
+    ? userLogged.payment_type_id
+    : getLocalStorageItem("payment_type_id");
+  const paymentType = paymentTypesFromDB.find(
+    (type) => type.id == paymentTypeID
+  );
+
   let button;
   button = document.createElement("button");
-  if(paymentTypeID == 2){
+  if (paymentTypeID == 2) {
     //Aca es paypal, armo el boton de paypal
-    button.className = "paypal-button pay-button ui button finalize-order-button section-handler-button";
+    button.className =
+      "paypal-button pay-button ui button finalize-order-button section-handler-button";
     // Crear botón
     button.innerHTML = `
     <span>Check out with</span><img src="/img/logo/${paymentType.bigFilename}" alt="PayPal">
     `;
-  } else{
-    button.className = "mercadopago-button pay-button ui button finalize-order-button section-handler-button";
+  } else {
+    button.className =
+      "mercadopago-button pay-button ui button finalize-order-button section-handler-button";
     //MP
     button.innerHTML = `
         <img src="/img/logo/${paymentType.bigFilename}" alt="mercadoPago"><span>Pagar con Mercado Pago</span>
      `;
-  };
-  return button
+  }
+  return button;
+}
+
+export function generatePostOrderCard(traId, shippingTypeId) {
+  // Crear el contenedor principal
+  const card = document.createElement("div");
+  card.classList.add("ui", "card", "post-order-card");
+
+  // Crear elementos dentro de la tarjeta
+  const header = document.createElement("h1");
+  header.classList.add("card-header");
+  header.textContent = isInSpanish
+    ? "¡Gracias por tu compra!"
+    : "Thank you for your purchase!";
+
+  const subHeader = document.createElement("p");
+  subHeader.classList.add("card-sub-header");
+  subHeader.textContent = isInSpanish
+    ? "Tu número de orden es"
+    : "Your order number is";
+
+  const orderNumberContainer = document.createElement("div");
+  orderNumberContainer.classList.add("order-number-container");
+
+  const orderNumber = document.createElement("p");
+  orderNumber.classList.add("card-order-number");
+  orderNumber.textContent = `#${traId}`;
+
+  const copyIcon = document.createElement("i");
+  copyIcon.classList.add("bx", "bx-copy", "copy-order-number-btn");
+
+  orderNumberContainer.appendChild(orderNumber);
+  orderNumberContainer.appendChild(copyIcon);
+
+  const orderStatus = document.createElement("p");
+  orderStatus.classList.add("order-status-p");
+  if (shippingTypeId == 1) {
+    orderStatus.textContent = isInSpanish
+      ? "Tu pedido ya está siendo preparado para ser despachado."
+      : "Your order is being prepared for dispatch.";
+  } else {
+    orderStatus.textContent = isInSpanish
+      ? "Tu pedido ya se encuentra disponible para ser recolectado."
+      : "Your order is now available for pickup.";
+  }
+
+  const buttonsContainer = document.createElement("div");
+  buttonsContainer.classList.add("card-buttons-container");
+
+  const homeButton = document.createElement("a");
+  homeButton.href = "/";
+  homeButton.classList.add("ui", "button", "negative", "card-button","small");
+  homeButton.innerHTML =
+    "<i class='bx bx-home-alt-2'></i><p class='button-text'>" +
+    (isInSpanish ? "Inicio" : "Home") +
+    "</p>";
+
+  const purchasesButton = document.createElement("a");
+  purchasesButton.href = "/perfil?index=3";
+  purchasesButton.classList.add("ui", "button", "negative", "card-button","small");
+  purchasesButton.innerHTML =
+    "<i class='bx bx-home-alt-2'></i><p class='button-text'>" +
+    (isInSpanish ? "Mis compras" : "My purchases") +
+    "</p>";
+
+  buttonsContainer.appendChild(homeButton);
+  buttonsContainer.appendChild(purchasesButton);
+
+  const logoContainer = document.createElement("div");
+  logoContainer.classList.add("card-logo-container");
+
+  const logo = document.createElement("img");
+  logo.src = "/img/logo/logo.jpg";
+  logo.alt = "card-logo";
+
+  logoContainer.appendChild(logo);
+
+  // Agregar elementos al contenedor principal
+  card.appendChild(header);
+  card.appendChild(subHeader);
+  card.appendChild(orderNumberContainer);
+  card.appendChild(orderStatus);
+  card.appendChild(buttonsContainer);
+  card.appendChild(logoContainer);
+
+  return card;
 }

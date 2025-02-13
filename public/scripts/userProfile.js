@@ -40,6 +40,8 @@ import {
   fetchDBProducts,
   displayBigNumbers,
   minDecimalPlaces,
+  scriptInitiator,
+  isOnPage,
 } from "./utils.js";
 import { translations } from "../constants/constants.js";
 
@@ -50,9 +52,8 @@ let userProfileExportObj = {
 };
 
 window.addEventListener("load", async () => {
-  const { pathname } = window.location;
-  if (!pathname.endsWith("/perfil")) return;
-  await checkForUserLogged();
+  if (!isOnPage("/perfil")) return;
+  await scriptInitiator(); //Inicio userLogged y lo del lenguaje
   if (!userLogged) return (window.location.href = "/");
   typeOfPanel = userLogged?.user_role_id ||1;
   await setOrderStatuses();
@@ -691,7 +692,7 @@ const handleChangeOrderStatus = async (e, order) => {
   try {
     const newOrderStatus = e.target.value;
     activateContainerLoader(modal, true);
-    const statusResponse = await fetch(`/api/order/order-status/${order.id}`, {
+    let statusResponse = await fetch(`/api/order/order-status/${order.id}`, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
@@ -707,7 +708,12 @@ const handleChangeOrderStatus = async (e, order) => {
       ordersFromDB[orderIndexToModify].order_status_id = newOrderStatus;     
        
       return userProfileExportObj.pageConstructor();
-    }
+    } 
+    //Aca fallo, cierro el modal y mando mensaje
+    statusResponse = await statusResponse.json();
+    closeModal();
+    showCardMessage(false,statusResponse.msg);
+    return
   } catch (error) {
     return console.log(error);
     

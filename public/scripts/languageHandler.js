@@ -9,15 +9,14 @@ import { handleTranslateCategoryProducts, translateCategoryTitle, translateFilte
 import { userProfileExportObj } from "./userProfile.js";
 import { translateAboutUsContent } from "./aboutUs.js";
 import { translateFaqContent } from "./faq.js";
+import { postOrderExportObject } from "./postOrder.js";
 
 export let settedLanguage = null;
 export let isInSpanish = true;
 
 window.addEventListener('DOMContentLoaded', async () => {
-    await checkForUserLogged();
     checkForLanguageClick();
     checkForLanguageSelection();
-    decideLanguageInsertion();
 })
 //TOCA BANDERA: settedLang || llama a la funcion que cambia las cosas
 //Esta funcion captura cuando toca la bandera de arriba o el btn de cerra menu
@@ -27,13 +26,13 @@ const checkForLanguageClick = () => {
         toggleLanguagesModalClasses();
         toggleOverlay();
         toggleBodyScrollableBehavior();
-    })
+    });
     const closeButton = document.querySelector('.close-language-modal');
     closeButton.addEventListener('click', () => {
         toggleLanguagesModalClasses();
         toggleOverlay();
         toggleBodyScrollableBehavior();
-    })
+    });
 }
 
 
@@ -80,7 +79,7 @@ const handleChangeLanguage = async(param) => { //param es 1/2
     
     const bodyName = document.querySelector('body').dataset.page_name;    
     translateNavbar();
-    paintUserIconOrLetter()
+    paintUserIconOrLetter();
     switch (bodyName) {
         case 'index': //Van todos los cambios de index
             translateCompanyInfo();
@@ -109,6 +108,9 @@ const handleChangeLanguage = async(param) => { //param es 1/2
         case "faq":
             translateFaqContent();
             break;
+        case "postOrder":
+            postOrderExportObject.pageConstructor && postOrderExportObject.pageConstructor();
+            break;
         default:
             break;
     }
@@ -136,8 +138,8 @@ const updateLanguage = async (lang)=>{
             body: JSON.stringify({
                 payment_type_id: lang
             }),
+<<<<<<< HEAD
         });
-        
         if(response.ok){
             userLogged.payment_type_id = lang
         }
@@ -158,4 +160,5 @@ export const translateProductCards = (container) => {
       productPriceElement.textContent = isInSpanish ? productInDb.ars_price : productInDb.usd_price;
     })
 }
+
 

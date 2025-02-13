@@ -9,6 +9,7 @@ import {
   fetchDBProducts,
   minDecimalPlaces,
   displayBigNumbers,
+  scriptInitiator,
 } from "./utils.js";
 
 let productDetailExportObj = {
@@ -27,6 +28,7 @@ let productId, variationSelected;
 window.addEventListener("load", async () => {
   try {
     if (!window.location.pathname.includes("/producto/")) return;
+     await scriptInitiator(); //Inicio userLogged y lo del lenguaje
     productDetailExportObj.createProductDetailsSection = function (
       productData
     ) {
@@ -181,8 +183,8 @@ window.addEventListener("load", async () => {
         relatedProductCardWrapper.appendChild(cardElement)
       });
     };
-    relatedProducts.length && productDetailExportObj.paintRelatedProductCards(); //Pinto los related
     productDetailExportObj.createProductDetailsSection(productFromDB);
+    relatedProducts.length && productDetailExportObj.paintRelatedProductCards(); //Pinto los related
     scrollToTop();
     //Hago el pedido al fetch de 4 productos y filtrar 3
 

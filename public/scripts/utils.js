@@ -9,7 +9,7 @@ import {
   disablePhoneModal,
 } from "./componentRenderer.js";
 import { countriesFromDB } from "./getStaticTypesFromDB.js";
-import { isInSpanish } from "./languageHandler.js";
+import { decideLanguageInsertion, isInSpanish } from "./languageHandler.js";
 import { userProfileExportObj } from "./userProfile.js";
 
 export function activateAccordions() {
@@ -1074,4 +1074,46 @@ export function getDeepCopy(arg) {
 
 export function removeIndexesFromArray(arr, indexesToRemove) {
   return arr.filter((_, index) => !indexesToRemove.includes(index));
+}
+export function copyToClipboard(container) {
+  container.select();
+  document.execCommand("copy");
+  container.blur();
+}
+export function copyElementValue(value) {
+  const textareaToCopyMails = document.createElement("textarea");
+  textareaToCopyMails.innerHTML = value;
+  document.body.appendChild(textareaToCopyMails);
+  copyToClipboard(textareaToCopyMails);
+  textareaToCopyMails.remove();
+}
+export function activateCopyMsg(){
+  const copyPDiv = document.querySelector(".copy_p_msg.ui.message");
+  copyPDiv.innerHTML = isInSpanish ? '¡Copiado!' : 'Copied!'
+  copyPDiv?.classList.add("copy_p_msg_active");
+      setTimeout(() => {
+        copyPDiv?.classList.remove("copy_p_msg_active");
+        
+      }, 1000);
+};
+
+export function isOnPage(path) {
+  const currentPath = window.location.pathname.replace(/\/$/, ""); // Elimina la barra final
+  // Si path es vacío o "index", considerar como "/"
+  if (path === "") {
+    return currentPath === "" || currentPath === "/";
+  }
+
+  return currentPath.endsWith(path);
+}
+
+
+export async function scriptInitiator(){
+  try {
+    await checkForUserLogged();
+    decideLanguageInsertion();
+  } catch (error) {
+    return console.log(error);
+    
+  }
 }
