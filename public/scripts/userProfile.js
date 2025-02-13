@@ -40,6 +40,8 @@ import {
   fetchDBProducts,
   displayBigNumbers,
   minDecimalPlaces,
+  scriptInitiator,
+  isOnPage,
 } from "./utils.js";
 import { translations } from "../constants/constants.js";
 
@@ -50,8 +52,8 @@ let userProfileExportObj = {
 };
 
 window.addEventListener("load", async () => {
-  const { pathname } = window.location;
-  if (!pathname.endsWith("/perfil")) return;
+  if (!isOnPage("/perfil")) return;
+  await scriptInitiator(); //Inicio userLogged y lo del lenguaje
   if (!userLogged) return (window.location.href = "/");
   typeOfPanel = userLogged?.user_role_id ||1;
   await setOrderStatuses();

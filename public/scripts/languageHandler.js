@@ -15,10 +15,8 @@ export let settedLanguage = null;
 export let isInSpanish = true;
 
 window.addEventListener('DOMContentLoaded', async () => {
-    await checkForUserLogged();
     checkForLanguageClick();
     checkForLanguageSelection();
-    decideLanguageInsertion();
 })
 //TOCA BANDERA: settedLang || llama a la funcion que cambia las cosas
 //Esta funcion captura cuando toca la bandera de arriba o el btn de cerra menu
@@ -28,13 +26,13 @@ const checkForLanguageClick = () => {
         toggleLanguagesModalClasses();
         toggleOverlay();
         toggleBodyScrollableBehavior();
-    })
+    });
     const closeButton = document.querySelector('.close-language-modal');
     closeButton.addEventListener('click', () => {
         toggleLanguagesModalClasses();
         toggleOverlay();
         toggleBodyScrollableBehavior();
-    })
+    });
 }
 
 
@@ -161,4 +159,5 @@ export const translateProductCards = (container) => {
       productPriceElement.textContent = isInSpanish ? productInDb.ars_price : productInDb.usd_price;
     })
 }
+
 

@@ -1,11 +1,12 @@
 import { generatePostOrderCard } from "./componentRenderer.js";
-import { activateCopyMsg, copyElementValue, isOnPage } from "./utils.js";
+import { activateCopyMsg, copyElementValue, isOnPage, scriptInitiator } from "./utils.js";
 const postOrderExportObject = {
     pageConstructor: null,
 }
 window.addEventListener("load", async () => {
   try {
-    if(!isOnPage('post-compra'))return;
+    if(!isOnPage('/post-compra'))return;
+    await scriptInitiator();
     // Obtén el parámetro `order` de la URL
     const urlParams = new URLSearchParams(window.location.search);
     const orderTraIdFromURL = urlParams.get("orderId");

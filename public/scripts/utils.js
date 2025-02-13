@@ -9,7 +9,7 @@ import {
   disablePhoneModal,
 } from "./componentRenderer.js";
 import { countriesFromDB } from "./getStaticTypesFromDB.js";
-import { isInSpanish } from "./languageHandler.js";
+import { decideLanguageInsertion, isInSpanish } from "./languageHandler.js";
 import { userProfileExportObj } from "./userProfile.js";
 
 export function activateAccordions() {
@@ -1099,4 +1099,14 @@ export function activateCopyMsg(){
 
 export function isOnPage(path) {
   return window.location.pathname.replace(/\/$/, "").endsWith(path);
+}
+
+export async function scriptInitiator(){
+  try {
+    await checkForUserLogged();
+    decideLanguageInsertion();
+  } catch (error) {
+    return console.log(error);
+    
+  }
 }
