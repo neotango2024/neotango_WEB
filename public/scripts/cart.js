@@ -1003,7 +1003,7 @@ window.addEventListener("DOMContentLoaded", async () => {
       return formIsOK;
     }
     cartExportObj.pageConstructor();
-    console.log(cartProducts);
+
   } catch (error) {
     console.log("falle");
     return console.log(error);

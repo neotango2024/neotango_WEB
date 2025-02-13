@@ -74,7 +74,7 @@ const products = [
 ];
 
 window.addEventListener("load", async () => {
-  if (!isOnPage("/")) return;
+  if (!isOnPage("")) return;
   
   await scriptInitiator(); //Inicio userLogged y lo del lenguaje
   const slides = document.querySelectorAll(".slider-img-container");

@@ -1098,8 +1098,15 @@ export function activateCopyMsg(){
 };
 
 export function isOnPage(path) {
-  return window.location.pathname.replace(/\/$/, "").endsWith(path);
+  const currentPath = window.location.pathname.replace(/\/$/, ""); // Elimina la barra final
+  // Si path es vacío o "index", considerar como "/"
+  if (path === "") {
+    return currentPath === "" || currentPath === "/";
+  }
+
+  return currentPath.endsWith(path);
 }
+
 
 export async function scriptInitiator(){
   try {
