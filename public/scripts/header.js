@@ -167,6 +167,7 @@ export const translateNavbar = () => {
 
 export const paintUserIconOrLetter = () => {
     const userIconElement = document.querySelector('.user-icon');
+    
     if(userLogged){
         userIconElement.classList.add('hidden');
         const userLoggedDropdownToChange = document.querySelector('.user-initials-container');

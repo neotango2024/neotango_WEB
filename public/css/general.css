@@ -324,6 +324,24 @@ select.error-input {
   opacity: 1;
   bottom: 0;
 }
+.password-field label{
+  position: relative;
+  width: fit-content;
+}
+.ui.icon.button.tooltip-icon{
+  position: absolute;
+  right: -25px;
+  top: -10%;
+  background: none;
+  padding: 0;
+  cursor: auto;
+  color: #aaa;
+}
+.ui.popup.tooltip-content {
+  min-width: 250px; /* Ajusta este valor según necesites */
+  max-width: unset;
+  white-space: normal; /* Permite que el texto se ajuste a varias líneas */
+}
 @keyframes loading {
   to {
     transform: rotate(360deg);

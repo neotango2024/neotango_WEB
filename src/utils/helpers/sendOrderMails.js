@@ -1,96 +1,129 @@
-import nodemailer from'nodemailer';
-import emailConfig from'./staticDB/mailConfig';
+import nodemailer from "nodemailer";
+import emailConfig from "../staticDB/mailConfig.js";
+import dateFormater from "./dateFormater.js";
 // import dateFormater from'./dateFormater';
 
 async function sendOrderMails(order) {
-    // Configuración del transporte del correo
-    const transporter = nodemailer.createTransport(emailConfig);
+  const orderIsInSpanish = order.payment_type_id == 1;
+  // Configuración del transporte del correo
+  const transporter = nodemailer.createTransport(emailConfig);
 
-    // Contenido del correo
-    let userMailContentDeliveryMethod = ``;
-    let operatorMailContentDeliveryMethod = ``;
-    if (order.order_types_id == 1) { //Domicilio
-        userMailContentDeliveryMethod += `<p style="font-weight:600;">Envío a domicilio</p>`;
-        operatorMailContentDeliveryMethod += `<p style="font-weight:600;">Envío a domicilio</p>`;
-        if (!order.shipping_addresses_id) { //No tiene shipping_id (uso la de billing)
-            const province = provinces.find(prov => prov.id == order.billingAddress.provinces_id).name
-            userMailContentDeliveryMethod +=
-                `    
-                <p style="color: #666;">${order.billingAddress.street} ${order.billingAddress.street_number} - C.P. ${order.billingAddress.zip_code} - ${order.billingAddress.city}, ${province}</p>
+  // Contenido del correo
+  let userMailContentDeliveryMethod = ``;
+  let operatorMailContentDeliveryMethod = ``;
+  if (order.shipping_type_id == 1) {
+    //Domicilio
+    let addressTitleRow = `<p style="font-weight:600;">${
+      orderIsInSpanish ? "Envío a domicilio" : "Shipping to"
+    }</p>`;
+    userMailContentDeliveryMethod += addressTitleRow;
+    operatorMailContentDeliveryMethod += addressTitleRow;
+    let addressRow = `
+                <p style="color: #666;">${order.shipping_address_street}${
+      order.shipping_address_detail ? ` (${order.shipping_address_detail})` : ""
+    } - C.P. ${order.shipping_address_zip_code} - ${
+      order.shipping_address_city
+    }, ${order.shipping_address_province}</p>
                 `;
-            operatorMailContentDeliveryMethod +=
-                `    
-                <p style="color: #666;">${order.billingAddress.street} ${order.billingAddress.street_number} - C.P. ${order.billingAddress.zip_code} - ${order.billingAddress.city}, ${province}</p>
-                `;
-        } else { //Distinta direccion (uso shippingAddress)
-            const province = provinces.find(prov => prov.id == order.shippingAddress.provinces_id).name
-            userMailContentDeliveryMethod +=
-                `
-                <p style="color: #666;">${order.shippingAddress.street} ${order.shippingAddress.street_number} - C.P. ${order.shippingAddress.zip_code} - ${order.shippingAddress.city}, ${province}</p>
-                `;
-            operatorMailContentDeliveryMethod +=
-                `
-                <p style="color: #666;">${order.shippingAddress.street} ${order.shippingAddress.street_number} - C.P. ${order.shippingAddress.zip_code} - ${order.shippingAddress.city}, ${province}</p>
-                `
-        }
-    } else if(order.order_types_id == 2) { //Retiro por local
-        userMailContentDeliveryMethod =
-            `
-        <p style="font-weight:600;">Retiro por el local</p>
-        <p style="color: #666;">Avenida Santa Fé 2911 3 F, C.P. 1425 Buenos Aires</p>
-        <p style="color: #666;">Lunes a viernes / 10hs - 19hs</p>
-        `
-        operatorMailContentDeliveryMethod = `<p style="font-weight:600;">Retiro por el local</p>`
-    };
+    userMailContentDeliveryMethod += addressRow;
+    operatorMailContentDeliveryMethod += addressRow;
+  } else if (order.shipping_type_id == 2) {
+    //Retiro por local
+    let pickUpRow = `<p style="font-weight:600;">${
+      orderIsInSpanish ? "Retiro por el local" : "Pickup"
+    }</p>`;
+    userMailContentDeliveryMethod = `
+        ${pickUpRow}
+        <p style="color: #666;">Sarmiento 1938 , ${
+          orderIsInSpanish ? "C.P" : "ZIP"
+        }. 1044, CABA</p>
+        <p style="color: #666;">${
+          orderIsInSpanish ? "Lunes a viernes" : "Monday to Friday"
+        } / 9hs - 18hs</p>
+        `;
+    operatorMailContentDeliveryMethod = `<p style="font-weight:600;">${
+      orderIsInSpanish ? "Retiro por el local" : "Pickup"
+    }</p>`;
+  }
 
-    //   Tabla con items
-    let tableContent = ``;
-    order.orderItems.forEach(item => {
-        const itemPrice = item.price * ( 1 - (item.discount||0)/100);
-        tableContent +=
-            `
+  //   Tabla con items
+  let tableContent = ``;
+  let orderItemsPrice = 0;
+  order.orderItems.forEach((item) => {
+    // const itemPrice = item.price * ( 1 - (item.discount||0)/100);
+    tableContent += `
         <tr>
-            <td style="width:25%;text-align:center;">${item.name}</td>
-            <td style="width:25%;text-align:center;">$${itemPrice}</td>
+            <td style="width:25%;text-align:center;">${
+              orderIsInSpanish ? item.es_name : item.eng_name
+            } (${item.taco} - ${item.size})</td>
+            <td style="width:25%;text-align:center;">$${item.price}</td>
             <td style="width:25%;text-align:center;">${item.quantity}</td>
-            <td style="width:25%;text-align:center;">${item.quantity * itemPrice}</td>
+            <td style="width:25%;text-align:center;">$${
+              parseInt(item.quantity) * parseFloat(item.price)
+            }</td>
         </tr>
         `;
-    });
-    const userMailContent = `
+    orderItemsPrice += parseInt(item.quantity) * parseFloat(item.price);
+  });
+  const shippingPrice = order.total - orderItemsPrice;
+  const userMailContent = `
     <main style="width:60%;margin: 0 auto;">
-    <h2 style="font-weight:600;">Resumen de tu compra</h2>
-    <p style="font-weight:600;">Id de venta</p>
+    <h2 style="font-weight:600;">${
+      orderIsInSpanish ? "Resumen de tu compra" : "Order summary"
+    }</h2>
+      <p style="font-weight:600;">${
+        orderIsInSpanish ? "Id de venta" : "Order Id"
+      }</p>
     <p style="color: #666;">${order.tra_id}</p>
-    <p style="font-weight:600;">Fecha</p>
-    <p style="color: #666;">${dateFormater(order.createdAt,false)}</p>
-    <p style="font-weight:600;">Datos de facturación</p>
-    <p style="color: #666;">${order.billing_first_name} ${order.billing_last_name} - Tel: ${order.billing_phone} - DNI: ${order.billing_id}</p>
+    <p style="font-weight:600;">${orderIsInSpanish ? "Fecha" : "Date"}</p>
+    <p style="color: #666;">${dateFormater(order.createdAt, false)} (dd/mm/${
+    orderIsInSpanish ? "aaaa" : "yyyy"
+  })</p>
+    <p style="font-weight:600;">${
+      orderIsInSpanish ? "Datos de facturación" : "Billing Information"
+    }</p>
+    <p style="color: #666;">${order.first_name} ${order.last_name} - Tel: +${
+    order.phone_code
+  } ${order.phone_number} - ${orderIsInSpanish ? "DNI" : "ID"}: ${order.dni}</p>
     ${userMailContentDeliveryMethod}
     
     <table style="width:100%">
       <tr>
         <th style="width:25%;text-align:center;">Item</th>
-        <th style="width:25%;text-align:center;">Precio unitario</th>
-        <th style="width:25%;text-align:center;">Cantidad</th>
+        <th style="width:25%;text-align:center;">${
+          orderIsInSpanish ? "Precio unitario" : "Unit price"
+        }</th>
+        <th style="width:25%;text-align:center;">${
+          orderIsInSpanish ? "Cantidad" : "Quantity"
+        }</th>
         <th style="width:25%;text-align:center;">Subtotal</th>
       </tr>
       ${tableContent}
     </table>
-    <p style="font-size:22px;margin-top:30px;color:#222;">Total: $${order.total}</p>
+    ${
+      order.shipping_type_id == 1
+        ? `<p style="font-size:18px;margin-top:30px;color:#222;">${
+            orderIsInSpanish ? "Envio" : "Shipping"
+          }: $${shippingPrice}</p>`
+        : ""
+    }
+    <p style="font-size:18px;margin-top:30px;color:#222;">Total: $${
+      order.total
+    }</p>
     </main>
   `;
 
-    const operatorMailContent =
-        `
+  const operatorMailContent = `
     <main style="width:60%;margin: 0 auto;">
     <h2 style="font-weight:600;">Se ha registrado una venta</h2>
     <p style="font-weight:600;">Id de venta</p>
     <p style="color: #666;">${order.tra_id}</p>
     <p style="font-weight:600;">Fecha</p>
-    <p style="color: #666;">${dateFormater(order.createdAt,false)}</p>
+    <p style="color: #666;">${dateFormater(order.createdAt, false)}</p>
     <p style="font-weight:600;">Datos de facturación</p>
-    <p style="color: #666;">${order.billing_first_name} ${order.billing_last_name} - Tel: ${order.billing_phone} - DNI: ${order.billing_id}</p>
+    <p style="color: #666;">${order.first_name} ${order.last_name} - Tel: +${
+    order.phone_code
+  } ${order.phone_number} - DNI: ${order.dni}</p>
     ${operatorMailContentDeliveryMethod}
     
     <table style="width:100%">
@@ -102,31 +135,40 @@ async function sendOrderMails(order) {
       </tr>
       ${tableContent}
     </table>
-    <p style="font-size:22px;margin-top:30px;color:#222;">Total: $${order.total}</p>
+    ${
+      order.shipping_type_id == 1
+        ? `<p style="font-size:18px;margin-top:30px;color:#222;">Envio: $${shippingPrice}</p>`
+        : ""
+    }
+    <p style="font-size:22px;margin-top:30px;color:#222;">Total: $${
+      order.total
+    }</p>
     </main>
   `;
-    // Opciones del correo
-    const userMailOptions = {
-        from: 'ismile@ismile.com.ar',
-        to: order.billing_email,
-        subject: 'Resumen de compra',
-        html: userMailContent
-    };
-    const operatorMailOptions = {
-        from: 'ismile@ismile.com.ar',
-        to: 'info@ismile.com.ar',
-        subject: `Venta online - ${order.tra_id}`,
-        html: operatorMailContent
-    }
-    try {
-        // Envío de los correos
-        const userMail = await transporter.sendMail(userMailOptions);
-        const operatorMail = await transporter.sendMail(operatorMailOptions);
-        // console.log('Correos enviados:', userMail.messageId);
-        return
-    } catch (error) {
-        console.error('Error al enviar el correo:', error);
-    }
-};
+  // Opciones del correo
+  const userMailOptions = {
+    from: "contacto@neotangoshoes.com",
+    to: "janoo.pereira@gmail.com", //order.email,
+    subject: orderIsInSpanish
+      ? "¡Gracias por tu compra!"
+      : "Thanks for your purchase!",
+    html: userMailContent,
+  };
+  const operatorMailOptions = {
+    from: "contacto@neotangoshoes.com",
+    to: "janopk789@gmail.com", //"contacto@neotangoshoes.com",
+    subject: `Venta online - ${order.tra_id}`,
+    html: operatorMailContent,
+  };
+  try {
+    // Envío de los correos
+    const userMail = await transporter.sendMail(userMailOptions);
+    const operatorMail = await transporter.sendMail(operatorMailOptions);
+    console.log("Correos enviados");
+    return;
+  } catch (error) {
+    console.error("Error al enviar el correo:", error);
+  }
+}
 
-export default sendOrderMails
+export default sendOrderMails;

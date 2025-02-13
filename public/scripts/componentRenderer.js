@@ -43,6 +43,7 @@ import {
   productsFromDB,
   updateProductTable,
   showCardMessage,
+  checkForNumericInputs,
 } from "./utils.js";
 const SCREEN_WIDTH = window.screen.width;
 
@@ -1005,11 +1006,11 @@ export async function createUserLoginModal() {
           placeHolder: "Email",
         },
         {
-          label: "Password",
+          label: isInSpanish ? "Contraseña" : "Password",
           type: "password",
           name: "user-password",
           required: true,
-          placeHolder: "Password",
+          placeHolder: isInSpanish ? "Contraseña" : "Password",
           icon: "eye link", // Icono de ojo
           iconCallback: toggleInputPasswordType,
         },
@@ -1079,26 +1080,17 @@ export async function createUserSignUpModal() {
           type: "password",
           name: "user-password",
           required: true,
-          placeHolder: "Password",
+          placeHolder: isInSpanish ? "Contraseña" : "Password",
           icon: "eye link", // Icono de ojo
+          containerClassName: "password-field",
           iconCallback: toggleInputPasswordType,
-        },
-        {
-          type: "message-container",
-          header: isInSpanish ? "Requisitos" : "Requiriments",
-          list: [
-            isInSpanish
-              ? "Longitud Minima: 8 Caracteres"
-              : "Minimum Length: 8 Characters",
-            isInSpanish ? "Al menos 1 mayuscula" : "At least 1 uppercase",
-          ],
         },
         {
           label: isInSpanish ? "Confirmar contraseña" : "Confirm password",
           type: "password",
           name: "user-re-password",
           required: true,
-          placeHolder: "Password",
+          placeHolder: isInSpanish ? "Contraseña" : "Password",
           icon: "eye link", // Icono de ojo
           iconCallback: toggleInputPasswordType,
         },
@@ -1690,6 +1682,7 @@ export function generateVariationField(tacoVariations = []) {
       });
       variationSizesWrapper.appendChild(sizeVariationElement);
       checkForSizeSelects();
+      checkForNumericInputs();
     });
   }
   return container;
@@ -2023,6 +2016,7 @@ function listenToProductModalBtns() {
       });
       wrapper.appendChild(newField);
       checkForSizeSelects();
+      checkForNumericInputs();
       return listenToProductModalBtns();
     });
   });
@@ -2800,3 +2794,107 @@ export function generatePostOrderCard(traId, shippingTypeId) {
 
   return card;
 }
+
+export function generateTooltip(requirements) {
+  // Crear el botón del tooltip
+  const tooltipButton = document.createElement("div");
+  tooltipButton.className = "ui icon button tooltip-icon";
+  tooltipButton.dataset.position = "top left"; // Posición del tooltip
+
+  // Crear el icono de información
+  const tooltipIcon = document.createElement("i");
+  tooltipIcon.className = "bx bx-info-circle";
+
+  // Crear un div oculto para almacenar el contenido del tooltip
+  const tooltipContent = document.createElement("div");
+  tooltipContent.className = "ui popup tooltip-content";
+
+  // Crear la lista dentro del tooltip
+  const list = document.createElement("ul");
+  list.className = "ui list";
+
+  requirements.forEach(req => {
+    const listItem = document.createElement("li");
+    listItem.textContent = req;
+    list.appendChild(listItem);
+  });
+
+  tooltipContent.appendChild(list);
+
+  // Agregar el icono y el contenido al botón
+  tooltipButton.appendChild(tooltipIcon);
+  tooltipButton.appendChild(tooltipContent);
+
+  return tooltipButton;
+}
+
+export function generateUserVerifySection() {
+  // Textos en ambos idiomas
+  const texts = {
+    title: isInSpanish
+      ? "Por favor, verifica tu cuenta para poder continuar"
+      : "Please verify your account to continue",
+    desc: isInSpanish
+      ? "¿Todavía no lo recibiste?"
+      : "Haven't receive it yet?",
+    resend: isInSpanish
+      ? "Reenviar código"
+      : "Resend code",
+    verify: isInSpanish
+      ? "Verificar"
+      : "Verify"
+  };
+
+  // Crear el contenedor principal
+  const verifySection = document.createElement("div");
+  verifySection.className = "verify-section";
+
+  // Crear el título
+  const title = document.createElement("h1");
+  title.className = "title";
+  title.textContent = texts.title;
+
+  // Crear la descripción y el botón de reenviar código
+  const descContainer = document.createElement("div");
+  descContainer.className = "desc-container";
+
+  const descText = document.createElement("p");
+  descText.textContent = texts.desc;
+
+  const resendButton = document.createElement("a");
+  resendButton.className = "ui button basic tiny resend-code";
+  resendButton.textContent = texts.resend;
+
+  descContainer.appendChild(descText);
+  descContainer.appendChild(resendButton);
+
+  // Crear la sección de inputs para el código de verificación
+  const codeInputSection = document.createElement("section");
+  codeInputSection.className = "code-input-section";
+
+  for (let i = 0; i < 6; i++) {
+    const input = document.createElement("input");
+    input.type = "text";
+    input.className = "numeric-only-input verify-code-input";
+    codeInputSection.appendChild(input);
+  }
+
+  // Crear el contenedor del botón de verificación
+  const buttonContainer = document.createElement("div");
+  buttonContainer.className = "button-container";
+
+  const verifyButton = document.createElement("button");
+  verifyButton.className = "ui button basic negative verify-button disabled";
+  verifyButton.textContent = texts.verify;
+
+  buttonContainer.appendChild(verifyButton);
+
+  // Agregar todos los elementos al contenedor principal
+  verifySection.appendChild(title);
+  verifySection.appendChild(descContainer);
+  verifySection.appendChild(codeInputSection);
+  verifySection.appendChild(buttonContainer);
+
+  return verifySection;
+}
+

@@ -15,7 +15,7 @@ export function validateUserSignUpForm(form){
     //Aca tiene que coincidir password y rePassword
     
     if(rePasswordElement?.value != passwordElement.value){
-        let rePasswordElementField = rePasswordElementField.closest('.field'); 
+        let rePasswordElementField = rePasswordElement.closest('.field'); 
         rePasswordElementField.classList.add('error');
         errorsContainer.innerHTML = `<p>${isInSpanish ? 'Las contraseñas deben coincidir.' : 'Both passwords needs to match.'}</p>`;
         form.classList.add('error')

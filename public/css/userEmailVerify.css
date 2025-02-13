@@ -1,11 +1,14 @@
 .main {
+    
+    min-height: 70vh;
+}
+.verify-section{
+    margin: 0 auto;
     display: flex;
     flex-wrap: wrap;
     justify-content: center;
     align-content: center;
-    min-height: 70vh;
 }
-
 .title {
     width: 100%;
     text-align: center;
