@@ -599,7 +599,12 @@ header.header .item.header-nav-letter {
     header.header .item.header-nav-letter {
         font-size: 14px;
     }
-
+    .desktop-pages-links-container {
+        width: 50%;
+    }
+    .logo-container {
+        width: 20%;
+    }
 }
 
 @media(min-width:1200px){

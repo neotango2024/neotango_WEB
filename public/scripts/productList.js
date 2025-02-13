@@ -1,17 +1,17 @@
 import { productCard } from "./componentRenderer.js";
 import { isInSpanish, translateProductCards } from "./languageHandler.js";
-import { setProductsFromDB, productsFromDB, getLastParamFromURL} from "./utils.js";
+import { setProductsFromDB, productsFromDB, getLastParamFromURL, isOnPage, scriptInitiator} from "./utils.js";
 const {pathname} = window.location;
 
 let products;
 window.addEventListener('DOMContentLoaded', async () => {
-    const isCategoryView = pathname.includes('/categoria/1') || pathname.includes('/categoria/2');
-    if (!isCategoryView) return;
+    if (!isOnPage("/categoria/1") && !isOnPage("categoria/2")) return;
+    await scriptInitiator()
     const categoryToLook = getLastParamFromURL()
     await setProductsFromDB({categoryId: categoryToLook});
     products = productsFromDB;
     handleRenderProductList(products);
-    translateCategoryTitle();
+    //translateCategoryTitle();
     translateFilters();
     listenForFilterClicks();
 })
@@ -32,19 +32,25 @@ export const translateCategoryTitle = () => {
     const categoryNumber = Number(pathname.split('/')[2]);
     switch(categoryNumber){
         case 1:
+            console.log('entro 1')
             pageTitle.textContent = `${isInSpanish ? "Zapatos de dama" : "Women's shoes"}`
+            break;
         case 2: 
+        console.log('entro 2')
             pageTitle.textContent = `${isInSpanish ? "Zapatos de caballero" : "Men's shoes"}`
+            break;
     }
+    console.log(pageTitle.textContent)
 }
 
 export const translateFilters = () => {
-    const filterContainer = document.querySelector('.dropdown');
+    const filterContainer = document.querySelector('.filter-dropdown');
     const filterOptions = filterContainer.querySelectorAll('option');
     filterOptions.forEach(filter => {
         const translation =  isInSpanish ? filter.dataset.esp_translation : filter.dataset.eng_translation;
         filter.textContent = translation
     })
+    console.log(filterContainer)
     filterContainer.classList.remove('hidden');
 }
 

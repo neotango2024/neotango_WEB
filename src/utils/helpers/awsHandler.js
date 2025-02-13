@@ -52,11 +52,11 @@ export async function uploadFilesToAWS(object) {
             //Por cada foto subo otras 2 mas chicas para optimizar la carga
             {
               name: randomName + "-2x.webp", //original
-              width: Math.round(imageWidth * 0.3),
+              width: Math.round(imageWidth * 0.5),
             },
             {
               name: randomName + "-1x.webp",
-              width: Math.round(imageWidth * 0.15),
+              width: Math.round(imageWidth * 0.3),
             },
             // {
             //   name: randomName + "-thumb.webp",

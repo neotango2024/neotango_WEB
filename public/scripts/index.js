@@ -1,10 +1,11 @@
 import { productCard } from "./componentRenderer.js";
 //import { LANGUAGES } from "../../src/utils/staticDB/constants.js";
 const SCREEN_WIDTH = window.innerWidth;
-
 import { translations } from "../constants/constants.js";
 import { isInSpanish, settedLanguage, translateProductCards } from "./languageHandler.js";
 import { productsFromDB, setProductsFromDB } from "./utils.js";
+import { scriptInitiator } from "./utils.js";
+import { isOnPage } from "./utils.js";
 const companyInfoTranslations = translations.companyInfo;
 
 

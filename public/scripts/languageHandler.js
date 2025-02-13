@@ -138,7 +138,6 @@ const updateLanguage = async (lang)=>{
             body: JSON.stringify({
                 payment_type_id: lang
             }),
-<<<<<<< HEAD
         });
         if(response.ok){
             userLogged.payment_type_id = lang
