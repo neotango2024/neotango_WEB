@@ -7,6 +7,7 @@ import {
   createUserSignUpModal,
   disableAddressModal,
   disablePhoneModal,
+  generateTooltip,
 } from "./componentRenderer.js";
 import { countriesFromDB } from "./getStaticTypesFromDB.js";
 import { decideLanguageInsertion, isInSpanish } from "./languageHandler.js";
@@ -861,6 +862,24 @@ export function getEjsElementAndTranslate(classname, language) {
 export function handleUserSignUpClick() {
   createUserSignUpModal();
   handlePageModal(true);
+  const passwordRequirements = []
+  if (isInSpanish){
+    passwordRequirements.push('Longitud Minima: 8 Caracteres');
+    passwordRequirements.push('Al menos 1 mayuscula');
+  }else{
+    passwordRequirements.push('Minimum Length: 8 Characters');
+    passwordRequirements.push('At least 1 uppercase');
+  }
+  const passwordTooltip = generateTooltip(passwordRequirements);
+  const passwordField = document.querySelector('.ui.modal .password-field label');
+  passwordField.appendChild(passwordTooltip);
+  // Inicializar el popup de Semantic UI con soporte para HTML
+  $('.tooltip-icon').popup({
+    popup: $('.tooltip-content'),
+    on: 'hover',
+    hoverable: true,
+    position: 'left center' // Mueve el tooltip a la izquierda
+  });
 }
 
 //Estas funciones pintan y activan el modal de telefonos/direcciones
@@ -1116,4 +1135,8 @@ export async function scriptInitiator(){
     return console.log(error);
     
   }
+};
+
+function activatePopups() {
+  $(".ui.icon.button").popup();
 }

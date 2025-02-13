@@ -10,6 +10,7 @@ import { userProfileExportObj } from "./userProfile.js";
 import { translateAboutUsContent } from "./aboutUs.js";
 import { translateFaqContent } from "./faq.js";
 import { postOrderExportObject } from "./postOrder.js";
+import { userVerifyExportObj } from "./userEmailVerify.js";
 
 export let settedLanguage = null;
 export let isInSpanish = true;
@@ -110,6 +111,9 @@ const handleChangeLanguage = async(param) => { //param es 1/2
             break;
         case "postOrder":
             postOrderExportObject.pageConstructor && postOrderExportObject.pageConstructor();
+            break;
+        case "userVerify":
+            userVerifyExportObj.pageConstructor && userVerifyExportObj.pageConstructor();
             break;
         default:
             break;

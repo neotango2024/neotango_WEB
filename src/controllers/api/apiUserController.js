@@ -344,7 +344,10 @@ const controller = {
       if (currentTime > codeExpirationTime) {
         return res.status(HTTP_STATUS.OK.code).json({
           ok: false,
-          msg: "El codigo ha vencido, solicita otro e intente nuevamente",
+          msg: {
+            es: "El codigo ha vencido, solicita otro e intente nuevamente.",
+            en: "The code has expired, please require a new one."
+          },
         });
       }
       // Aca el tiempo es correcto ==> Chequeo codigo

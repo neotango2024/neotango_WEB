@@ -1,4 +1,5 @@
 import db from "../database/models/index.js";
+import sendOrderMails from "../utils/helpers/sendOrderMails.js";
 import { categories } from "../utils/staticDB/categories.js";
 import sizes from "../utils/staticDB/sizes.js";
 import tacos from "../utils/staticDB/tacos.js";
@@ -110,10 +111,11 @@ const controller = {
       }
 
       if (captureResponse.status === "COMPLETED") {
+        let updatedStatus = orderFromDB.shipping_type_id == 1 ? 2 : 3
         // ✅ Marcar la orden como pagada en tu base de datos
         await db.Order.update(
           {
-            order_status_id: orderFromDB.shipping_type_id == 1 ? 2 : 3, //2 es pendiente de envio, 3 de recoleccion
+            order_status_id: updatedStatus, //2 es pendiente de envio, 3 de recoleccion
           },
           {
             where: {
@@ -121,8 +123,10 @@ const controller = {
             },
           }
         );
-        let orderFromDB = await getOrdersFromDB({id: orderFromDB.id});
-        return res.redirect(`/post-compra?orderId=${orderFromDB.tra_id}?shippingTypeId=${orderFromDB.shipping_type_id}`);
+        orderFromDB.order_status_id = updatedStatus;
+        // Envio el mail para el usuario y a nosotros
+        await sendOrderMails(orderFromDB);
+        return res.redirect(`/post-compra?orderId=${orderFromDB.tra_id}&shippingTypeId=${orderFromDB.shipping_type_id}`);
       } else {
         // ❌ Manejar error de pago
         res.redirect(`/cancelar-orden?token=${token}`); //Redirijo para cancelar la orden

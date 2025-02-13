@@ -104,7 +104,6 @@ const controller = {
         //Si hay errores en el back...
         //Para saber los parametros que llegaron..
         let { errorsParams, errorsMapped } = getMappedErrors(errors);
-        return console.log(errorsParams, errorsMapped);
         
         return res.status(HTTP_STATUS.BAD_REQUEST.code).json({
           meta: {
@@ -457,7 +456,7 @@ export async function getOrdersFromDB({ id, limit, offset, user_id }) {
       orderToReturn = await db.Order.findByPk(id, {
         include: orderIncludeArray,
         order: [
-          ["created_at", "ASC"], // ASC para orden ascendente, DESC para descendente
+          ["created_at", "DESC"], // ASC para orden ascendente, DESC para descendente
         ],
       });
       if (!orderToReturn) return null;
@@ -473,7 +472,7 @@ export async function getOrdersFromDB({ id, limit, offset, user_id }) {
         },
         include: orderIncludeArray,
         order: [
-          ["created_at", "ASC"], // ASC para orden ascendente, DESC para descendente
+          ["created_at", "DESC"], // ASC para orden ascendente, DESC para descendente
         ],
       });
     }
@@ -481,6 +480,9 @@ export async function getOrdersFromDB({ id, limit, offset, user_id }) {
     else if (id === undefined) {
       ordersToReturn = await db.Order.findAll({
         include: orderIncludeArray,
+        order: [
+          ["created_at", "DESC"], // ASC para orden ascendente, DESC para descendente
+        ],
       });
     } else if (user_id) {
       //Aca busco por ordenes de un user
@@ -489,6 +491,9 @@ export async function getOrdersFromDB({ id, limit, offset, user_id }) {
           user_id,
         },
         include: orderIncludeArray,
+        order: [
+          ["created_at", "DESC"], // ASC para orden ascendente, DESC para descendente
+        ],
       });
     }
 
