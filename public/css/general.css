@@ -259,7 +259,7 @@ label {
   border: none;
   padding: 10px 20px;
   display: flex;
-  justify-content: space-evenly;
+  justify-content: center;
   align-items: center;
   border-radius: 5px;
   cursor: pointer;

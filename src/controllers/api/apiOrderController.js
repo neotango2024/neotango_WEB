@@ -59,7 +59,7 @@ const env = process.env.NODE_ENV === "dev";
 // Agrega credenciales
 const mpClient = new MercadoPagoConfig({
   accessToken: process.env.MERCADO_PAGO_ACCESS_TOKEN,
-  sandbox: process.env.NODE_ENV ?? false,
+  sandbox: false,
 });
 // ENV
 const webTokenSecret = process.env.JSONWEBTOKEN_SECRET;
@@ -283,14 +283,21 @@ const controller = {
       }
       // Aca genero el url de paypal o de mp dependiendo que paymentTypeVino
       let paymentURL, paymentOrderId;
-      if (orderCreated.payment_type_id == 1) {
-        paymentURL = await handleCreateMercadoPagoOrder(
+      
+      if (payment_type_id == 1) {
+        
+        const mercadoPagoOrderResult = await handleCreateMercadoPagoOrder(
           orderItemsToDB,
           mpClient
         );
-        if (!paymentURL)
-          throw new Error("Could not generate paypal paymentURL");
-      } else if (orderCreated.payment_type_id == 2) {
+        // id es el id de la preferencia
+        // init_point a donde hay que redirigir
+        const {init_point, id} = mercadoPagoOrderResult;
+        paymentURL = init_point;
+        paymentOrderId = id;
+        if (!paymentURL || !paymentOrderId)
+          throw new Error("Could not generate mercado pago order");
+      } else if (payment_type_id == 2) {
         // PAYPAL
         paymentURL = await createPaypalOrder({
           ...orderDataToDB,
@@ -299,14 +306,14 @@ const controller = {
         if (!paymentURL)
           throw new Error("Could not generate paypal paymentURL"); // Lanza un error y salta al catch
         // Obtengo el payment_order_id para pegarselo en el objeto
-        let paymentOrderId = getTokenFromUrl(paymentURL);
-        orderDataToDB.paypal_order_id = paymentOrderId;
-        // Le actualizo el paypal_rder_id en db
-        await db.Order.update(
-          { paypal_order_id: paymentOrderId },
-          { where: { id: orderDataToDB.id } }
-        );
+        paymentOrderId = getTokenFromUrl(paymentURL);
       }
+      orderDataToDB.entity_payment_id = paymentOrderId;
+      // Le actualizo el paypal_rder_id en db
+      await db.Order.update(
+        { entity_payment_id: paymentOrderId },
+        { where: { id: orderDataToDB.id } }
+      );
 
       // Mando la respuesta
       return res.status(200).json({

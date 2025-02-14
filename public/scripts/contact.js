@@ -25,7 +25,6 @@ window.addEventListener("load", async () => {
 });
 
 export const translateContactContent = () => {
-<<<<<<< HEAD
     const h1Element = document.querySelector('.page-title');
     const lang = isInSpanish ? 'es' : 'en';
     h1Element.textContent = translations.contact.title[lang];
@@ -36,18 +35,6 @@ export const translateContactContent = () => {
     const button = document.querySelector('.contact-form-submit-btn');
     button.textContent = isInSpanish ? 'Enviar' : 'Submit';
 }
-=======
-  const h1Element = document.querySelector(".page-title");
-  const lang = isInSpanish ? "esp" : "eng";
-  h1Element.textContent = translations.contact.title[lang];
-  const inputs = document.querySelectorAll(".input");
-  inputs.forEach((inp, i) => {
-    inp.placeholder = translations.contact[i][lang];
-  });
-  const button = document.querySelector(".contact-form-submit-btn");
-  button.textContent = isInSpanish ? "Enviar" : "Submit";
-};
->>>>>>> dfa9be85c9d79b236af5b5e3be27ba82ac617734
 
 const listenForFormSubmit = () => {
   const form = document.querySelector(".contact-form-container");

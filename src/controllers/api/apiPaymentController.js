@@ -114,9 +114,8 @@ export async function handleCreateMercadoPagoOrder(orderItemsToDb, mpClient) {
     let body = {
       items: [],
       back_urls: {
-        success: "https://neotangoshoes.com/",
+        success: process.env.BASE_URL + '/completar-pago',
         failure: "https://quilmac.com.ar/",
-        pending: "https://www.google.com/",
       },
       auto_return: "approved",
       payment_methods: {
@@ -137,9 +136,26 @@ export async function handleCreateMercadoPagoOrder(orderItemsToDb, mpClient) {
     });
     const preference = new Preference(mpClient);
     const result = await preference.create({ body });
-    return result.init_point;
+    return result;
   } catch (error) {
     console.log("error in mercadopago create");
     console.log(error);
+  }
+}
+
+export async function captureMercadoPagoPayment(paymentId){
+  try {
+    const paymentResponseData = await axios.get(`https://api.mercadopago.com/v1/payments/${paymentId}`, {
+      headers: {
+        Authorization: `Bearer ${process.env.MERCADO_PAGO_ACCESS_TOKEN}`
+      }
+    })
+    console.log('payment mercadopago')
+    console.log(paymentResponseData.data)
+    return paymentResponseData.data;
+  } catch (error) {
+    console.log(`Error in captureMercadoPagoPayment`)
+    console.log(error);
+    return null;
   }
 }

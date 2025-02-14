@@ -4,7 +4,7 @@ import { categories } from "../utils/staticDB/categories.js";
 import sizes from "../utils/staticDB/sizes.js";
 import tacos from "../utils/staticDB/tacos.js";
 import { getOneOrderFromDB, getOrdersFromDB, disableCreatedOrder } from "./api/apiOrderController.js";
-import { capturePaypalPayment } from "./api/apiPaymentController.js";
+import { captureMercadoPagoPayment, capturePaypalPayment } from "./api/apiPaymentController.js";
 import { findProductsInDb } from "./api/apiProductController.js";
 import { getUsersFromDB } from "./api/apiUserController.js";
 
@@ -88,59 +88,93 @@ const controller = {
     return res.render('postOrder')
   },
   completePayment: async (req, res) => {
-    const { token } = req.query; // ORDER_ID que devuelve PayPal
-    if (!token) {
+    const queryParams = req.query;
+    const { token, payment_id } = queryParams; // payment_id mercado pago, token para paypal
+    if (!token && !payment_id) {
+      console.log('Either the token or the payment id were not provided')
       return res.redirect("/cart");
     }
 
+    let orderFromDb;
+    let paymentResponse;
+    const checkedPaymentId = token ?? payment_id;
     try {
-      let orderFromDB = await getOneOrderFromDB({ paypal_order_id: token});
-      if (!orderFromDB) {
-        console.error("Orden no encontrada en la base de datos");
-        return res.redirect("/cart");
-      }
-
-      const captureResponse = await capturePaypalPayment(token);
-      if (!captureResponse || !captureResponse.status) {
-        console.error(
-          "Error inesperado en la captura de pago de PayPal",
-          captureResponse
-        );
-        
-        return res.redirect(`/cancelar-orden/${orderFromDB.id}`);
-      }
-
-      if (captureResponse.status === "COMPLETED") {
-        let updatedStatus = orderFromDB.shipping_type_id == 1 ? 2 : 3
+       
+      if (token) {
+        orderFromDb = await getOneOrderFromDB({ entity_payment_id: token});
+        if (!orderFromDb) {
+          console.error("Orden no encontrada en la base de datos");
+          return res.redirect("/cart");
+        }
+        paymentResponse = await capturePaypalPayment(token);
+        if (!paymentResponse || !paymentResponse.status) {
+          console.error(
+            "Error inesperado en la captura de pago de PayPal",
+            paymentResponse
+          );
+          
+          return res.redirect(`/cancelar-orden?token=${checkedPaymentId}`);
+        }
+        if (paymentResponse.status === "COMPLETED") {
+          let updatedStatus = orderFromDb.shipping_type_id == 1 ? 2 : 3
+          // ✅ Marcar la orden como pagada en tu base de datos
+          await db.Order.update(
+            {
+              order_status_id: updatedStatus, //2 es pendiente de envio, 3 de recoleccion
+            },
+            {
+              where: {
+                id: orderFromDb.id,
+              },
+            }
+          );
+          orderFromDb.order_status_id = updatedStatus;
+          // Envio el mail para el usuario y a nosotros
+          await sendOrderMails(orderFromDb);
+          return res.redirect(`/post-compra?orderId=${orderFromDb.tra_id}&shippingTypeId=${orderFromDb.shipping_type_id}`);
+        } else {
+          // ❌ Manejar error de pago
+   
+          res.redirect(`/cancelar-orden?token=${checkedPaymentId}`); //Redirijo para cancelar la orden
+        }
+      } else {
+        const {preference_id} =  queryParams;
+        orderFromDb = await getOneOrderFromDB({ entity_payment_id: preference_id});
+        if(!orderFromDb){
+          return res.redirect(`/cancelar-orden?token=${checkedPaymentId}`);
+        }
+        let updatedStatus = orderFromDb.shipping_type_id == 1 ? 2 : 3
+        paymentResponse = await captureMercadoPagoPayment(payment_id);
+        if(!paymentResponse){
+          return res.redirect(`/cancelar-orden/${orderFromDb.id}`);
+        }
         // ✅ Marcar la orden como pagada en tu base de datos
         await db.Order.update(
           {
-            order_status_id: updatedStatus, //2 es pendiente de envio, 3 de recoleccion
+            order_status_id: updatedStatus,
+            entity_payment_id: payment_id
           },
           {
             where: {
-              id: orderFromDB.id,
+              id: orderFromDb.id,
             },
           }
         );
-        orderFromDB.order_status_id = updatedStatus;
-        // Envio el mail para el usuario y a nosotros
-        await sendOrderMails(orderFromDB);
-        return res.redirect(`/post-compra?orderId=${orderFromDB.tra_id}&shippingTypeId=${orderFromDB.shipping_type_id}`);
-      } else {
-        // ❌ Manejar error de pago
-        res.redirect(`/cancelar-orden?token=${token}`); //Redirijo para cancelar la orden
+        orderFromDb.order_status_id = updatedStatus;
       }
+      await sendOrderMails(orderFromDb);
+      return res.redirect(`/post-compra?orderId=${orderFromDb.tra_id}&shippingTypeId=${orderFromDb.shipping_type_id}`);
+      
     } catch (error) {
-      console.error("Error capturing PayPal payment:", error);
+      console.error("Error capturing entity payment payment:", error);
       console.error(error);
-      res.redirect(`/cancelar-orden?token=${token}`); //Redirijo para cancelar la orden
+      return res.redirect(`/cancelar-orden?token=${token}`); //Redirijo para cancelar la orden
     }
   },
   cancelOrder: async (req, res) => {
     try {
       let { token } = req.query;
-      const orderCreatedToDisable = await getOneOrderFromDB({ paypal_order_id: token });
+      const orderCreatedToDisable = await getOneOrderFromDB({ entity_payment_id: token });
       if (orderCreatedToDisable) {
         await disableCreatedOrder(orderCreatedToDisable.id);
       };

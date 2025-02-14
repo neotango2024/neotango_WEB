@@ -18,7 +18,7 @@ export default (sequelize, dataTypes) => {
         order_status_id: { type: dataTypes.INTEGER },
         shipping_type_id: { type: dataTypes.INTEGER },
         payment_type_id: { type: dataTypes.INTEGER },
-        paypal_order_id: { type: dataTypes.STRING(100) },
+        entity_payment_id: { type: dataTypes.STRING(100) },
         //Billing Address Snapshot
         billing_address_street: { type: dataTypes.STRING(200) },
         billing_address_detail: { type: dataTypes.STRING(200) },
