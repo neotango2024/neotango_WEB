@@ -177,7 +177,7 @@ const controller = {
         phoneObj, //{}
         billingAddress,
         shippingAddress,
-        order_status_id: shipping_type_id == 1 ? 2 : 3, //Si es con shipping una vez la compran queda "pendiente de envio", sino queda pendiente de recoleccion
+        order_status_id: 5, //Si es con shipping una vez la compran queda "pendiente de envio", sino queda pendiente de recoleccion
         shipping_type_id,
         payment_type_id,
       };
@@ -285,7 +285,6 @@ const controller = {
       let paymentURL, paymentOrderId;
       
       if (payment_type_id == 1) {
-        
         const mercadoPagoOrderResult = await handleCreateMercadoPagoOrder(
           orderItemsToDB,
           mpClient

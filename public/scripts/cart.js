@@ -196,6 +196,7 @@ window.addEventListener("DOMContentLoaded", async () => {
                   body: JSON.stringify(body),
                 });
                 const preferenceResponse = await response.json();
+                // TODO: Setear en loca storage funcion en 
                 window.location.href = preferenceResponse.url;
               }
               return;
