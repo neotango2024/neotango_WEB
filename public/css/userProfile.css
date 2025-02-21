@@ -1,3 +1,6 @@
+.whatsapp-link{
+  display: none;
+}
 .main {
   min-height: 70vh;
   padding: 2.5vh 5vw;

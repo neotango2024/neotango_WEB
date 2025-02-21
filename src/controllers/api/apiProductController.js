@@ -80,7 +80,7 @@ const controller = {
           limit,
           offset
         );
-        if (!productsFetched.length) {
+        if (!productsFetched?.length) {
           return res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR.code).json({
             ok: false,
             msg: fetchFailed.es,

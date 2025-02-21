@@ -28,6 +28,8 @@ export function initiateMenuBtn() {
 export function checkForNumericInputs() {
   let numericInputs = document.querySelectorAll(".numeric-only-input");
   numericInputs.forEach((input) => {
+    if(input.dataset.listened)return;
+    input.dataset.listened = true;
     // Tomo el ultimo valor
     let lastInputValue = input.value;
     input.addEventListener("input", function (e) {

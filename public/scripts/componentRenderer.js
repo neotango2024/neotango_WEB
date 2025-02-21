@@ -44,6 +44,7 @@ import {
   updateProductTable,
   showCardMessage,
   checkForNumericInputs,
+  checkForFloatInputs,
 } from "./utils.js";
 const SCREEN_WIDTH = window.screen.width;
 
@@ -1682,9 +1683,8 @@ export function generateVariationField(tacoVariations = []) {
       });
       variationSizesWrapper.appendChild(sizeVariationElement);
       checkForSizeSelects();
-      checkForNumericInputs();
     });
-  }
+  };
   return container;
 }
 
@@ -1739,7 +1739,7 @@ export function generateVariationSizeContainer({
   stockInput.placeholder = "";
   stockInput.required = true;
   stockInput.classList.add("numeric-only-input");
-  stockInput.value = variation?.quantity || "";
+  stockInput.value = variation?.quantity || 0;
 
   stockField.appendChild(stockLabel);
   stockField.appendChild(stockInput);
@@ -1791,6 +1791,7 @@ export async function createProductModal(product = undefined) {
             name: "product-ars-price",
             placeholder: "50000",
             required: true,
+            className: "float-only-input",
             containerClassName: "required",
             value: product ? product.ars_price : "",
           },
@@ -1800,6 +1801,7 @@ export async function createProductModal(product = undefined) {
             name: "product-usd-price",
             placeholder: "50",
             required: true,
+            className: "float-only-input",
             containerClassName: "required",
             value: product ? product.usd_price : "",
           },
@@ -1899,6 +1901,7 @@ export async function createProductModal(product = undefined) {
   });
   // Una vez lo creo, lo abro
   handlePageModal(true);
+  checkForFloatInputs();
   // Ahora voy por las variaciones
   // Agrupar por taco.id en un array de arrays
   if (product) {
@@ -1927,6 +1930,7 @@ export async function createProductModal(product = undefined) {
       const tacoVariationElement = generateVariationField(tacoVariations);
       tacoVariationWrapper.appendChild(tacoVariationElement);
       checkForVariationsSelects();
+      checkForNumericInputs();
     });
     if (!product.files?.length) {
       handleInputFileFromModal({ show: true });

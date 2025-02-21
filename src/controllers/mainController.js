@@ -99,7 +99,6 @@ const controller = {
     let paymentResponse;
     const checkedPaymentId = token ?? payment_id;
     try {
-       
       if (token) {
         orderFromDb = await getOneOrderFromDB({ entity_payment_id: token});
         if (!orderFromDb) {
@@ -134,7 +133,6 @@ const controller = {
           return res.redirect(`/post-compra?orderId=${orderFromDb.tra_id}&shippingTypeId=${orderFromDb.shipping_type_id}`);
         } else {
           // ❌ Manejar error de pago
-   
           res.redirect(`/cancelar-orden?token=${checkedPaymentId}`); //Redirijo para cancelar la orden
         }
       } else {
