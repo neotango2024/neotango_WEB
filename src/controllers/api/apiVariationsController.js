@@ -222,9 +222,7 @@ export const insertVariationsInDb = async (variations, productId) => {
         taco_id: variation.taco_id,
       });
     });
-    console.log("VARIATIONS TO BE INSERTED");
-    console.log(mappedVariationsWithId);
-
+    
     await Variation.bulkCreate(mappedVariationsWithId, {
       updateOnDuplicate: ["quantity"],
     });

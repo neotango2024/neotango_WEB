@@ -29,7 +29,7 @@ window.addEventListener('DOMContentLoaded', () => {
         checkForUserLoggedModalClicks();
     } else {
         checkForUserIconClicks();
-    }
+    };    
 })
 
 const checkForDesktopShopDropdownClicks = () => {

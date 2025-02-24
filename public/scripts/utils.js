@@ -723,7 +723,7 @@ export async function handleProductFetch(bodyData, method) {
         if (productToChangeIndex < 0) return;
         productsFromDB[productToChangeIndex] = response.product;
       }
-      let responseMsg = response.msg.es;
+      let responseMsg = response.msg;
       showCardMessage(true, responseMsg);
       return true;
     }    

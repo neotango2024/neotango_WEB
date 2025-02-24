@@ -139,9 +139,11 @@ const controller = {
       }
       const files = req.files;
       if (files && files.length) {
+        console.log(files,filesFromArray);
+        
         files?.forEach((multerFile) => {
           const fileFromFilesArrayFiltered = filesFromArray.find(
-            (arrFile) => arrFile.filename === multerFile.originalname
+            (arrFile) => arrFile.filename == multerFile.originalname
           );
           multerFile.file_types_id = getFileType(multerFile);
           multerFile.main_file = fileFromFilesArrayFiltered.main_file;
@@ -173,11 +175,12 @@ const controller = {
       let productToReturn = await findProductsInDb(newProductId, null, true);
       return res.status(HTTP_STATUS.OK.code).json({
         ok: true,
-        msg: createSuccessfull.en,
+        msg: createSuccessfull.es,
         product: productToReturn,
       });
     } catch (error) {
       console.log(`Error in handleCreateProduct: ${error}`);
+      console.log(error);
       return res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR.code).json({
         ok: false,
         msg: createFailed.es,
@@ -343,7 +346,7 @@ const controller = {
     return res.status(HTTP_STATUS.OK.code).json({
       ok: true,
       product: productToReturn,
-      msg: systemMessages.productMsg.updateSuccessfull,
+      msg: systemMessages.productMsg.updateSuccessfull.es,
     });
   },
   handleDeleteProduct: async (req, res) => {
