@@ -13,26 +13,30 @@ const regularUserLoggedTranslations = translations['userLoggedMenu'];
 const adminLoggedMenuTranslations = translations['adminLoggedMenu'];
 
 const SCREEN_WIDTH = window.innerWidth;
-
+const headerExportObject = {
+    headerScriptInitiator: null,
+}
 window.addEventListener('DOMContentLoaded', async () => {
-    await scriptInitiator()
     scrollToTop();
-    if(SCREEN_WIDTH < 720){
-        checkForNavbarClicks();
-        checkForMobileShopDropdownClicks();
-    } else if (SCREEN_WIDTH < 1024) {
-        checkForDesktopShopDropdownClicks()
+    headerExportObject.headerScriptInitiator = function(){
+        if(SCREEN_WIDTH < 720){
+            checkForNavbarClicks();
+            checkForMobileShopDropdownClicks();
+        } else if (SCREEN_WIDTH < 1024) {
+            checkForDesktopShopDropdownClicks()
+        }
+        if(SCREEN_WIDTH >= 720 && SCREEN_WIDTH < 1024){
+            checkForWindowClicksForDropdowns();
+        }
+        paintUserIconOrLetter();
+        if(userLogged){
+            checkForUserLoggedModalClicks();
+        } else {
+            checkForUserIconClicks();
+        }
+        checkCartItemsToPaintQuantity();
     }
-    if(SCREEN_WIDTH >= 720 && SCREEN_WIDTH < 1024){
-        checkForWindowClicksForDropdowns();
-    }
-    paintUserIconOrLetter();
-    if(userLogged){
-        checkForUserLoggedModalClicks();
-    } else {
-        checkForUserIconClicks();
-    }
-    checkCartItemsToPaintQuantity();
+    
 })
 
 export const checkCartItemsToPaintQuantity = () => {
@@ -123,7 +127,6 @@ const toggleNavbarMenu = () => {
     const navbar = document.querySelector('.mobile-navbar');
     navbar.classList.toggle('mobile-navbar-active');
 };
-
 
 const checkForMobileShopDropdownClicks = () => {
     const mobileShopDropdownTrigger = document.querySelector('.shop-dropdown-trigger');
@@ -258,7 +261,6 @@ const toggleLoggedUserMenu = () => {
 
 }
 
-
 function activateHeaderDropdowns(){
     $('.header .menu.nav-link-item .browse')
     .popup({
@@ -286,3 +288,4 @@ function activateHeaderDropdowns(){
     };
 
 }
+export {headerExportObject};

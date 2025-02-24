@@ -47,7 +47,6 @@ export const translateFilters = () => {
         const translation =  isInSpanish ? filter.dataset.esp_translation : filter.dataset.eng_translation;
         filter.textContent = translation
     })
-    console.log(filterContainer)
     filterContainer.classList.remove('hidden');
 }
 

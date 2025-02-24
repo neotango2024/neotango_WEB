@@ -74,5 +74,8 @@ app.use((req, res, next) => {
   
 app.listen(PORT,()=>{
     console.log(" 🚀 Se levanto proyecto en puerto "+PORT)
-})
+});
+
+//Importandolo ya lo ejecuta
+import checkForPendingPaymentOrders from './utils/cronScripts/checkForPendingPaymentOrders.js';
 

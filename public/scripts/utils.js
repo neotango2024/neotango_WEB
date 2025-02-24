@@ -10,6 +10,7 @@ import {
   generateTooltip,
 } from "./componentRenderer.js";
 import { countriesFromDB } from "./getStaticTypesFromDB.js";
+import { headerExportObject } from "./header.js";
 import { decideLanguageInsertion, isInSpanish } from "./languageHandler.js";
 import { deleteLocalStorageItem, getLocalStorageItem, setLocalStorageItem } from "./localStorage.js";
 import { userProfileExportObj } from "./userProfile.js";
@@ -1134,9 +1135,21 @@ export async function scriptInitiator(){
   try {
     await checkForUserLogged();
     decideLanguageInsertion();
+    headerExportObject.headerScriptInitiator();
     let payingOrder = handleOrderInLocalStorage({type: 2});
     if(payingOrder && !isOnPage('post-compra')){
-      console.log('aca tengo que cancelar la compra');
+      //Aca tengo que dar de baja la orden
+      let response = await fetch(`/api/order/paymentFailed/${payingOrder}`, {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+      if(response.ok){
+        response = await response.json();
+        //Ahora si se cancelo de db entonces lo elimino
+        if(response.orderWasCanceled)handleOrderInLocalStorage({type: 3});
+      }
       
     }
   } catch (error) {
@@ -1165,7 +1178,7 @@ export function handleOrderInLocalStorage({type, orderID = undefined}){
       break;
   
     case 3:
-      deleteLocalStorageItem('payingOrderID')
+      deleteLocalStorageItem('payingOrderID');
       break;
   
     default:
