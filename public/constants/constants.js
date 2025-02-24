@@ -28,12 +28,6 @@ export const translations = {
         register: { en: 'Register', es: 'Registrarse' },
         password: { en: 'Password', es: 'Contraseña' }
     },
-    userLogged: {
-        profile: { en: 'Profile', es: 'Perfil' },
-        address: { en: 'My addresses', es: 'Mis direcciones' },
-        phones: { en: 'My phones', es: 'Mis telefonos' },
-        orderHistory: { en: 'My orders', es: 'Mis compras' },
-    },
     aboutUs: {
         title: {en: 'About us', es: 'Nosotros'},
         firstDescription: {
