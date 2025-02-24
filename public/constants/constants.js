@@ -106,6 +106,45 @@ export const translations = {
             en: 'Enviar'
         }
     },
+    adminLoggedMenu: {
+        order: {
+            es: 'Ventas',
+            en: 'Orders'
+        },
+        product: {
+            es: 'Productos',
+            en: 'Products'
+        },
+        shipping: {
+            es: 'Envios',
+            en: 'Shipping'
+        },
+        logout: {
+            es: 'Cerrar sesión',
+            en: 'Log out'
+        }
+    },
+    userLoggedMenu: {
+        profile: {
+            es: 'Perfil',
+            en: 'Profile'
+        },
+        purchase: {
+            es: 'Mis compras',
+            eng: 'My purchases'
+        },
+        address: {
+            es: 'Mis direcciones',
+            en: 'My addresses'
+        },
+        phone: {
+            es: 'Mis teléfonos',
+            eng: 'My phones'
+        }, logout: {
+            es: 'Cerrar sesión',
+            en: 'Log out'
+        }
+    }
 };
 
 export const languages = {

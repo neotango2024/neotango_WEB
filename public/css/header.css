@@ -67,7 +67,7 @@ nav {
     display: none;
 }
 
-.mobile-navbar, .languages-modal, .overlay, .no-logged-user-modal, .logged-user-modal {
+.mobile-navbar, .languages-modal, .overlay, .no-logged-user-modal, .logged-user-modal, .mobile-logged-user-navbar {
     position: fixed;
     bottom: 0;
     top: 0;
@@ -83,15 +83,15 @@ nav {
     z-index: 11;
 }
 
-.mobile-navbar, .languages-modal, .no-logged-user-modal, .logged-user-modal {
+.mobile-navbar, .languages-modal, .no-logged-user-modal, .logged-user-modal, .mobile-logged-user-navbar-active {
     z-index: 12;
 }
 
-.mobile-navbar-active, .languages-modal-active, .overlay-active, .no-logged-user-modal-active, .logged-user-modal-active {
+.mobile-navbar-active, .languages-modal-active, .overlay-active, .no-logged-user-modal-active, .logged-user-modal-active, .mobile-logged-user-navbar-active {
     transform: translateX(0);
 }
 
-.mobile-navbar-ul {
+.mobile-navbar-ul, .admin-logged-menu, .regular-user-menu {
     width: 200px;
     height: 300px;
 }
@@ -279,13 +279,13 @@ header.header .item.header-nav-letter {
     align-items: center;
 }
 
-.close-menu-container {
+.close-menu-container, .close-logged-menu-container {
     display: flex;
     width: 100%;
     justify-content: flex-end;
 }
 
-.close-menu-container i {
+.close-menu-container i, .close-logged-menu-container i {
     color: black;
     font-size: 22px;
 }
@@ -333,6 +333,7 @@ header.header .item.header-nav-letter {
     left: 9px;
     color: var(--red-color);
     font-weight: 700;
+    font-size: 16px;
 }
 @media(min-width:720px){
     .user-action-item {
@@ -342,11 +343,9 @@ header.header .item.header-nav-letter {
         overflow: visible;
     }
 
-    .mobile-navbar {
+    .mobile-navbar, .mobile-logged-user-navbar {
         display: none;
     }
-
-    
 
     nav {
         width: 70%;
@@ -446,6 +445,9 @@ header.header .item.header-nav-letter {
     }
     .ui.menu .item>i.dropdown.icon {
         margin: 0 0 0 .45em;
+    }
+    .menu.user-initials-container {
+        display: flex;
     }
 }
 
@@ -615,6 +617,9 @@ header.header .item.header-nav-letter {
     }
     .logo-container {
         width: 20%;
+    }
+    .cart-number {
+        font-size: 18px;
     }
 }
 
