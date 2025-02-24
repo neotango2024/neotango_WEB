@@ -28,6 +28,8 @@ export function initiateMenuBtn() {
 export function checkForNumericInputs() {
   let numericInputs = document.querySelectorAll(".numeric-only-input");
   numericInputs.forEach((input) => {
+    if(input.dataset.listened)return;
+    input.dataset.listened = true;
     // Tomo el ultimo valor
     let lastInputValue = input.value;
     input.addEventListener("input", function (e) {
@@ -1139,4 +1141,10 @@ export async function scriptInitiator(){
 
 function activatePopups() {
   $(".ui.icon.button").popup();
+}
+
+export function handleOrderInLocalStorage({type, orderID = undefined}){
+  //Types: 1: setear con orderID || 2: Chequear || 3: Borrar TODO:
+  //Entra al localstorage isPaying y se fija si hay.
+  // Si llega a haber, entonces damos de baja la orden
 }

@@ -27,7 +27,7 @@
 
 .carousel-card {
     width: 300px;
-    height: 250px;
+    height: 300px;
     border-radius: 0.25rem;
     animation: scroll 20s linear infinite;
     box-sizing: border-box; 

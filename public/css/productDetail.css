@@ -214,7 +214,7 @@
     }
     .related-products-section .product-cards-wrapper .product-card{
         flex: 1 1 calc(47.5% - 20px);
-        max-width: 250px;
+        max-width: 330px;
     max-height: 300px;
     }
     #taco-id, #size-id {

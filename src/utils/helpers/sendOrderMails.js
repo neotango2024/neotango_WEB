@@ -29,7 +29,10 @@ async function sendOrderMails(order) {
     operatorMailContentDeliveryMethod += addressRow;
   } else if (order.shipping_type_id == 2) {
     //Retiro por local
-    let pickUpRow = `<p style="font-weight:600;">${
+    let pickupTitle = `<p style="font-weight:600;">${
+      orderIsInSpanish ? "Tipo de envio:" : "Delivery method:"
+    }</p>`;
+    let pickUpRow = `<p>${
       orderIsInSpanish ? "Retiro por el local" : "Pickup"
     }</p>`;
     userMailContentDeliveryMethod = `
@@ -121,9 +124,9 @@ async function sendOrderMails(order) {
     <p style="font-weight:600;">Fecha</p>
     <p style="color: #666;">${dateFormater(order.createdAt, false)}</p>
     <p style="font-weight:600;">Datos de facturación</p>
-    <p style="color: #666;">${order.first_name} ${order.last_name} - Tel: +${
+    <p style="color: #666;">Nombre:${order.first_name} ${order.last_name}<br>Tel: +${
     order.phone_code
-  } ${order.phone_number} - DNI: ${order.dni}</p>
+  } ${order.phone_number}<br>DNI: ${order.dni}<br></p>
     ${operatorMailContentDeliveryMethod}
     
     <table style="width:100%">

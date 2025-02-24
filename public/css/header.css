@@ -9,7 +9,7 @@ header {
 
 .header-container {
     width: 100%;
-    padding: 10px 20px;
+    padding: 10px 0px;
     height: 100px;
     display: flex;
     justify-content: space-between;
@@ -322,6 +322,17 @@ header.header .item.header-nav-letter {
 }
 .user-initials-container .ui.column *{
     text-align: end;
+}
+.cart-anchor {
+    position: relative;
+}
+.cart-number {
+    position: absolute;
+    color: black;
+    bottom: 23px;
+    left: 9px;
+    color: var(--red-color);
+    font-weight: 700;
 }
 @media(min-width:720px){
     .user-action-item {

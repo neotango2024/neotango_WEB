@@ -98,8 +98,8 @@ export const translations = {
             en: 'Email'
         },
         2: {
-            es: 'Message',
-            en: 'Mensaje'
+            es: 'Mensaje',
+            en: 'Message'
         },
         button: {
             es: 'Submit',

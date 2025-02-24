@@ -162,8 +162,8 @@
   }
 
   .extra-img-container {
-    width: 80%;
-    height: 300px;
+    width: 70%;
+    height: auto;
     margin: 5vh auto;
   }
 
@@ -175,6 +175,7 @@
 
   .page-title {
     margin-left: 40px;
+    margin-bottom: 0;
   }
 
 
@@ -207,6 +208,7 @@
         display: flex;
         flex-direction: column;
         justify-content: center;
+        margin-bottom: 2%;
     }
 
     .info-title {
@@ -215,15 +217,15 @@
 
     .extra-fotos-container {
         display: flex;
+        justify-content: center;
+        flex-wrap: wrap;
+        margin: 6vh auto;
     }
 
     .extra-img-container {
-        width: 45%;
-        height: 400px;
-    }
-
-    .page-title {
-        margin-left: 0;
+        width: 50%;
+        height: 220px;
+        margin: 1vh 0;
     }
 
 }
@@ -259,8 +261,14 @@
         max-width: 400px;
     }
 
+    .extra-fotos-container {
+        width: 100%;
+        justify-content: space-between;
+    }
+
     .extra-img-container {
-        height: 500px;
+        width: 30%;
+        height: 350px;
     }
 
 }
