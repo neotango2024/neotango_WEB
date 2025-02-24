@@ -430,7 +430,7 @@
   }
   .main-content-wrapper.address-wrapper {
     padding: 0;
-    justify-content: flex-start;
+    justify-content: center;
     margin-left: 2.5vw;
   }
   .ui.placeholder.menu-placeholder {
@@ -462,6 +462,7 @@
   }
   .main .main-content-wrapper {
     width: 65%;
+    justify-content: flex-start;
   }
   .ag-row {
     cursor: pointer;

@@ -465,9 +465,9 @@ async function insertProductInDb(body) {
     const newProduct = {
       id: newProductId,
       ...body,
-      created_at: Date.now(), //TODO: ver si funciona sin esto
-      updated_at: Date.now(),
-      deleted_at: null,
+      // created_at: Date.now(), //TODO: ver si funciona sin esto
+      // updated_at: Date.now(),
+      // deleted_at: null,
     };
     await Product.create(newProduct);
 

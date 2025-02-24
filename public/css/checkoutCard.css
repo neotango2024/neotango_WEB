@@ -2,7 +2,7 @@
     width: 90vw;
     height: 32vh;
     max-width: 450px;
-    max-height: 170px;
+    max-height: 160px;
     border-radius: 0;
     box-shadow: none;
     border: 1px solid rgb(0 0 0 / 37%);
@@ -11,8 +11,8 @@
     padding: 10px!important;
 }
 .checkout-card .card-image{
-    width: 35%;
-    max-width: 110px;
+    width: 40%;
+    max-width: 140px;
     padding: 0;
     margin-right: 10px;
 }
@@ -68,5 +68,8 @@
     }
     .checkout-card .card-content{
         padding: 18px;
+    }
+    .checkout-card .card-image{
+        max-width: 160px;
     }
 }

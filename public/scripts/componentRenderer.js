@@ -1684,7 +1684,7 @@ export function generateVariationField(tacoVariations = []) {
       variationSizesWrapper.appendChild(sizeVariationElement);
       checkForSizeSelects();
     });
-  };
+  }
   return container;
 }
 
@@ -2726,6 +2726,12 @@ export function generatePostOrderCard(traId, shippingTypeId) {
     ? "¡Gracias por tu compra!"
     : "Thank you for your purchase!";
 
+  const orderEmailInfo = document.createElement("p");
+  orderEmailInfo.classList.add("order-status-p");
+  orderEmailInfo.textContent = isInSpanish
+    ? "Se te ha enviado un email con toda la informacion de la compra"
+    : "An email has been sent to you with all the purchase information.";
+
   const subHeader = document.createElement("p");
   subHeader.classList.add("card-sub-header");
   subHeader.textContent = isInSpanish
@@ -2762,7 +2768,7 @@ export function generatePostOrderCard(traId, shippingTypeId) {
 
   const homeButton = document.createElement("a");
   homeButton.href = "/";
-  homeButton.classList.add("ui", "button", "negative", "card-button","small");
+  homeButton.classList.add("ui", "button", "negative", "card-button", "small");
   homeButton.innerHTML =
     "<i class='bx bx-home-alt-2'></i><p class='button-text'>" +
     (isInSpanish ? "Inicio" : "Home") +
@@ -2770,7 +2776,13 @@ export function generatePostOrderCard(traId, shippingTypeId) {
 
   const purchasesButton = document.createElement("a");
   purchasesButton.href = "/perfil?index=3";
-  purchasesButton.classList.add("ui", "button", "negative", "card-button","small");
+  purchasesButton.classList.add(
+    "ui",
+    "button",
+    "negative",
+    "card-button",
+    "small"
+  );
   purchasesButton.innerHTML =
     "<i class='bx bx-home-alt-2'></i><p class='button-text'>" +
     (isInSpanish ? "Mis compras" : "My purchases") +
@@ -2790,6 +2802,7 @@ export function generatePostOrderCard(traId, shippingTypeId) {
 
   // Agregar elementos al contenedor principal
   card.appendChild(header);
+  card.appendChild(orderEmailInfo);
   card.appendChild(subHeader);
   card.appendChild(orderNumberContainer);
   card.appendChild(orderStatus);
@@ -2817,7 +2830,7 @@ export function generateTooltip(requirements) {
   const list = document.createElement("ul");
   list.className = "ui list";
 
-  requirements.forEach(req => {
+  requirements.forEach((req) => {
     const listItem = document.createElement("li");
     listItem.textContent = req;
     list.appendChild(listItem);
@@ -2838,15 +2851,9 @@ export function generateUserVerifySection() {
     title: isInSpanish
       ? "Por favor, verifica tu cuenta para poder continuar"
       : "Please verify your account to continue",
-    desc: isInSpanish
-      ? "¿Todavía no lo recibiste?"
-      : "Haven't receive it yet?",
-    resend: isInSpanish
-      ? "Reenviar código"
-      : "Resend code",
-    verify: isInSpanish
-      ? "Verificar"
-      : "Verify"
+    desc: isInSpanish ? "¿Todavía no lo recibiste?" : "Haven't receive it yet?",
+    resend: isInSpanish ? "Reenviar código" : "Resend code",
+    verify: isInSpanish ? "Verificar" : "Verify",
   };
 
   // Crear el contenedor principal
@@ -2901,4 +2908,3 @@ export function generateUserVerifySection() {
 
   return verifySection;
 }
-

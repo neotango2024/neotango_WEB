@@ -1,16 +1,19 @@
 import { generatePostOrderCard } from "./componentRenderer.js";
-import { activateCopyMsg, copyElementValue, isOnPage, scriptInitiator } from "./utils.js";
+import { activateCopyMsg, copyElementValue, handleOrderInLocalStorage, isOnPage, scriptInitiator } from "./utils.js";
 const postOrderExportObject = {
     pageConstructor: null,
 }
 window.addEventListener("load", async () => {
   try {
     if(!isOnPage('/post-compra'))return;
+    // Aca dio ok el pago, doy de baja en localStorage
+    handleOrderInLocalStorage({ type: 3 })
     await scriptInitiator();
     // Obtén el parámetro `order` de la URL
     const urlParams = new URLSearchParams(window.location.search);
     const orderTraIdFromURL = urlParams.get("orderId");
     const orderShippingTypeIdFromURL = urlParams.get("shippingTypeId");
+    
     
     postOrderExportObject.pageConstructor = function(){
         const main =  document.querySelector('.main');

@@ -177,7 +177,7 @@ const controller = {
         phoneObj, //{}
         billingAddress,
         shippingAddress,
-        order_status_id: 5, //Si es con shipping una vez la compran queda "pendiente de envio", sino queda pendiente de recoleccion
+        order_status_id: 5, //Aca es pendiente de pago
         shipping_type_id,
         payment_type_id,
       };
@@ -323,6 +323,7 @@ const controller = {
         msg: systemMessages.orderMsg.create,
         //Si paga con tarjetas lo tengo que redirigir, sino le pongo false y termina ahi
         url: paymentURL,
+        orderTraID: orderDataToDB.tra_id
       });
     } catch (error) {
       console.log(`Falle en apiOrderController.createOrder`);
@@ -437,6 +438,34 @@ const controller = {
       });
     } catch (error) {
       console.log(`error in updateOrderStatus: ${error}`);
+      return res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR.code).json({
+        ok: false,
+        data: null,
+      });
+    }
+  },
+  orderPaymentFailed: async (req, res) => {
+    try {
+      const { orderTraID } = req.params;
+      if (!orderTraID) {
+        console.log("No order id provided to update");
+        return res.status(HTTP_STATUS.BAD_REQUEST.code).json({
+          ok: false,
+        });
+      }
+      const orderFromDB = await getOneOrderFromDB({tra_id: orderTraID});      
+      if(!orderFromDB) return res.status(HTTP_STATUS.NOT_FOUND.code).json({
+        ok: false,
+      });
+      //Aca la anulo
+      let orderCanceled = await checkOrderPaymentExpiration(orderFromDB);
+      return res.status(HTTP_STATUS.OK.code).json({
+        ok: true,
+        orderWasCanceled: orderCanceled
+      });
+    } catch (error) {
+      console.log(`error in orderPaymentFailed: ${error}`);
+      console.log(error);
       return res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR.code).json({
         ok: false,
         data: null,
@@ -693,4 +722,20 @@ export async function disableCreatedOrder(orderID) {
     console.log(error);
     return false;
   }
+}
+
+export async function checkOrderPaymentExpiration(order) {  
+  // Suponiendo que order.created_at es una cadena de fecha en formato ISO
+  const createdAt = new Date(order.createdAt);
+  const now = new Date();
+
+  // Calcular la diferencia en minutos
+  const diffMinutes = (now - createdAt) / (1000 * 60);
+  
+  // Si han pasado más de 20 minutos, deshabilitar la orden
+  if (diffMinutes > 20) {
+    await disableCreatedOrder(order.id);
+    return true;
+  };
+  return false
 }

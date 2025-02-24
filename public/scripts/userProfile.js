@@ -42,6 +42,8 @@ import {
   minDecimalPlaces,
   scriptInitiator,
   isOnPage,
+  isInDesktop,
+  isInMobile,
 } from "./utils.js";
 import { translations } from "../constants/constants.js";
 
@@ -55,7 +57,7 @@ window.addEventListener("load", async () => {
   if (!isOnPage("/perfil")) return;
   await scriptInitiator(); //Inicio userLogged y lo del lenguaje
   if (!userLogged) return (window.location.href = "/");
-  typeOfPanel = userLogged?.user_role_id ||1;
+  typeOfPanel = userLogged?.user_role_id || 1;
   await setOrderStatuses();
   // Obtén el parámetro `index` de la URL
   const urlParams = new URLSearchParams(window.location.search);
@@ -82,6 +84,11 @@ window.addEventListener("load", async () => {
       anchor.dataset.listened = true;
 
       anchor.addEventListener("click", async () => {
+        if(!isInMobile()){
+          //Tablet o desktop
+          anchorItemsFromMenu.forEach(item=>item.className = 'item');
+          anchor.className = 'item active selected'
+        }
         let iconClass = anchor.querySelector("i")?.className;
         menuBtn.className = iconClass;
         const anchorIndex = anchor.dataset.index;
@@ -132,7 +139,6 @@ window.addEventListener("load", async () => {
   }
   //Construye el menu
   function menuBtnConstructor() {
-    
     const userProps = {
       type: typeOfPanel, // User panel
       items: [
@@ -171,12 +177,12 @@ window.addEventListener("load", async () => {
         {
           itemType: "products", // Identificador
           itemLogo: "bx bxs-tag", // Clase CSS para el ícono
-          itemLabel: isInSpanish ?  "Productos" : "Products", // Texto del tooltip
+          itemLabel: isInSpanish ? "Productos" : "Products", // Texto del tooltip
         },
         {
           itemType: "shipping", // Identificador
           itemLogo: "bx bxs-truck", // Clase CSS para el ícono
-          itemLabel: isInSpanish ?  "Envíos" : "Shippings", // Texto del tooltip
+          itemLabel: isInSpanish ? "Envíos" : "Shippings", // Texto del tooltip
         },
       ],
       actualIndexSelected: activeIndexSelected, //Esto basicamente es para saber cual item renderizar activo
@@ -188,12 +194,14 @@ window.addEventListener("load", async () => {
     // Insertar el botón antes de mainContentWrapper
     main.insertBefore(menuBtn, mainContentWrapper);
     handleUserMenuSection();
-    // ACtivo el dropdown
-    $(".ui.dropdown.user-menu-btn").dropdown({
-      direction: "upward",
-      keepOnScreen: true,
-      context: window,
-    });
+    if (isInMobile()) {
+      // ACtivo el dropdown
+      $(".ui.dropdown.user-menu-btn").dropdown({
+        direction: "upward",
+        keepOnScreen: true,
+        context: window,
+      });
+    }
   }
   //FUNCINONES PARA PINTAR EL HTML DEL USER PANEL
   function paintUserProfile() {
@@ -623,11 +631,12 @@ const handleOrderRowClick = async (order) => {
   );
   //Ahora pinto en la tabla de products
   order.orderItems.forEach((orderItem) => {
-    orderItem.product = productsMap.get(orderItem.variation?.product_id) || null;
+    orderItem.product =
+      productsMap.get(orderItem.variation?.product_id) || null;
     // Armo el html de la fila
     // Obtener la imagen del producto o la default
     let productImage = "./img/product/default.png";
-    let srcset = "";  
+    let srcset = "";
     if (orderItem.product?.files?.length) {
       const firstFile = orderItem.product.files[0];
       productImage =
@@ -700,23 +709,26 @@ const handleChangeOrderStatus = async (e, order) => {
       body: JSON.stringify({ order_status_id: newOrderStatus }),
     });
     activateContainerLoader(modal, false);
-    
-    if(statusResponse.ok){
-      const orderIndexToModify = ordersFromDB.findIndex(ord=>ord.id == order.id);
-      const newOrderStatusObj = statusesFromDB.find(status=>status.id == newOrderStatus);
+
+    if (statusResponse.ok) {
+      const orderIndexToModify = ordersFromDB.findIndex(
+        (ord) => ord.id == order.id
+      );
+      const newOrderStatusObj = statusesFromDB.find(
+        (status) => status.id == newOrderStatus
+      );
       ordersFromDB[orderIndexToModify].orderStatus = newOrderStatusObj;
-      ordersFromDB[orderIndexToModify].order_status_id = newOrderStatus;     
-       
+      ordersFromDB[orderIndexToModify].order_status_id = newOrderStatus;
+
       return userProfileExportObj.pageConstructor();
-    } 
+    }
     //Aca fallo, cierro el modal y mando mensaje
     statusResponse = await statusResponse.json();
     closeModal();
-    showCardMessage(false,statusResponse.msg);
-    return
+    showCardMessage(false, statusResponse.msg);
+    return;
   } catch (error) {
     return console.log(error);
-    
   }
   activateContainerLoader(modal, false);
 };

@@ -12,7 +12,8 @@ router.post('/',formValidations.orderFields,apiOrderController.createOrder);
 router.put('/order-status/:orderId',adminCredentialsMiddleware,apiOrderController.updateOrderStatus);
 
 router.put('/',formValidations.addressFields,apiOrderController.updateOrder);
-
+// DELETE
+router.delete('/paymentFailed/:orderTraID',apiOrderController.orderPaymentFailed);
 
 
 export default router;
