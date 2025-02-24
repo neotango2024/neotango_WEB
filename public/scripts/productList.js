@@ -72,7 +72,6 @@ const filterProducts = (value) => {
             products.sort((a, b) => isInSpanish ? a.ars_price - b.ars_price : a.usd_price - b.usd_price);
             break;
         }
-    console.log(products)
     handleRenderProductList(products);
 }
 
