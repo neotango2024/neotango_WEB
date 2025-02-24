@@ -18,7 +18,7 @@ export let isInSpanish = true;
 
 window.addEventListener('DOMContentLoaded', async () => {
     checkForLanguageClick();
-    checkForLanguageSelection();
+    checkForLanguageSelection();    
 })
 //TOCA BANDERA: settedLang || llama a la funcion que cambia las cosas
 //Esta funcion captura cuando toca la bandera de arriba o el btn de cerra menu
