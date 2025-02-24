@@ -22,6 +22,7 @@ import {
   displayBigNumbers,
   handleNewAddressButtonClick,
   handleNewPhoneButtonClick,
+  handleOrderInLocalStorage,
   isInDesktop,
   isOnPage,
   removeIndexesFromArray,
@@ -38,7 +39,7 @@ let cartExportObj = {
 };
 window.addEventListener("DOMContentLoaded", async () => {
   try {
-    if (!isOnPage('/carro')) return;
+    if (!isOnPage("/carro")) return;
     await scriptInitiator();
     const main = document.querySelector(".main");
     const cartProductsWrapper = document.querySelector(
@@ -77,8 +78,7 @@ window.addEventListener("DOMContentLoaded", async () => {
         return console.log(error);
       }
     };
-    
-    
+
     // =========================================
     // funciones
     //Pinta la seccion de detalle
@@ -181,12 +181,12 @@ window.addEventListener("DOMContentLoaded", async () => {
                 //Aca ya esta tocando para pagar ==> armo la orden y genero el fetch
                 let form = document.querySelector(".checkout-form");
                 let formIsOK = checkCartFormIsComplete(form);
-                if(!formIsOK){
+                if (!formIsOK) {
                   //Aca tengo que mostrarle al cliente que esta mal
-                  return
+                  return;
                 }
                 let body = generateCheckoutFormBodyToFetch(form);
-                btn.classList.add('loading','disabled')
+                btn.classList.add("loading", "disabled");
                 // Aca ya tengo todo ==> Hago el fetch
                 const response = await fetch("/api/order", {
                   method: "POST",
@@ -195,9 +195,16 @@ window.addEventListener("DOMContentLoaded", async () => {
                   },
                   body: JSON.stringify(body),
                 });
-                const preferenceResponse = await response.json();
-                // TODO: Setear en loca storage funcion en 
-                window.location.href = preferenceResponse.url;
+                if (response.ok) {
+                  const preferenceResponse = await response.json();
+                  handleOrderInLocalStorage({
+                    type: 1,
+                    orderID: preferenceResponse.orderTraID,
+                  });
+                  return window.location.href = preferenceResponse.url;
+                } 
+                //Aca dio error por alguna razon, doy refresh
+                return window.location.reload();
               }
               return;
             }
@@ -325,12 +332,16 @@ window.addEventListener("DOMContentLoaded", async () => {
         const unityPrice = isInSpanish
           ? parseFloat(cartProductFromDB?.product?.ars_price)
           : parseFloat(cartProductFromDB?.product?.usd_price);
+
         const totalUnits = parseInt(
           card.querySelector(".card_product_amount").innerText
         );
-        productCost += unityPrice * totalUnits;
-        totalCost += unityPrice * totalUnits;
+        let priceToAdd = parseFloat(unityPrice * totalUnits);
+
+        productCost += priceToAdd;
+        totalCost += priceToAdd;
       });
+
       productLengthElement.innerHTML = isInSpanish
         ? `${productLength} producto${productLength == 1 ? "" : "s"}`
         : `${productLength} product${productLength == 1 ? "" : "s"}`;
@@ -491,29 +502,34 @@ window.addEventListener("DOMContentLoaded", async () => {
       );
       const phoneFieldContainer = document.querySelector(".phone-container");
       let buttonLabel = isInSpanish ? "Agregar" : "Add";
-      // Puede agregar si: esta loggeado y tiene menos de 4, si no esta loggeado 
+      // Puede agregar si: esta loggeado y tiene menos de 4, si no esta loggeado
       const userCanAddPhone = userLogged ? userLogged.phones?.length < 4 : true;
-      const userCanAddAddress = userLogged ? userLogged.addresses?.length < 4 : true;
-      
+      const userCanAddAddress = userLogged
+        ? userLogged.addresses?.length < 4
+        : true;
+
       // agrego los botones
-      userCanAddPhone && await addButton(
-        phoneFieldContainer,
-        buttonLabel,
-        'phone',
-        handleNewPhoneButtonClick
-      );
-      userCanAddAddress && await addButton(
-        shippingAddressFieldContainer,
-        buttonLabel,
-        'address',
-        handleNewAddressButtonClick
-      );
-      userCanAddAddress && await addButton(
-        billingAddressFieldContainer,
-        buttonLabel,
-        'address',
-        handleNewAddressButtonClick
-      );
+      userCanAddPhone &&
+        (await addButton(
+          phoneFieldContainer,
+          buttonLabel,
+          "phone",
+          handleNewPhoneButtonClick
+        ));
+      userCanAddAddress &&
+        (await addButton(
+          shippingAddressFieldContainer,
+          buttonLabel,
+          "address",
+          handleNewAddressButtonClick
+        ));
+      userCanAddAddress &&
+        (await addButton(
+          billingAddressFieldContainer,
+          buttonLabel,
+          "address",
+          handleNewAddressButtonClick
+        ));
     }
     async function addButton(container, buttonText, entity, cb) {
       const button = document.createElement("button");
@@ -568,11 +584,13 @@ window.addEventListener("DOMContentLoaded", async () => {
           options.length == 1 ? true : option.default ? true : false;
         userPhoneSelect.appendChild(optionElement);
       });
-      if(userLogged && options?.length >= 4){
+      if (userLogged && options?.length >= 4) {
         //Aca es un usuario que ya agrego el maximo
         //Despinto los botones de add
-        const addButtons = document.querySelectorAll('.add-new-field-btn[data-entity="phone"]');
-        addButtons.forEach(btn=>btn.classList.add('hidden'));
+        const addButtons = document.querySelectorAll(
+          '.add-new-field-btn[data-entity="phone"]'
+        );
+        addButtons.forEach((btn) => btn.classList.add("hidden"));
       }
     };
 
@@ -630,11 +648,26 @@ window.addEventListener("DOMContentLoaded", async () => {
           setDetailContainer();
           return;
         });
-        if(userLogged && userLogged?.addresses.length >= 4){
+        // Agrego la escucha para pintar el estimate cost (si es que useSameAddress es true)
+        billingAddressSelect.addEventListener("change", async () => {
+          const useSameAddressCheckbox = document.querySelector(
+            '.checkout-section input[name="use-same-addresses"]'
+          );
+          if (useSameAddressCheckbox.checked) {
+            // aca seteo el shipping cost
+            setShippingCost();
+            setDetailContainer();
+          }
+
+          return;
+        });
+        if (userLogged && userLogged?.addresses.length >= 4) {
           //Aca es un usuario que ya agrego el maximo
           //Despinto los botones de add
-          const addButtons = document.querySelectorAll('.add-new-field-btn[data-entity="address"]');
-          addButtons.forEach(btn=>btn.classList.add('hidden'));
+          const addButtons = document.querySelectorAll(
+            '.add-new-field-btn[data-entity="address"]'
+          );
+          addButtons.forEach((btn) => btn.classList.add("hidden"));
         }
       } catch (error) {
         return console.log(error);
@@ -661,11 +694,11 @@ window.addEventListener("DOMContentLoaded", async () => {
           setDetailContainer();
           if (e.target.checked) {
             modifyBillingLabel(false); //cambio el label
-            shippingAddressField.querySelector('select').required = false;
+            shippingAddressField.querySelector("select").required = false;
             return shippingAddressField.classList.add("hidden");
           }
           modifyBillingLabel(true); // Cambio el label
-          shippingAddressField.querySelector('select').required = true;
+          shippingAddressField.querySelector("select").required = true;
           return shippingAddressField.classList.remove("hidden");
         });
       }
@@ -677,14 +710,14 @@ window.addEventListener("DOMContentLoaded", async () => {
             if (e.target.value == 1) {
               //Envio a domicilio, pinto el checkbox y el shipping Address
               shippingAddressField.classList.remove("hidden");
-              shippingAddressField.querySelector('select').required = true;
+              shippingAddressField.querySelector("select").required = true;
               setShippingCost();
               setDetailContainer();
               return useSameAddressCheckboxContainer.classList.remove("hidden");
             }
             //Aca pinto retiro por el local, escondo el checkbox y el shippingAddress y pongo el 0 shipping cost
             shippingAddressField.classList.add("hidden");
-            shippingAddressField.querySelector('select').required = false;
+            shippingAddressField.querySelector("select").required = false;
             useSameAddressCheckboxContainer.classList.add("hidden");
             useSameAddressCheckbox.checked = false; //Lo dejo false
             shippingCost = 0;
@@ -983,33 +1016,30 @@ window.addEventListener("DOMContentLoaded", async () => {
       return;
     }
 
-    function checkCartFormIsComplete(form){
-      const requiredElements = form.querySelectorAll('[required');
+    function checkCartFormIsComplete(form) {
+      const requiredElements = form.querySelectorAll("[required");
       let formIsOK = true;
-      requiredElements.forEach(element => {
-        element.classList.remove('error-input');
-        if(!element.value){
-          element.classList.add('error-input');
+      requiredElements.forEach((element) => {
+        element.classList.remove("error-input");
+        if (!element.value) {
+          element.classList.add("error-input");
           formIsOK = false;
-        };
-        if(!element.dataset.listened){
-          element.dataset.listened = true;
-          element.addEventListener('input',()=>{
-            element.classList.remove('error-input');
-            if(!element.value) element.classList.add('error-input');
-          })
         }
-        
+        if (!element.dataset.listened) {
+          element.dataset.listened = true;
+          element.addEventListener("input", () => {
+            element.classList.remove("error-input");
+            if (!element.value) element.classList.add("error-input");
+          });
+        }
       });
       return formIsOK;
     }
     cartExportObj.pageConstructor();
-
   } catch (error) {
     console.log("falle");
     return console.log(error);
   }
 });
-
 
 export { cartExportObj };

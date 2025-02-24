@@ -32,15 +32,12 @@ export const translateCategoryTitle = () => {
     const categoryNumber = Number(pathname.split('/')[2]);
     switch(categoryNumber){
         case 1:
-            console.log('entro 1')
             pageTitle.textContent = `${isInSpanish ? "Zapatos de dama" : "Women's shoes"}`
             break;
         case 2: 
-        console.log('entro 2')
             pageTitle.textContent = `${isInSpanish ? "Zapatos de caballero" : "Men's shoes"}`
             break;
     }
-    console.log(pageTitle.textContent)
 }
 
 export const translateFilters = () => {

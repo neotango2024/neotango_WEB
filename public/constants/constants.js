@@ -6,8 +6,8 @@ export const translations = {
         aboutUs: { en: 'About us', es: 'Nosotros', target: '/nosotros' },
     },
     categories: {
-        womenShoes: { en: "Women's shoes", es: 'Zapatos de dama', target: '/tienda/caballero' },
-        menShoes: { en: "Men's shoes", es: 'Zapatos de caballero', target: '/tienda/dama' }
+        womenShoes: { en: "Women's shoes", es: 'Zapatos de dama', target: '/categoria/1' },
+        menShoes: { en: "Men's shoes", es: 'Zapatos de caballero', target: '/categoria/2' }
     },
     companyInfo: {
         trajectory: { en: 'Trajectory', es: 'Trayectoria', description: {

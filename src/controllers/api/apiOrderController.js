@@ -177,7 +177,7 @@ const controller = {
         phoneObj, //{}
         billingAddress,
         shippingAddress,
-        order_status_id: 5, //Si es con shipping una vez la compran queda "pendiente de envio", sino queda pendiente de recoleccion
+        order_status_id: 5, //Aca es pendiente de pago
         shipping_type_id,
         payment_type_id,
       };
@@ -323,6 +323,7 @@ const controller = {
         msg: systemMessages.orderMsg.create,
         //Si paga con tarjetas lo tengo que redirigir, sino le pongo false y termina ahi
         url: paymentURL,
+        orderTraID: orderDataToDB.tra_id
       });
     } catch (error) {
       console.log(`Falle en apiOrderController.createOrder`);

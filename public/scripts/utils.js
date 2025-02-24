@@ -11,6 +11,7 @@ import {
 } from "./componentRenderer.js";
 import { countriesFromDB } from "./getStaticTypesFromDB.js";
 import { decideLanguageInsertion, isInSpanish } from "./languageHandler.js";
+import { deleteLocalStorageItem, getLocalStorageItem, setLocalStorageItem } from "./localStorage.js";
 import { userProfileExportObj } from "./userProfile.js";
 
 export function activateAccordions() {
@@ -1072,7 +1073,7 @@ export function minDecimalPlaces(number) {
 }
 
 export function displayBigNumbers(nmbr) {
-  return nmbr.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+  return parseFloat(nmbr).toFixed(2).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
 }
 
 export function getLastParamFromURL() {
@@ -1133,6 +1134,11 @@ export async function scriptInitiator(){
   try {
     await checkForUserLogged();
     decideLanguageInsertion();
+    let payingOrder = handleOrderInLocalStorage({type: 2});
+    if(payingOrder && !isOnPage('post-compra')){
+      console.log('aca tengo que cancelar la compra');
+      
+    }
   } catch (error) {
     return console.log(error);
     
@@ -1144,7 +1150,26 @@ function activatePopups() {
 }
 
 export function handleOrderInLocalStorage({type, orderID = undefined}){
-  //Types: 1: setear con orderID || 2: Chequear || 3: Borrar TODO:
+  //Types: 1: setear con orderID || 2: Chequear || 3: Borrar
   //Entra al localstorage isPaying y se fija si hay.
+  type = parseInt(type);
+  let returnVar = true;
   // Si llega a haber, entonces damos de baja la orden
+  switch (type) {
+    case 1:
+      setLocalStorageItem('payingOrderID',orderID)
+      break;
+  
+    case 2:
+      returnVar = getLocalStorageItem('payingOrderID');
+      break;
+  
+    case 3:
+      deleteLocalStorageItem('payingOrderID')
+      break;
+  
+    default:
+      break;
+  };
+  return returnVar
 }
