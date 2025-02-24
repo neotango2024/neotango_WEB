@@ -140,10 +140,10 @@ const handleRenderFeatureProducts = async () => {
   const cardWidth = 200;
   const totalProducts = productsFromDB.length * 2;
   container.innerHTML = "";
-  productsFromDB.forEach((prod, index) => {
-    if (skeletons[index]) {
-      skeletons[index].style.display = "none";
-    }
+  skeletons.forEach(ske => {
+    ske.style.display = "none"
+  })
+  productsFromDB.forEach((prod) => {
     let productCardElement = productCard(prod, null, true);
     container.appendChild(productCardElement);
   });

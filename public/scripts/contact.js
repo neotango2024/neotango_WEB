@@ -27,10 +27,13 @@ window.addEventListener("load", async () => {
 export const translateContactContent = () => {
     const h1Element = document.querySelector('.page-title');
     const lang = isInSpanish ? 'es' : 'en';
+    console.log(translations.contact)
     h1Element.textContent = translations.contact.title[lang];
     const inputs = document.querySelectorAll('.input');
     inputs.forEach((inp, i) => {
+      console.log(i)
         inp.placeholder = translations.contact[i][lang]
+        console.log(translations.contact[i])
     })
     const button = document.querySelector('.contact-form-submit-btn');
     button.textContent = isInSpanish ? 'Enviar' : 'Submit';

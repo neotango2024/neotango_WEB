@@ -3,7 +3,7 @@ import { checkForUserLogged, userLogged } from './checkForUserLogged.js';
 import { translations } from '../constants/constants.js';
 import { getLocalStorageItem } from './localStorage.js';
 import { languages } from '../constants/constants.js';
-import { handleModalCreation, handlePageModal, isInDesktop, isInMobile, scrollToTop, showCardMessage, toggleBodyScrollableBehavior, toggleOverlay } from './utils.js';
+import { handleModalCreation, handlePageModal, isInDesktop, isInMobile, scriptInitiator, scrollToTop, showCardMessage, toggleBodyScrollableBehavior, toggleOverlay } from './utils.js';
 import { isInSpanish, settedLanguage } from './languageHandler.js';
 const {english, spanish} = languages;
 const headerTranslations  = translations['header'];
@@ -13,8 +13,9 @@ const userLoggedTranslations = translations['userLogged'];
 
 const SCREEN_WIDTH = window.innerWidth;
 
-window.addEventListener('DOMContentLoaded', () => {
-    scrollToTop()
+window.addEventListener('DOMContentLoaded', async () => {
+    await scriptInitiator()
+    scrollToTop();
     if(SCREEN_WIDTH < 720){
         checkForNavbarClicks();
         checkForMobileShopDropdownClicks();
@@ -30,7 +31,24 @@ window.addEventListener('DOMContentLoaded', () => {
     } else {
         checkForUserIconClicks();
     }
+    checkCartItemsToPaintQuantity();
 })
+
+const checkCartItemsToPaintQuantity = () => {
+    let tempCartItems;
+    if(userLogged){
+        tempCartItems = userLogged.tempCartItems;
+    } else {
+        const noUserLoggedCartItems = getLocalStorageItem('cartItems');
+        if(!noUserLoggedCartItems){
+            tempCartItems = [];
+        } else {
+            tempCartItems = noUserLoggedCartItems;
+        }
+    }
+    const cartNumberContainer = document.querySelector('.cart-number');
+    cartNumberContainer.textContent = tempCartItems.length;
+}
 
 const checkForDesktopShopDropdownClicks = () => {
     const desktopShopItem = document.querySelector('.desktop-shop-item-text-container');
