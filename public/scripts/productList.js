@@ -32,15 +32,12 @@ export const translateCategoryTitle = () => {
     const categoryNumber = Number(pathname.split('/')[2]);
     switch(categoryNumber){
         case 1:
-            console.log('entro 1')
             pageTitle.textContent = `${isInSpanish ? "Zapatos de dama" : "Women's shoes"}`
             break;
         case 2: 
-        console.log('entro 2')
             pageTitle.textContent = `${isInSpanish ? "Zapatos de caballero" : "Men's shoes"}`
             break;
     }
-    console.log(pageTitle.textContent)
 }
 
 export const translateFilters = () => {
@@ -50,12 +47,11 @@ export const translateFilters = () => {
         const translation =  isInSpanish ? filter.dataset.esp_translation : filter.dataset.eng_translation;
         filter.textContent = translation
     })
-    console.log(filterContainer)
     filterContainer.classList.remove('hidden');
 }
 
 const listenForFilterClicks = () => {
-    const filterContainer = document.querySelector('.dropdown');
+    const filterContainer = document.querySelector('.filter-dropdown');
     filterContainer.addEventListener('change', (e) => {
         filterProducts(e.target.value);
     })
@@ -70,12 +66,13 @@ const filterProducts = (value) => {
             products.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
             break;
         case 'lowToHigh':
-            products.sort((a, b) => isInSpanish ? a.ars_price - b.ars_price : a.usd_price - b.usd_price)
+            products.sort((a, b) => isInSpanish ? b.ars_price - a.ars_price : b.usd_price - a.usd_price);
             break;
         case 'highToLow':
-            products.sort((a, b) => isInSpanish ? b.ars_price - a.ars_price : b.usd_price - a.usd_price);           
+            products.sort((a, b) => isInSpanish ? a.ars_price - b.ars_price : a.usd_price - b.usd_price);
             break;
         }
+    console.log(products)
     handleRenderProductList(products);
 }
 

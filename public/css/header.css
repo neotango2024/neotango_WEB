@@ -83,7 +83,7 @@ nav {
     z-index: 11;
 }
 
-.mobile-navbar, .languages-modal, .no-logged-user-modal, .logged-user-modal, .mobile-logged-user-navbar-active {
+.mobile-navbar, .languages-modal, .no-logged-user-modal, .logged-user-modal, .mobile-logged-user-navbar {
     z-index: 12;
 }
 

@@ -5,7 +5,6 @@ import { getLocalStorageItem } from './localStorage.js';
 import { languages } from '../constants/constants.js';
 import { handleModalCreation, handlePageModal, isInDesktop, isInMobile, scriptInitiator, scrollToTop, showCardMessage, toggleBodyScrollableBehavior, toggleOverlay } from './utils.js';
 import { isInSpanish, settedLanguage } from './languageHandler.js';
-const {english, spanish} = languages;
 const headerTranslations  = translations['header'];
 const categoriesTranslations = translations['categories'];
 const formTranslations = translations['userForm'];
@@ -145,9 +144,7 @@ const checkForUserIconClicks = () => {
         if(!userLogged){
             // toggleLoginModal();
             createUserLoginModal();
-            // Abro el modal
             handlePageModal(true);
-
         }
     })
 }
@@ -197,20 +194,17 @@ export const paintUserIconOrLetter = () => {
     }
 }
 
-export const translateUserLoggedModal = () => {
-    const userAnchors = document.querySelectorAll('.user-anchors');
-    userAnchors.forEach(anch => {
-        const anchorDataset = anch.dataset.translation;
-        const translation = userLoggedTranslations[anchorDataset]?.[settedLanguage];
-
-        anch.textContent = translation;
-    })
-}
-
-
 const decideAndListenForMobileUserInitialsClick = () => {
     const userInitialsContainer = document.querySelector('.user-initials-container');
-
+    const closeMenu = document.querySelector('.close-logged-menu-container');
+    if(!closeMenu.dataset.listened){
+        closeMenu.dataset.listened = true;
+        closeMenu.addEventListener('click', () => {
+            const mobileUserLogged = document.querySelector('.mobile-logged-user-navbar');
+            mobileUserLogged.classList.toggle('mobile-logged-user-navbar-active');
+                
+        })
+    }
     userInitialsContainer.addEventListener('click', () => {
         toggleLoggedUserMenu();
         const adminMenu = document.querySelector('.regular-user-logged-menu');
@@ -226,12 +220,7 @@ const decideAndListenForMobileUserInitialsClick = () => {
 }
 
 export const translateUserLoggedMenuItems = (userRoleId) => {
-    const closeMenu = document.querySelector('.close-logged-menu-container');
-    closeMenu.addEventListener('click', () => {
-        const mobileUserLogged = document.querySelector('.mobile-logged-user-navbar');
-        mobileUserLogged.classList.toggle('mobile-logged-user-navbar-active');
-            
-    })
+   
     let checkedMenuItems;
     let checkedTranslations;
     const lang = isInSpanish ? 'es' : 'en';
@@ -253,8 +242,7 @@ export const translateUserLoggedMenuItems = (userRoleId) => {
 const toggleLoggedUserMenu = () => {
     // logic here
     const mobileUserLogged = document.querySelector('.mobile-logged-user-navbar');
-    console.log(mobileUserLogged)
-        mobileUserLogged.classList.toggle('mobile-logged-user-navbar-active')
+    mobileUserLogged.classList.toggle('mobile-logged-user-navbar-active')
 
 }
 
