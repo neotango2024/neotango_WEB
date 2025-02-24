@@ -1,4 +1,4 @@
-import { paintUserIconOrLetter, translateNavbar, translateUserLoggedModal } from "./header.js";
+import { paintUserIconOrLetter, translateNavbar, translateUserLoggedMenuItems, translateUserLoggedModal } from "./header.js";
 import { handleTranslateFeatureProducts, translateCompanyInfo } from "./index.js";
 import {setLocalStorageItem, getLocalStorageItem} from './localStorage.js';
 import { checkForUserLogged, userLogged } from "./checkForUserLogged.js";
@@ -81,6 +81,10 @@ const handleChangeLanguage = async(param) => { //param es 1/2
     
     const bodyName = document.querySelector('body').dataset.page_name;    
     translateNavbar();
+    const screenWidth = window.screen.width;
+    if(screenWidth < 768){
+        translateUserLoggedMenuItems();
+    }
     paintUserIconOrLetter();
     switch (bodyName) {
         case 'index': //Van todos los cambios de index

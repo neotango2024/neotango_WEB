@@ -9,7 +9,8 @@ const {english, spanish} = languages;
 const headerTranslations  = translations['header'];
 const categoriesTranslations = translations['categories'];
 const formTranslations = translations['userForm'];
-const userLoggedTranslations = translations['userLogged'];
+const regularUserLoggedTranslations = translations['userLoggedMenu'];
+const adminLoggedMenuTranslations = translations['adminLoggedMenu'];
 
 const SCREEN_WIDTH = window.innerWidth;
 
@@ -34,7 +35,7 @@ window.addEventListener('DOMContentLoaded', async () => {
     checkCartItemsToPaintQuantity();
 })
 
-const checkCartItemsToPaintQuantity = () => {
+export const checkCartItemsToPaintQuantity = () => {
     let tempCartItems;
     if(userLogged){
         tempCartItems = userLogged.tempCartItems;
@@ -185,7 +186,6 @@ export const translateNavbar = () => {
 
 export const paintUserIconOrLetter = () => {
     const userIconElement = document.querySelector('.user-icon');
-    
     if(userLogged){
         userIconElement.classList.add('hidden');
         const userLoggedDropdownToChange = document.querySelector('.user-initials-container');
@@ -207,6 +207,58 @@ export const translateUserLoggedModal = () => {
     })
 }
 
+
+const decideAndListenForMobileUserInitialsClick = () => {
+    const userInitialsContainer = document.querySelector('.user-initials-container');
+
+    userInitialsContainer.addEventListener('click', () => {
+        toggleLoggedUserMenu();
+        const adminMenu = document.querySelector('.regular-user-logged-menu');
+        const userMenu = document.querySelector('.regular-user-logged-menu');
+        const {user_role_id} = userLogged;
+        if(user_role_id == 1){
+            userMenu.style.display = "none";
+        } else {
+            adminMenu.style.display = "none"
+        }
+        translateUserLoggedMenuItems(user_role_id);
+    })
+}
+
+export const translateUserLoggedMenuItems = (userRoleId) => {
+    const closeMenu = document.querySelector('.close-logged-menu-container');
+    closeMenu.addEventListener('click', () => {
+        const mobileUserLogged = document.querySelector('.mobile-logged-user-navbar');
+        mobileUserLogged.classList.toggle('mobile-logged-user-navbar-active');
+            
+    })
+    let checkedMenuItems;
+    let checkedTranslations;
+    const lang = isInSpanish ? 'es' : 'en';
+    if(userRoleId == 1){
+        checkedMenuItems = document.querySelector('.admin-logged-menu').children;
+        checkedTranslations = adminLoggedMenuTranslations;
+    } else {
+        checkedMenuItems = document.querySelector('.regular-user-logged-menu').children;
+        checkedTranslations = regularUserLoggedTranslations;
+    }
+    checkedMenuItems = Array.from(checkedMenuItems)
+    checkedMenuItems.forEach(item => {
+        const anchor = item.querySelector('a');
+        const dataset = anchor.dataset.translation;
+        anchor.textContent = checkedTranslations[dataset]?.[lang];
+    })
+}
+
+const toggleLoggedUserMenu = () => {
+    // logic here
+    const mobileUserLogged = document.querySelector('.mobile-logged-user-navbar');
+    console.log(mobileUserLogged)
+        mobileUserLogged.classList.toggle('mobile-logged-user-navbar-active')
+
+}
+
+
 function activateHeaderDropdowns(){
     $('.header .menu.nav-link-item .browse')
     .popup({
@@ -218,15 +270,19 @@ function activateHeaderDropdowns(){
         hide: 600
         }
     });
-    $('.header .menu.user-initials-container .browse')
-    .popup({
-        inline     : true,
-        hoverable  : true,
-        position   : 'bottom right',
-        delay: {
-        show: 150,
-        hide: 600
-        }
-    })
-;
+    if(SCREEN_WIDTH > 768){
+        $('.header .menu.user-initials-container .browse')
+        .popup({
+            inline     : true,
+            hoverable  : true,
+            position   : 'bottom right',
+            delay: {
+            show: 150,
+            hide: 600
+            }
+        })
+    } else {
+        decideAndListenForMobileUserInitialsClick();
+    };
+
 }

@@ -22,6 +22,7 @@ import {
   setLocalStorageItem,
 } from "./localStorage.js";
 import { userLogged } from "./checkForUserLogged.js";
+import { checkCartItemsToPaintQuantity } from "./header.js";
 
 let productId, variationSelected;
 
@@ -318,6 +319,7 @@ window.addEventListener("load", async () => {
         cartObject.id = generateRandomString(10);
         setLocalStorageItem("cartItems", cartObject, true);
       }
+      checkCartItemsToPaintQuantity();
       // Antes de retornar pinto nuevamente el boton
       paintAddToCartButton();
       return
