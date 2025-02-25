@@ -42,13 +42,13 @@
 }
 .footer>div.footer_socials_container{
     width: 45%;
-    margin: 4vh auto;
+    margin: 1vh auto;
     display: flex;
     justify-content: space-evenly;
 }
 .footer_logo_container{
-    height: 25vh;
-    margin-bottom: 3.5vh;
+    height: 15vh;
+    margin-bottom: 1vh;
 }
 .footer_information_container{
     display: flex;
@@ -62,10 +62,7 @@
     align-items: center;
 }
 .logo_text_container{
-    margin-bottom: 2vh;
-}
-.logo_text_container:last-child{
-    margin-bottom: 0;
+    margin-bottom: 1vh;
 }
 .copyright_text{
     color: var(--dark-grey-color);
@@ -86,7 +83,6 @@
         display: flex;
         justify-content: center;
         align-items: center;
-        height: 28vh;
     }
     .logo_text_container{
         flex-direction: row;

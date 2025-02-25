@@ -616,6 +616,7 @@ header.header .item.header-nav-letter {
         width: 50%;
     }
     .logo-container {
+        height: 95px;
         width: 20%;
     }
     .cart-number {
