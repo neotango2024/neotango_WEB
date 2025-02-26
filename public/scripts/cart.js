@@ -975,7 +975,7 @@ window.addEventListener("DOMContentLoaded", async () => {
         ? userLogged.phones
         : getLocalStorageItem("guestPhones");
       let phoneObj = phoneArrayToLook?.find((dbPhone) => dbPhone.id == phoneID);
-      phoneObj.id == userLogged ? phoneObj.id : null;
+      phoneObj.id = userLogged ? phoneObj.id : null;
       bodyData.phoneObj = phoneObj;
       // Ahora las addresses
       let addressArrayToLook = userLogged
