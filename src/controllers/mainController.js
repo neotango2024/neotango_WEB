@@ -213,7 +213,7 @@ const controller = {
     res.clearCookie("userAccessToken");
     res.clearCookie("adminToken");
     req.session.destroy();
-    return res.redirect(`${pathToReturn}`);
+    return res.redirect(`${pathToReturn}?logout=1`);
   },
 };
 

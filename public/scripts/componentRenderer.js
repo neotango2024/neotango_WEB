@@ -766,7 +766,7 @@ export function createUserMenuBtn(props) {
   // Agregar el enlace de cierre de sesión
   const logoutLink = document.createElement("a");
   logoutLink.href = "/logout";
-  logoutLink.className = "item";
+  logoutLink.className = "item logout-item";
 
   const logoutIcon = document.createElement("i");
   logoutIcon.className = "bx bx-door-open";
@@ -1554,7 +1554,7 @@ export function generateUserLoggedDropdown() {
       { text: isInSpanish ? "Ventas" : "Orders", href: "/perfil?index=0" },
       { text: isInSpanish ? "Productos" : "Products", href: "/perfil?index=1" },
       { text: isInSpanish ? "Envios" : "Shippings", href: "/perfil?index=2" },
-      { text: isInSpanish ? "Cerrar sesión" : "Logout", href: "/logout" },
+      { text: isInSpanish ? "Cerrar sesión" : "Logout", href: "/logout", logoutItem: true },
     ];
   } else {
     items = [
@@ -1571,7 +1571,7 @@ export function generateUserLoggedDropdown() {
         text: isInSpanish ? "Mis Compras" : "My orders",
         href: "/perfil?index=3",
       },
-      { text: isInSpanish ? "Cerrar sesión" : "Logout", href: "/logout" },
+      { text: isInSpanish ? "Cerrar sesión" : "Logout", href: "/logout", logoutItem: true },
     ];
   }
 
@@ -1581,6 +1581,7 @@ export function generateUserLoggedDropdown() {
     link.href = item.href;
     link.textContent = item.text;
     listDiv.appendChild(link);
+    if(item.logoutItem) link.className += ' logout-item'
   });
 
   columnDiv.appendChild(header);
