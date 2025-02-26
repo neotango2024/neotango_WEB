@@ -98,8 +98,6 @@ window.addEventListener("DOMContentLoaded", async () => {
     //Pinta las tarjetas
     function paintCheckoutCards() {
       cartProductsWrapper.innerHTML = "";
-      const formWrapper = document.querySelector(".form-wrapper");
-      formWrapper.innerHTML = ""; //Esto es porque si pinto las checkout cards entonces se que estoy en la primer seccion
       if (cartProducts?.length) {
         cartProducts.forEach((cartItem) => {
           //Esto es para que renderize bien
@@ -201,8 +199,8 @@ window.addEventListener("DOMContentLoaded", async () => {
                     type: 1,
                     orderID: preferenceResponse.orderTraID,
                   });
-                  return window.location.href = preferenceResponse.url;
-                } 
+                  return (window.location.href = preferenceResponse.url);
+                }
                 //Aca dio error por alguna razon, doy refresh
                 return window.location.reload();
               }
@@ -352,7 +350,6 @@ window.addEventListener("DOMContentLoaded", async () => {
     async function generateCheckoutForm() {
       try {
         const formWrapper = document.querySelector(".form-wrapper");
-        formWrapper.innerHTML = "";
         let shortInputWidth = isInDesktop() ? 40 : 100;
         // Primero pido los types que necesito si es que no estan
         if (!paymentTypesFromDB.length) {
@@ -478,8 +475,9 @@ window.addEventListener("DOMContentLoaded", async () => {
           ],
           formClasses: "checkout-form",
         };
-
+        // return
         const formToInsert = form(props);
+        formWrapper.innerHTML = "";
         formWrapper.appendChild(formToInsert);
         //Activo lo de SemanticUI
         $(".ui.checkbox").checkbox();
@@ -559,20 +557,17 @@ window.addEventListener("DOMContentLoaded", async () => {
       let options = userLogged
         ? userLogged.phones
         : getLocalStorageItem("guestPhones");
+      //Primera opcion
+      let firstOptionElement = document.createElement("option");
+      firstOptionElement.value = "";
+      firstOptionElement.textContent = isInSpanish
+        ? "Elije un telefono"
+        : "Choose a phone";
+      firstOptionElement.disabled = true;
+      firstOptionElement.selected = options.length == 0 ? true : false;
+      userPhoneSelect.appendChild(firstOptionElement);
       // Agregar las nuevas opciones
       options?.forEach((option, i) => {
-        if (i == 0) {
-          //Primera opcion
-          let firstOptionElement = document.createElement("option");
-          firstOptionElement.value = "";
-          firstOptionElement.textContent = isInSpanish
-            ? "Elije un telefono"
-            : "Choose a phone";
-          firstOptionElement.disabled = true;
-          firstOptionElement.selected = options.length > 1 ? true : false;
-          userPhoneSelect.appendChild(firstOptionElement);
-        }
-
         //Le pongo el pais
         let phoneCountry = option.country
           ? option.country
@@ -611,19 +606,17 @@ window.addEventListener("DOMContentLoaded", async () => {
           let options = userLogged
             ? userLogged.addresses
             : getLocalStorageItem("guestAddresses");
+          //Primera opcion
+          let firstOptionElement = document.createElement("option");
+          firstOptionElement.value = "";
+          firstOptionElement.textContent = isInSpanish
+            ? "Elije una direccion"
+            : "Choose an address";
+          firstOptionElement.disabled = true;
+          firstOptionElement.selected = options.length == 0 ? true : false;
+          select.appendChild(firstOptionElement);
           // Agregar las nuevas opciones
           options?.forEach((option, i) => {
-            if (i == 0) {
-              //Primera opcion
-              let firstOptionElement = document.createElement("option");
-              firstOptionElement.value = "";
-              firstOptionElement.textContent = isInSpanish
-                ? "Elije una direccion"
-                : "Choose an address";
-              firstOptionElement.disabled = true;
-              firstOptionElement.selected = options.length > 1 ? true : false;
-              select.appendChild(firstOptionElement);
-            }
             //Le pongo el pais
             let optionAlreadySelected = option.id == valueSelected;
             const optionElement = document.createElement("option");

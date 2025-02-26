@@ -1,68 +1,100 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
+  <head>
     <%- include('./partials/head.ejs') %>
-    <link rel="stylesheet" href="/css/form.css">
-    <link rel="stylesheet" href="/css/checkoutCard.css">
-    <link rel="stylesheet" href="/css/cart.css">
+    <link rel="stylesheet" href="/css/form.css" />
+    <link rel="stylesheet" href="/css/checkoutCard.css" />
+    <link rel="stylesheet" href="/css/cart.css" />
     <script type="module" src="/scripts/cart.js"></script>
     <title>Cart</title>
-</head>
-<body data-page_name="cart">
+  </head>
+  <body data-page_name="cart">
     <%- include('./partials/header.ejs') %>
     <main class="main main-sections-wrapper">
-        <section class="cart-section">
-            <div class="cart-products-container">
-                <h1 class="cart-products-title page-title">
-                  <div class="ui placeholder">
-                      <div class="line"></div>
-                  </div>
-                </h1>
-                <div class="cart-products-cards-wrapper">
-                    <div class="ui placeholder">
-                        <div class="image header">
-                          <div class="line"></div>
-                          <div class="line"></div>
-                        </div>
-                        <div class="paragraph">
-                          <div class="medium line"></div>
-                          <div class="short line"></div>
-                        </div>
-                      </div>
-                      <div class="ui placeholder">
-                        <div class="image header">
-                          <div class="line"></div>
-                          <div class="line"></div>
-                        </div>
-                        <div class="paragraph">
-                          <div class="medium line"></div>
-                          <div class="short line"></div>
-                        </div>
-                      </div>
-                </div>
+      <section class="cart-section">
+        <div class="cart-products-container">
+          <h1 class="cart-products-title page-title">
+            <div class="ui placeholder">
+              <div class="line"></div>
             </div>
-            
-            <div class="cart-detail-rail-container">
-                <div class="detail-placeholder-container">
-                    <div class="ui placeholder">
-                        <div class="line"></div>
-                        <div class="line"></div>
-                        <div class="line"></div>
-                        <div class="line"></div>
-                        <div class="line"></div>
-                      </div>
-                </div>
+          </h1>
+          <div class="cart-products-cards-wrapper">
+            <div class="ui placeholder">
+              <div class="image header">
+                <div class="line"></div>
+                <div class="line"></div>
+              </div>
+              <div class="paragraph">
+                <div class="medium line"></div>
+                <div class="short line"></div>
+              </div>
             </div>
-        </section>
-       <section class="checkout-section">
-        <div class="back-to-cart-button-container">
-            <button class="back-to-cart-button section-handler-button" type="button"><i class='bx bx-arrow-back'></i></button>
+            <div class="ui placeholder">
+              <div class="image header">
+                <div class="line"></div>
+                <div class="line"></div>
+              </div>
+              <div class="paragraph">
+                <div class="medium line"></div>
+                <div class="short line"></div>
+              </div>
+            </div>
+          </div>
         </div>
-            <div class="form-wrapper"></div>
-            <div class="cart-detail-rail-container"></div>
-            
-       </section>
+
+        <div class="cart-detail-rail-container">
+          <div class="detail-placeholder-container">
+            <div class="ui placeholder">
+              <div class="line"></div>
+              <div class="line"></div>
+              <div class="line"></div>
+              <div class="line"></div>
+              <div class="line"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+      <section class="checkout-section">
+        <div class="back-to-cart-button-container">
+          <button
+            class="back-to-cart-button section-handler-button"
+            type="button"
+          >
+            <i class="bx bx-arrow-back"></i>
+          </button>
+        </div>
+        <div class="form-wrapper">
+          <div class="form-placeholder-container">
+            <div class="ui placeholder">
+              <div class="line"></div>
+              <div class="line"></div>
+              <div class="line"></div>
+              <div class="line"></div>
+              <div class="line"></div>
+            </div>
+          </div>
+          <div class="form-placeholder-container">
+            <div class="ui placeholder">
+              <div class="line"></div>
+              <div class="line"></div>
+              <div class="line"></div>
+              <div class="line"></div>
+              <div class="line"></div>
+            </div>
+          </div>
+          <div class="form-placeholder-container">
+            <div class="ui placeholder">
+              <div class="line"></div>
+              <div class="line"></div>
+              <div class="line"></div>
+              <div class="line"></div>
+              <div class="line"></div>
+            </div>
+          </div>
+        </div>
+        <div class="cart-detail-rail-container"></div>
+      </section>
     </main>
-  <%- include('./partials/footer.ejs') %>
-</body>
+    <%- include('./partials/footer.ejs') %>
+  </body>
 </html>
