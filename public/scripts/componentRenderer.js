@@ -699,7 +699,7 @@ export function productCard(prod, infoFontSize, isCarouselCard = false) {
 
   const productPrice = document.createElement("span");
   productPrice.className = "product-price";
-  productPrice.textContent = `$${isInSpanish ? ars_price : usd_price}`;
+  productPrice.textContent = `$${isInSpanish ? displayBigNumbers(ars_price) : displayBigNumbers(usd_price)}`;
   productPrice.style.fontSize = infoFontSize ? `${infoFontSize}%` : "120%";
 
   productInfoContainer.appendChild(productName);
