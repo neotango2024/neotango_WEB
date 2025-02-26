@@ -975,6 +975,7 @@ window.addEventListener("DOMContentLoaded", async () => {
         ? userLogged.phones
         : getLocalStorageItem("guestPhones");
       let phoneObj = phoneArrayToLook?.find((dbPhone) => dbPhone.id == phoneID);
+      phoneObj.id == userLogged ? phoneObj.id : null;
       bodyData.phoneObj = phoneObj;
       // Ahora las addresses
       let addressArrayToLook = userLogged
@@ -984,6 +985,7 @@ window.addEventListener("DOMContentLoaded", async () => {
       let billingAddressObj = addressArrayToLook?.find(
         (dbAddress) => dbAddress.id == billingAddressId
       );
+      billingAddressObj.id = userLogged ? billingAddressObj.id : null;
       bodyData.billingAddress = billingAddressObj;
       const useSameAddress = form["use-same-addresses"].checked;
       if (useSameAddress) {
@@ -994,6 +996,7 @@ window.addEventListener("DOMContentLoaded", async () => {
         let shippingAddressObj = addressArrayToLook?.find(
           (dbAddress) => dbAddress.id == shippingAddressId
         );
+        shippingAddressObj.id = userLogged ? shippingAddressObj.id : null;
         bodyData.shippingAddress = shippingAddressObj;
       }
 
