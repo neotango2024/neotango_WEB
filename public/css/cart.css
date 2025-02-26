@@ -224,6 +224,7 @@
         height: auto;
     }
     .cart-detail-container {
+        height: 100%;
         position: sticky;
         top: 5vh; /* Ajusta según tu diseño */
         height: auto; /* Ajusta según el contenido */

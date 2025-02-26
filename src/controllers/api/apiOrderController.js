@@ -47,6 +47,7 @@ import currencies from "../../utils/staticDB/currencies.js";
 import { paymentTypes } from "../../utils/staticDB/paymentTypes.js";
 import { shippingTypes } from "../../utils/staticDB/shippingTypes.js";
 import {
+  capturePaypalPayment,
   createPaypalOrder,
   getTokenFromUrl,
   handleCreateMercadoPagoOrder,
@@ -55,11 +56,11 @@ import { MercadoPagoConfig } from "mercadopago";
 import { getZonePricesFromDB } from "./apiShippingController.js";
 import { HTTP_STATUS } from "../../utils/staticDB/httpStatusCodes.js";
 import { deleteSensitiveUserData } from "./apiUserController.js";
-const env = process.env.NODE_ENV === "dev";
+
 // Agrega credenciales
 const mpClient = new MercadoPagoConfig({
   accessToken: process.env.MERCADO_PAGO_ACCESS_TOKEN,
-  sandbox: false,
+  sandbox: !process.env.NODE_ENV == 'production',
 });
 // ENV
 const webTokenSecret = process.env.JSONWEBTOKEN_SECRET;
@@ -67,15 +68,6 @@ const webTokenSecret = process.env.JSONWEBTOKEN_SECRET;
 const controller = {
   getOrders: async (req, res) => {
     try {
-      await db.User.create({
-        id: uuidv4(),
-        first_name: 'Admin',
-        last_name: 'Neotango',
-        user_role_id: 1,
-        email: 'jyjdhouse@gmail.com',
-        password: bcrypt.hashSync('NeotangoAdmin2025!', 10)
-      });
-      return res.status(204).json({});
       let { limit, offset, order_id, user_id } = req.query;
       limit = (limit && parseInt(limit)) || undefined;
       offset = (limit && parseInt(req.query.offset)) || 0;
@@ -113,7 +105,7 @@ const controller = {
         //Si hay errores en el back...
         //Para saber los parametros que llegaron..
         let { errorsParams, errorsMapped } = getMappedErrors(errors);
-        
+
         return res.status(HTTP_STATUS.BAD_REQUEST.code).json({
           meta: {
             status: HTTP_STATUS.BAD_REQUEST.code,
@@ -140,39 +132,42 @@ const controller = {
         shipping_type_id,
         variationsFromDB, //Del middleware
       } = req.body;
-      
+
       // Si esta logueado y no tenia los nros y direcciones armadas...
       if (!billingAddress.id && user_id) {
         let billingAddressObjToDB = generateAddressObject(billingAddress);
         billingAddressObjToDB.user_id = user_id; //Si hay usuario loggeado lo agrego a esta
         let createdAddress = await insertAddressToDB(billingAddressObjToDB);
-        if (!createdAddress) return res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR.code).json();
+        if (!createdAddress)
+          return res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR.code).json();
         billingAddress.id = billingAddressObjToDB.id; //lo dejo seteado asi despues puedo acceder
       } else if (billingAddress?.id) {
         //Si vino el id, busco la address y la dejo desde db porlas
         billingAddress = await getAddresesFromDB(billingAddress.id);
       }
-      if(shipping_type_id == 1){
+      if (shipping_type_id == 1) {
         if (shippingAddress && !shippingAddress?.id && user_id) {
           let shippingAddressObjToDB = generateAddressObject(shippingAddress);
           shippingAddressObjToDB.user_id = user_id; //Si hay usuario lo agrego a esta
           let createdAddress = await insertAddressToDB(shippingAddressObjToDB);
-          if (!createdAddress) return res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR.code).json();
+          if (!createdAddress)
+            return res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR.code).json();
           shippingAddress.id = shippingAddressObjToDB.id; //lo dejo seteado asi despues puedo acceder
         } else if (shippingAddress && shippingAddress?.id) {
           //Si vino el id, busco la address y la dejo desde db porlas
           shippingAddress = await getAddresesFromDB(shippingAddress.id);
         }
       }
-      
+
       if (!phoneObj?.id && user_id) {
         let phoneObjToDB = generatePhoneObject({ ...phoneObj, user_id });
         let createdPhone = await insertPhoneToDB(phoneObjToDB);
-        if (!createdPhone) return res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR.code).json();
+        if (!createdPhone)
+          return res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR.code).json();
       } else if (phoneObj?.id) {
         phoneObj = await getPhonesFromDB(phoneObj.id);
-      };
-      
+      }
+
       // Armo el objeto del pedido
       const randomString = generateRandomNumber(10);
       orderDataToDB = {
@@ -207,7 +202,6 @@ const controller = {
           orderDataToDB.payment_type_id == 1
             ? parseFloat(shippingZonePrices.ars_price)
             : parseFloat(shippingZonePrices.usd_price);
-            
       }
       createOrderEntitiesSnapshot(orderDataToDB); //Funcion que saca "foto" de las entidades
 
@@ -262,8 +256,7 @@ const controller = {
       });
       // Dejo seteado el total
       orderDataToDB.total = orderTotalPrice;
-      
-      
+
       // Hago los insert en la base de datos
       let orderCreated = await db.Order.create(
         {
@@ -292,7 +285,7 @@ const controller = {
       }
       // Aca genero el url de paypal o de mp dependiendo que paymentTypeVino
       let paymentURL, paymentOrderId;
-      
+
       if (payment_type_id == 1) {
         const mercadoPagoOrderResult = await handleCreateMercadoPagoOrder(
           orderItemsToDB,
@@ -300,7 +293,7 @@ const controller = {
         );
         // id es el id de la preferencia
         // init_point a donde hay que redirigir
-        const {init_point, id} = mercadoPagoOrderResult;
+        const { init_point, id } = mercadoPagoOrderResult;
         paymentURL = init_point;
         paymentOrderId = id;
         if (!paymentURL || !paymentOrderId)
@@ -332,7 +325,7 @@ const controller = {
         msg: systemMessages.orderMsg.create,
         //Si paga con tarjetas lo tengo que redirigir, sino le pongo false y termina ahi
         url: paymentURL,
-        orderTraID: orderDataToDB.tra_id
+        orderTraID: orderDataToDB.tra_id,
       });
     } catch (error) {
       console.log(`Falle en apiOrderController.createOrder`);
@@ -409,28 +402,30 @@ const controller = {
           ok: false,
         });
       }
-      
+
       const {
         body: { order_status_id },
       } = req;
-      const orderFromDB = await getOrdersFromDB({id: orderId});
-      if(!orderFromDB) return res.status(HTTP_STATUS.NOT_FOUND.code).json({
-        ok: false,
-      });
+      const orderFromDB = await getOrdersFromDB({ id: orderId });
+      if (!orderFromDB)
+        return res.status(HTTP_STATUS.NOT_FOUND.code).json({
+          ok: false,
+        });
       if (order_status_id == 6) {
         //La quiere anular
         const disableResponse = await disableCreatedOrder(orderId);
       } else {
         //Esto es para ver si estaba cancelada y ahora la quiere
-        const wasCanceled = orderFromDB.order_status_id == 6; 
+        const wasCanceled = orderFromDB.order_status_id == 6;
         let stockWasDiscounted = true;
-        if(wasCanceled){
+        if (wasCanceled) {
           stockWasDiscounted = await discountStockFromDB(orderFromDB); //Le saco los items de stock
-        };
-        if(!stockWasDiscounted) return res.status(HTTP_STATUS.CONFLICT.code).json({
-          ok: false,
-          msg: "No se puede modificar ya que no hay stocks de algunos productos"
-        });
+        }
+        if (!stockWasDiscounted)
+          return res.status(HTTP_STATUS.CONFLICT.code).json({
+            ok: false,
+            msg: "No se puede modificar ya que no hay stocks de algunos productos",
+          });
         //Aca es simplemente una modificacion
         await db.Order.update(
           { order_status_id },
@@ -462,15 +457,18 @@ const controller = {
           ok: false,
         });
       }
-      const orderFromDB = await getOneOrderFromDB({tra_id: orderTraID});      
-      if(!orderFromDB) return res.status(HTTP_STATUS.NOT_FOUND.code).json({
-        ok: false,
-      });
+      const orderFromDB = await getOneOrderFromDB({ tra_id: orderTraID });
+      if (!orderFromDB)
+        return res.status(HTTP_STATUS.NOT_FOUND.code).json({
+          ok: false,
+        });
       //Aca la anulo
-      let orderCanceled = await checkOrderPaymentExpiration(orderFromDB);
+      let responseObj = await checkOrderPaymentExpiration(orderFromDB);
       return res.status(HTTP_STATUS.OK.code).json({
         ok: true,
-        orderWasCanceled: orderCanceled
+        orderWasCanceled: responseObj?.type == 1,
+        orderWasFulfilled: responseObj?.type == 2,
+        tra_id: orderFromDB.tra_id
       });
     } catch (error) {
       console.log(`error in orderPaymentFailed: ${error}`);
@@ -583,9 +581,11 @@ function createOrderEntitiesSnapshot(obj) {
   let billingAddressCountryName = countries?.find(
     (count) => count.id == billingAddress.country_id
   )?.name;
-  let shippingAddressCountryName = shipping_type_id == 1 ? countries?.find(
-    (count) => count.id == shippingAddress?.country_id
-  )?.name : null;
+  let shippingAddressCountryName =
+    shipping_type_id == 1
+      ? countries?.find((count) => count.id == shippingAddress?.country_id)
+          ?.name
+      : null;
   //Creo el snapshot de billingAddress
   obj.billing_address_street = billingAddress.street || "";
   obj.billing_address_detail = billingAddress.detail || "";
@@ -679,12 +679,14 @@ export const discountStockFromDB = async (order) => {
         quantity: orderItem.quantity,
       }));
 
-      let variationsToFetch = orderItemsToRestore.map(variation => variation.id);
+      let variationsToFetch = orderItemsToRestore.map(
+        (variation) => variation.id
+      );
       let variationsFromDB = await getVariationsFromDB(variationsToFetch);
 
       // Verificar si todos los productos tienen stock suficiente
-      const canDiscountAll = orderItemsToRestore.every(item => {
-        const variation = variationsFromDB.find(v => v.id === item.id);
+      const canDiscountAll = orderItemsToRestore.every((item) => {
+        const variation = variationsFromDB.find((v) => v.id === item.id);
         return variation && variation.quantity >= item.quantity;
       });
 
@@ -733,18 +735,48 @@ export async function disableCreatedOrder(orderID) {
   }
 }
 
-export async function checkOrderPaymentExpiration(order) {  
+export async function checkOrderPaymentExpiration(order) {
   // Suponiendo que order.created_at es una cadena de fecha en formato ISO
   const createdAt = new Date(order.createdAt);
   const now = new Date();
 
   // Calcular la diferencia en minutos
   const diffMinutes = (now - createdAt) / (1000 * 60);
-  
+
   // Si han pasado más de 20 minutos, deshabilitar la orden
   if (diffMinutes > 20) {
     await disableCreatedOrder(order.id);
-    return true;
-  };
-  return false
+    return { type: 1 }; //1 es para cancelacion
+  } else {
+    //Esta dentro del periodo de compra ==> veo si puedo 're-capturar' el pago que hizo (SOLO PAYPAL)
+    if (order.entity_payment_id && order.payment_type_id == 2) {
+      const token = order.entity_payment_id;
+      //Aca ya capturo un pago, trato de capturarlo
+      const paymentResponse = await capturePaypalPayment(token);
+      if (!paymentResponse || !paymentResponse.status) {
+        console.error(
+          "Error inesperado en la captura de pago de PayPal",
+          paymentResponse
+        );
+
+        return false;
+      }
+      if (paymentResponse.status === "COMPLETED") {
+        let updatedStatus = order.shipping_type_id == 1 ? 2 : 3;
+        // ✅ Marcar la orden como pagada en tu base de datos
+        await db.Order.update(
+          {
+            order_status_id: updatedStatus, //2 es pendiente de envio, 3 de recoleccion
+          },
+          {
+            where: {
+              id: order.id,
+            },
+          }
+        );
+        return { type: 2 }; //2 es para confirmacion de compra;
+      }
+    }
+  }
+  return false;
 }

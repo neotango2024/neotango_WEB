@@ -1147,10 +1147,12 @@ export async function scriptInitiator(){
       });
       if(response.ok){
         response = await response.json();
-        //Ahora si se cancelo de db entonces lo elimino
-        if(response.orderWasCanceled)handleOrderInLocalStorage({type: 3});
+        //Ahora si se cancelo o se autoaprobo de db entonces lo elimino de localStorage
+        if(response.orderWasCanceled || response.orderWasFulfilled){
+          handleOrderInLocalStorage({type: 3});
+          if(response.orderWasFulfilled) return window.location.href = `/post-compra?orderId=${response.tra_id}`;
+        };
       }
-      
     }
   } catch (error) {
     return console.log(error);

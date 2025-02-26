@@ -537,7 +537,7 @@ export function form(props) {
   container.className = "form-container";
 
   const h3Element = document.createElement("h3");
-  h3Element.className = "title page-title red";
+  h3Element.className = "page-title red";
   h3Element.textContent = formTitleObject?.title;
   if (formTitleObject?.datasetObject) {
     const { dataKey, dataValue } = formTitleObject?.datasetObject;

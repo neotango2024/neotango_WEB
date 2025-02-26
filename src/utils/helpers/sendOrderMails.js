@@ -151,7 +151,7 @@ async function sendOrderMails(order) {
   // Opciones del correo
   const userMailOptions = {
     from: "contacto@neotangoshoes.com",
-    to: "janoo.pereira@gmail.com", //order.email,
+    to: order.email,
     subject: orderIsInSpanish
       ? "¡Gracias por tu compra!"
       : "Thanks for your purchase!",
@@ -159,7 +159,7 @@ async function sendOrderMails(order) {
   };
   const operatorMailOptions = {
     from: "contacto@neotangoshoes.com",
-    to: "janopk789@gmail.com", //"contacto@neotangoshoes.com",
+    to: "contacto@neotangoshoes.com",
     subject: `Venta online - ${order.tra_id}`,
     html: operatorMailContent,
   };
