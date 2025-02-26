@@ -83,7 +83,7 @@ nav {
     z-index: 11;
 }
 
-.mobile-navbar, .languages-modal, .no-logged-user-modal, .logged-user-modal, .mobile-logged-user-navbar-active {
+.mobile-navbar, .languages-modal, .no-logged-user-modal, .logged-user-modal, .mobile-logged-user-navbar {
     z-index: 12;
 }
 
@@ -616,6 +616,7 @@ header.header .item.header-nav-letter {
         width: 50%;
     }
     .logo-container {
+        height: 95px;
         width: 20%;
     }
     .cart-number {

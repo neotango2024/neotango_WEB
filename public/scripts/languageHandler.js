@@ -1,4 +1,4 @@
-import { paintUserIconOrLetter, translateNavbar, translateUserLoggedMenuItems, translateUserLoggedModal } from "./header.js";
+import { paintUserIconOrLetter, translateNavbar, translateUserLoggedMenuItems } from "./header.js";
 import { handleTranslateFeatureProducts, translateCompanyInfo } from "./index.js";
 import {setLocalStorageItem, getLocalStorageItem} from './localStorage.js';
 import { checkForUserLogged, userLogged } from "./checkForUserLogged.js";

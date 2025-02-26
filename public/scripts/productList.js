@@ -51,7 +51,7 @@ export const translateFilters = () => {
 }
 
 const listenForFilterClicks = () => {
-    const filterContainer = document.querySelector('.dropdown');
+    const filterContainer = document.querySelector('.filter-dropdown');
     filterContainer.addEventListener('change', (e) => {
         filterProducts(e.target.value);
     })
@@ -66,10 +66,10 @@ const filterProducts = (value) => {
             products.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
             break;
         case 'lowToHigh':
-            products.sort((a, b) => isInSpanish ? a.ars_price - b.ars_price : a.usd_price - b.usd_price)
+            products.sort((a, b) => isInSpanish ? b.ars_price - a.ars_price : b.usd_price - a.usd_price);
             break;
         case 'highToLow':
-            products.sort((a, b) => isInSpanish ? b.ars_price - a.ars_price : b.usd_price - a.usd_price);           
+            products.sort((a, b) => isInSpanish ? a.ars_price - b.ars_price : a.usd_price - b.usd_price);
             break;
         }
     handleRenderProductList(products);

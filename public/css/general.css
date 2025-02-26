@@ -128,7 +128,8 @@ ul {
 }
 
 .page-title {
-  font-size: clamp(1.75rem, 3vw + 0.3rem, 2.2rem);
+  text-transform: uppercase;
+  font-size: clamp(1.65rem, 3vw + 0.3rem, 0rem);
   font-weight: 600;
   width: 100%;
 }
