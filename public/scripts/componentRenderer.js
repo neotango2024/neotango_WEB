@@ -997,7 +997,7 @@ export async function createAddressModal(address = undefined) {
 export async function createUserLoginModal() {
   try {
     createModal({
-      headerTitle: "Login",
+      headerTitle: isInSpanish ? "Iniciar Sesion ": "Login",
       formFields: [
         {
           label: "Email",
@@ -1018,7 +1018,7 @@ export async function createUserLoginModal() {
       ],
       buttons: [
         {
-          text: isInSpanish ? "Iniciar Sesión" : "login",
+          text: isInSpanish ? "Iniciar Sesión" : "Sign in",
           type: "button",
           className: "ui button submit negative send-modal-form-btn",
           onClick: async () => await handleUserLoginModal(),
