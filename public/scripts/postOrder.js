@@ -1,4 +1,6 @@
+import { userLogged } from "./checkForUserLogged.js";
 import { generatePostOrderCard } from "./componentRenderer.js";
+import { deleteLocalStorageItem } from "./localStorage.js";
 import { activateCopyMsg, copyElementValue, handleOrderInLocalStorage, isOnPage, scriptInitiator } from "./utils.js";
 const postOrderExportObject = {
     pageConstructor: null,
@@ -9,6 +11,10 @@ window.addEventListener("load", async () => {
     // Aca dio ok el pago, doy de baja en localStorage
     handleOrderInLocalStorage({ type: 3 })
     await scriptInitiator();
+    // Si no vino usuario loggeado, borro el cartItems
+    if(!userLogged){
+      deleteLocalStorageItem('cartItems')
+    }
     // Obtén el parámetro `order` de la URL
     const urlParams = new URLSearchParams(window.location.search);
     const orderTraIdFromURL = urlParams.get("orderId");

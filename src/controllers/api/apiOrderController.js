@@ -68,16 +68,16 @@ const webTokenSecret = process.env.JSONWEBTOKEN_SECRET;
 const controller = {
   getOrders: async (req, res) => {
     try {
-      let { limit, offset, order_id, user_id } = req.query;
+      let { limit, offset, order_id, user_id: userLoggedId } = req.query;
       limit = (limit && parseInt(limit)) || undefined;
       offset = (limit && parseInt(req.query.offset)) || 0;
       order_id = order_id || undefined;
-      user_id = user_id || undefined;
+      userLoggedId = userLoggedId || undefined;
       let ordersFromDB = await getOrdersFromDB({
         id: order_id,
         limit,
         offset,
-        user_id,
+        user_id: userLoggedId,
       });
 
       // Mando la respuesta
@@ -275,14 +275,7 @@ const controller = {
           updateOnDuplicate: ["quantity"],
         }));
 
-      // Borro los temp items si es que viene usuario loggeado
-      if (user_id) {
-        await db.TempCartItem.destroy({
-          where: {
-            user_id,
-          },
-        });
-      }
+      
       // Aca genero el url de paypal o de mp dependiendo que paymentTypeVino
       let paymentURL, paymentOrderId;
 
@@ -714,7 +707,7 @@ export const discountStockFromDB = async (order) => {
 export async function disableCreatedOrder(orderID) {
   try {
     let orderFromDB = await getOrdersFromDB({ id: orderID });
-    if (!orderFromDB) return false;
+    if (!orderFromDB || orderFromDB.order_status_id == 6) return false; 
     //La deshabilito
     await db.Order.update(
       {

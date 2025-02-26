@@ -997,7 +997,7 @@ export async function createAddressModal(address = undefined) {
 export async function createUserLoginModal() {
   try {
     createModal({
-      headerTitle: isInSpanish ? "Iniciar Sesion ": "Login",
+      headerTitle: isInSpanish ? "Iniciar Sesion ": 'Sign in',
       formFields: [
         {
           label: "Email",
