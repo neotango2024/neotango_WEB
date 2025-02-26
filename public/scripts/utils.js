@@ -10,7 +10,7 @@ import {
   generateTooltip,
 } from "./componentRenderer.js";
 import { countriesFromDB } from "./getStaticTypesFromDB.js";
-import { headerExportObject } from "./header.js";
+import { checkCartItemsToPaintQuantity, headerExportObject } from "./header.js";
 import { decideLanguageInsertion, isInSpanish } from "./languageHandler.js";
 import { deleteLocalStorageItem, getLocalStorageItem, setLocalStorageItem } from "./localStorage.js";
 import { userProfileExportObj } from "./userProfile.js";
@@ -754,6 +754,7 @@ export async function handleUserLoginFetch(bodyData) {
       const bodyName = document.querySelector("body").dataset.page_name;
       // Esto es porque si pasa de no estar logeado a estarlo, pinto los productos del carro
       if (bodyName == "cart") await cartExportObj.pageConstructor();
+      checkCartItemsToPaintQuantity()
       return true;
     }
     showCardMessage(false, isInSpanish ? response.msg.es : response.msg.en);

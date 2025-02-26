@@ -34,13 +34,22 @@ window.addEventListener('DOMContentLoaded', async () => {
             checkForUserIconClicks();
         }
         checkCartItemsToPaintQuantity();
+        checkForLogout()
     }
     
 })
 
-export const checkCartItemsToPaintQuantity = () => {
+const checkForLogout = () => {
+    const params = new URLSearchParams(window.location.search);
+    const isComingFromLoginOut = params.get('logout') == 1;
+    if(isComingFromLoginOut){
+        checkCartItemsToPaintQuantity(isComingFromLoginOut)
+    }
+}
+
+export const checkCartItemsToPaintQuantity = (loggedOut = false) => {
     let tempCartItems;
-    if(userLogged){
+    if(userLogged && !loggedOut){
         tempCartItems = userLogged.tempCartItems;
     } else {
         const noUserLoggedCartItems = getLocalStorageItem('cartItems');
