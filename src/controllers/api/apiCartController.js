@@ -62,17 +62,9 @@ const controller = {
         });
       }
       const { body } = req;
-      const { productId, variation_id } = body;
-
-      const [productExists, product] = await findProductsInDb(productId);
-      if (!productExists || !product) {
-        console.log("failed to fetched product");
-        return res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR.code).json({
-          ok: false,
-          msg: "Internal server error",
-          data: null,
-        });
-      }
+      
+      
+      const { variation_id } = body;
 
       const variationExists = await findVariationsById(variation_id);
       if (!variationExists) {
@@ -98,6 +90,7 @@ const controller = {
       });
     } catch (error) {
       console.log(`error creating cart item: ${error}`);
+      console.log(error);
       return res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR.code).json({
         ok: false,
         msg: "Internal server error",

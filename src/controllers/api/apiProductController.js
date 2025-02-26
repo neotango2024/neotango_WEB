@@ -221,9 +221,6 @@ const controller = {
         return isDeleteSuccessful;
       }
     );
-    console.log("VARIATIONS TO DELETE");
-    console.log(variationsToDelete);
-
     const promisesResult = await Promise.all(deleteVariationsPromises);
     const areAllVariationsDeleted = promisesResult.every(
       (prom) => prom === true
@@ -239,8 +236,6 @@ const controller = {
       variationsInDb,
       productId
     );
-    console.log("VARIATIONS TO ADD");
-    console.log(variationsToAdd);
     const isInsertingVariationsSuccessful = await insertVariationsInDb(
       variationsToAdd,
       productId
@@ -465,9 +460,6 @@ async function insertProductInDb(body) {
     const newProduct = {
       id: newProductId,
       ...body,
-      // created_at: Date.now(), //TODO: ver si funciona sin esto
-      // updated_at: Date.now(),
-      // deleted_at: null,
     };
     await Product.create(newProduct);
 
@@ -480,12 +472,12 @@ async function insertProductInDb(body) {
 
 async function updateProductInDb(body, productId) {
   try {
-    await Product.update(body, {
+    let rowsAffected = await Product.update(body, {
       where: {
         id: productId,
       },
     });
-    return true;
+    return rowsAffected > 0;
   } catch (error) {
     console.log(`error updating product in db: ${error}`);
     return false;
