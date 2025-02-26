@@ -115,7 +115,7 @@ export async function handleCreateMercadoPagoOrder(orderItemsToDb, mpClient) {
       items: [],
       back_urls: {
         success: process.env.BASE_URL + '/completar-pago',
-        failure: "https://quilmac.com.ar/",
+        failure: process.env.BASE_URL + '/cancelar-orden',
       },
       auto_return: "approved",
       payment_methods: {

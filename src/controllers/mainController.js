@@ -171,8 +171,11 @@ const controller = {
   },
   cancelOrder: async (req, res) => {
     try {
-      let { token } = req.query;
-      const orderCreatedToDisable = await getOneOrderFromDB({ entity_payment_id: token });
+      let { token, preference_id } = req.query;
+      if(!token && !preference_id) return res.redirect("/");
+      let entityPaymentID = token || preference_id
+      //PAYPAL
+      const orderCreatedToDisable = await getOneOrderFromDB({ entity_payment_id: entityPaymentID});
       if (orderCreatedToDisable) {
         await disableCreatedOrder(orderCreatedToDisable.id);
       };

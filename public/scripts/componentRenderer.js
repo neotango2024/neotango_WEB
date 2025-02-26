@@ -2319,7 +2319,7 @@ export function generateOrderDetailModal(order, isAdminModal = false) {
         <label class="card-label label">${
           isInSpanish ? "Estado de orden" : "Order status"
         }</label>
- <select class="ui select" id="orderStatusSelect">
+ <select class="ui select ${order.orderStatus.id == 6 ? "disabled" : ''}" id="orderStatusSelect">
             ${statusesFromDB
               .map(
                 (status) => `
