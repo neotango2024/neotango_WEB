@@ -1,0 +1,81 @@
+.main {
+  align-items: center;
+  justify-content: center;
+  height: 70vh;
+}
+.ui.card.post-order-card {
+  display: flex;
+  align-items: center;
+  width: 95%;
+  height: 85%;
+  max-width: 370px;
+  justify-content: space-around;
+}
+.ui.card.post-order-card p{
+    margin: 0;
+}
+.card-header{
+    font-size: x-large;
+    text-align: center;
+}
+.card-sub-header{
+    font-size: medium;
+    font-weight: bold;
+    text-align: center;
+}
+.order-number-container{
+    display: flex;
+    justify-content: center;
+    max-width: 225px;
+    width: 100%;
+    align-items: center;
+}
+.ui.card.post-order-card p.card-order-number{
+    font-size: medium;
+    margin-right: 10px;
+    color: var(--red-color);
+    font-weight: 600;
+}
+.copy-order-number-btn{
+    font-size: 2rem;
+    cursor: pointer;
+    color: var(--red-color);
+}
+.order-status-p{
+    font-size: medium;
+    text-align: center;
+}
+.card-buttons-container{
+    width: 100%;
+    max-width: 400px;
+    display: flex;
+    align-items: center;
+    justify-content: space-evenly;
+}
+.ui.button.card-button{
+    width: fit-content;
+    display: flex;
+}
+.card-button >i{
+    font-size: 1.3rem;
+    margin-right: 5px;
+}
+.card-button *{
+    color: #fff;
+}
+.card-logo-container{
+    max-width: 150px;
+}
+
+@media(min-width: 768px){
+    .ui.card.post-order-card {
+        width: 75%;
+        max-width: 600px;
+      }
+}
+@media(min-width: 1024px){
+    .ui.card.post-order-card {
+        width: 50%;
+        max-width: unset;
+      }
+}

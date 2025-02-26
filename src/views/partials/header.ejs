@@ -1,0 +1,177 @@
+<header class="header">
+    <div class="header-container">
+        <div class="overlay"></div>
+        <div class="logo-container">
+            <a href="/"><img src="/img/logo/logo.jpg" alt=""></a>
+        </div>
+        <nav>
+            <ul class="desktop-pages-links-container">
+                <!-- TODO: Armarlo en componente js y renderizrlo dependiendo el idioma -->
+                <div class="ui menu header-dropdown">
+                    <div class="ui placeholder nav-placeholder">
+                        <div class="header">
+                        <div class="line"></div>
+                        </div>
+                  </div>
+                </div>
+                <li class="page-link-item header-nav-letter">
+                    <a href="/nosotros" data-translation="aboutUs">
+                        <div class="ui placeholder nav-placeholder">
+                            <div class="header">
+                            <div class="line"></div>
+                            </div>
+                      </div>
+                    </a>
+                </li>
+                <li class="page-link-item header-nav-letter">
+                    <a href="/contacto" data-translation="contact">
+                        <div class="ui placeholder nav-placeholder">
+                            <div class="header">
+                            <div class="line"></div>
+                            </div>
+                      </div>
+                    </a>
+                </li>
+                <li class="page-link-item header-nav-letter">
+                    <a href="/faq" data-translation="faq">
+                        <div class="ui placeholder nav-placeholder">
+                            <div class="header">
+                            <div class="line"></div>
+                            </div>
+                      </div>
+                    </a>
+                </li>
+            </ul>
+            <ul class="user-actions-container">
+                <li class="user-action-item cart-icon">
+                    <a href="/carro" class="cart-anchor">
+                        <span class="cart-number"></span>
+                        <i class='bx bx-cart'></i>
+                    </a>
+                </li>
+                <li class="ui menu header-dropdown user-action-item user-initials-container hidden">
+                </li>
+                
+                <li class="user-action-item user-icon">
+                    <i class='bx bx-user'></i>
+                    <aside class="no-logged-user-modal modal">
+                        <div class="close-menu-container">
+                            <i class='bx bx-x close-sign-in-modal'></i>
+                        </div>
+                        <div class="triangle"></div>
+                    </aside> 
+                </li>
+                <li class="user-action-item menu-container">
+                    <i class='bx bx-menu menu-icon'></i>
+                    <i class='bx bx-menu-alt-left menu-icon hidden' ></i>
+                </li>
+                <li class="user-action-item active-flag-container">
+                    <img class="active-flag" src="img/flags/argentina_flag.png" alt="">
+                </li>
+                <li class="user-action-item"></li>
+            </ul>
+        </nav>
+        <aside class="mobile-navbar">
+            <div class="close-menu-container">
+                <i class='bx bx-x close-navbar'></i>
+            </div>
+            <ul class="mobile-navbar-ul">
+                <li class="page-link-item shop-dropdown-trigger">
+                        <span class="shop-mobile-span" data-translation="store">Tienda</span>
+                        <i class='bx bx-chevron-down shop-arrow'></i>
+                        <ul class="shop-dropdown">
+                            <li class="shop-category-item">
+                                <a data-translation="menShoes" href="/categoria/1"> 
+                                    Zapatos de caballero
+                                </a>
+                            </li>
+                            <li class="shop-category-item">
+                                <a data-translation="womenShoes" href="/categoria/2"> 
+                                    Zapatos de dama
+                                </a>
+                            </li>
+                        </ul>
+                </li>
+                <li class="page-link-item">
+                    <a href="/nosotros" data-translation="aboutUs">Nosotros</a>
+                </li>
+                <li class="page-link-item">
+                    <a data-translation="contact" href="/contacto">Contacto</a>
+                </li>
+                <li class="page-link-item">
+                    <a data-translation="faq" href="/faq">FAQ</a>
+                </li>
+            </ul>
+            
+        </aside>
+        <aside class="languages-modal modal">
+            <div class="close-menu-container">
+                <i class='bx bx-x close-language-modal'></i>
+            </div>
+            <div class="intros-container">
+                <p class="lang-modal-intro">Please select a language</p>
+                <p class="lang-modal-intro">Por favor seleccione un idioma</p>
+            </div>
+            <div class="line"></div>
+            <div class="languages-container">
+               <div class="language-container">
+                    <div class="modal-flag-container">
+                        <img src="/img/flags/argentina_flag.png" id="1" alt="">                    
+                    </div>    
+                    <p>Argentina</p>
+               </div>
+               <div class="language-container">
+                    <div class="modal-flag-container">
+                        <img src="/img/flags/international_flag.png" id="2" alt="">                
+                    </div>
+                    <p>International</p>
+               </div>
+            </div>
+            
+        </aside>
+        <aside class="mobile-logged-user-navbar">
+            <div class="close-logged-menu-container">
+                <i class='bx bx-x close-logged-menu'></i>
+            </div>
+            <ul class="admin-logged-menu">
+                <li class="page-link-item">
+                    <a data-translation="order" href="/perfil?index=0"></a>
+                </li>
+                <li class="page-link-item">
+                    <a data-translation="product" href="/perfil?index=1"></a>
+                </li>
+                <li class="page-link-item">
+                    <a data-translation="shipping" href= "/perfil?index=2"></a>
+                </li>
+                <li class="page-link-item">
+                    <a data-translation="logout" href= "/logout"></a>
+                </li>
+            </ul>
+            <ul class="regular-user-logged-menu">
+                <li class="page-link-item">
+                    <a data-translation="profile" href="/perfil?index=0"></a>
+                </li>
+                <li class="page-link-item">
+                    <a data-translation="purchase" href="/perfil?index=1"></a>
+                </li>
+                <li class="page-link-item">
+                    <a data-translation="address" href= "/perfil?index=2"></a>
+                </li>
+                <li class="page-link-item">
+                    <a data-translation="address" href= "/perfil?index=3"></a>
+                </li>
+                <li class="page-link-item">
+                    <a data-translation="logout" href= "/logout"></a>
+                </li>
+            </ul>
+        </aside>
+    </div>
+</header>
+<div class="view-message-container">
+    <div class="ui positive huge message hidden">
+      <div class="header"></div>
+    </div>
+    <div class="ui negative huge message hidden">
+      <div class="header"></div>
+    </div>
+</div>

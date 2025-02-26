@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <%- include('./partials/head.ejs') %>
+    <link rel="stylesheet" href="/css/aboutUs.css">
+    <script type="module" src="/scripts/aboutUs.js"></script>
+    <title>Nosotros</title>
+</head>
+<body data-page_name="aboutUs">
+    <%- include('./partials/header.ejs') %>
+    <main class="about-us-main">
+        <div class="ui placeholder title-placeholder">
+            <div class="image"></div>
+        </div>
+        <div class="about-placeholders-container">
+            <div class="about-first-row-placeholders-container">
+                <div class="ui placeholder image-placeholder">
+                    <div class="image"></div>
+                </div>
+                <div class="ui placeholder image-placeholder">
+                    <div class="image"></div>
+                </div>
+            </div>
+            <div class="ui placeholder image-placeholder">
+                <div class="image"></div>
+            </div>
+        </div>
+        <h1 class="page-title red"></h1>
+        <div class="first-row-info-container">
+            <div class="img-container">
+                <img src="/img/aboutUs/dostango.jpg" alt="">
+            </div>
+            <p class="first-description about-us-description"></p>
+        </div>
+        <div class="second-row-info-container">
+            <p class="second-description about-us-description"></p>
+            <p class="third-description about-us-description"></p>
+        </div>
+    </main>
+  <%- include('./partials/footer.ejs') %>
+</body>
+</html>
