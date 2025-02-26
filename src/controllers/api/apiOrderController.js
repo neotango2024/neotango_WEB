@@ -68,11 +68,12 @@ const webTokenSecret = process.env.JSONWEBTOKEN_SECRET;
 const controller = {
   getOrders: async (req, res) => {
     try {
-      let { limit, offset, order_id, user_id: userLoggedId } = req.query;
+      let { limit, offset, order_id, userLoggedId } = req.query;
       limit = (limit && parseInt(limit)) || undefined;
       offset = (limit && parseInt(req.query.offset)) || 0;
       order_id = order_id || undefined;
       userLoggedId = userLoggedId || undefined;
+      
       let ordersFromDB = await getOrdersFromDB({
         id: order_id,
         limit,
@@ -81,9 +82,9 @@ const controller = {
       });
 
       // Mando la respuesta
-      return res.status(201).json({
+      return res.status(HTTP_STATUS.OK.code).json({
         meta: {
-          status: 201,
+          status: HTTP_STATUS.OK.code,
           path: "/api/order/",
           method: "GET",
         },
@@ -511,15 +512,7 @@ export async function getOrdersFromDB({ id, limit, offset, user_id }) {
         ],
       });
     }
-    // Condición si id es undefined
-    else if (id === undefined) {
-      ordersToReturn = await db.Order.findAll({
-        include: orderIncludeArray,
-        order: [
-          ["created_at", "DESC"], // ASC para orden ascendente, DESC para descendente
-        ],
-      });
-    } else if (user_id) {
+    else if (user_id) {
       //Aca busco por ordenes de un user
       ordersToReturn = await db.Order.findAll({
         where: {
@@ -531,6 +524,15 @@ export async function getOrdersFromDB({ id, limit, offset, user_id }) {
         ],
       });
     }
+    // Condición si id es undefined
+    else if (id === undefined) {
+      ordersToReturn = await db.Order.findAll({
+        include: orderIncludeArray,
+        order: [
+          ["created_at", "DESC"], // ASC para orden ascendente, DESC para descendente
+        ],
+      });
+    } 
 
     if (!ordersToReturn || !ordersToReturn.length) return [];
     ordersToReturn = getDeepCopy(ordersToReturn);
