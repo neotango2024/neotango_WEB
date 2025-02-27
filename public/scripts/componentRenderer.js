@@ -2397,6 +2397,11 @@ export function generateOrderDetailModal(order, isAdminModal = false) {
                   ? order.shipping_address_detail || ""
                   : ""
               }</p>
+               <p class="card-desc grey no-margin">${isInSpanish ? 'CP' : "ZIP"}:${
+                order.shippingType.id == 1
+                  ? order.shipping_address_zip_code
+                  : "1044"
+              }</p>
               <p class="card-desc grey no-margin">${
                 order.shippingType.id == 1
                   ? order.shipping_address_city
