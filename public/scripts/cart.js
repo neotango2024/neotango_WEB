@@ -989,8 +989,8 @@ window.addEventListener("DOMContentLoaded", async () => {
         let shippingAddressObj = addressArrayToLook?.find(
           (dbAddress) => dbAddress.id == shippingAddressId
         );
-        shippingAddressObj.id = userLogged ? shippingAddressObj.id : null;
-        bodyData.shippingAddress = shippingAddressObj;
+        shippingAddressObj ? shippingAddressObj.id = userLogged ? shippingAddressObj?.id : null : null;
+        bodyData.shippingAddress = shippingAddressObj || null;
       }
 
       return bodyData;
