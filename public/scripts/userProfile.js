@@ -733,15 +733,6 @@ const handleChangeOrderStatus = async (e, order) => {
   activateContainerLoader(modal, false);
 };
 
-const getAllProducts = async () => {
-  try {
-    const productsResponse = await fetch("/api/product");
-    const productsResponseJson = await productsResponse.json();
-  } catch (error) {
-    // TODO - show result message
-  }
-};
-
 const getAllOrders = async () => {
   const response = await fetch(
     `/api/order?limit=${orderLimit}&offset=${offset}`

@@ -699,7 +699,7 @@ export function productCard(prod, infoFontSize, isCarouselCard = false) {
 
   const productPrice = document.createElement("span");
   productPrice.className = "product-price";
-  productPrice.textContent = `$${isInSpanish ? ars_price : usd_price}`;
+  productPrice.textContent = `$${isInSpanish ? displayBigNumbers(ars_price) : displayBigNumbers(usd_price)}`;
   productPrice.style.fontSize = infoFontSize ? `${infoFontSize}%` : "120%";
 
   productInfoContainer.appendChild(productName);
@@ -1632,7 +1632,7 @@ export function generateVariationField(tacoVariations = []) {
     'select[name="product-category-id"]'
   ).value;
   const options = tacosFromDB
-    .filter((taco) => taco.category_id == productCategory)
+    .filter((taco) => taco.category_id == productCategory || taco.category_id === null)
     .map((taco) => ({
       value: taco.id,
       text: taco.name,
@@ -2396,6 +2396,11 @@ export function generateOrderDetailModal(order, isAdminModal = false) {
                 order.shippingType.id == 1
                   ? order.shipping_address_detail || ""
                   : ""
+              }</p>
+               <p class="card-desc grey no-margin">${isInSpanish ? 'CP' : "ZIP"}:${
+                order.shippingType.id == 1
+                  ? order.shipping_address_zip_code
+                  : "1044"
               }</p>
               <p class="card-desc grey no-margin">${
                 order.shippingType.id == 1

@@ -10,6 +10,7 @@ import {
 import { setLocalStorageItem, getLocalStorageItem } from "./localStorage.js";
 import { checkForUserLogged, userLogged } from "./checkForUserLogged.js";
 import {
+  displayBigNumbers,
   productsFromDB,
   toggleBodyScrollableBehavior,
   toggleOverlay,
@@ -195,7 +196,7 @@ export const translateProductCards = (container) => {
       ? productInDb.es_name
       : productInDb.eng_name;
     productPriceElement.textContent = `$${isInSpanish
-      ? productInDb.ars_price
-      : productInDb.usd_price}`;
+      ? displayBigNumbers(productInDb.ars_price)
+      : displayBigNumbers(productInDb.usd_price)}`;
   });
 };

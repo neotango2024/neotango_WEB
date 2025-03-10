@@ -46,11 +46,11 @@ export async function findFilesInDb(productId)  {
     }
 }
 
-export async function deleteFileInDb(imageId)  {
+export async function deleteFileInDb(imagesIds)  {
     try {
         await File.destroy({
             where: {
-                id: imageId
+                id: imagesIds
             }
         })
         return true;

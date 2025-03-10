@@ -1,7 +1,8 @@
 // import nodemailer from 'nodemailer';
 import emailConfig from '../staticDB/mailConfig.js';
 import nodemailer from 'nodemailer'
-async function sendVerificationCodeMail(code,userEmail) {
+async function sendVerificationCodeMail(code, user) {
+    const {email, payment_type_id} = user;
     code = code.split('');//Lo armo array
     // Configuración del transporte del correo
     // const transporter = nodemailer.createTransport(emailConfig);
@@ -46,9 +47,9 @@ async function sendVerificationCodeMail(code,userEmail) {
     // Opciones del correo
     const userMailOptions = {
         from: process.env.EMAIL_USER,
-        to: userEmail,
-        subject: subject.es,
-        html: userMailContent.es
+        to: email,
+        subject: payment_type_id === 1 ? subject.es : subject.en, //TODO: SETEAR LOS IDIOMAS DEPENDIENDO EL PAYMENT TYPE DEL USER (Primero ver controlador al crear)
+        html: payment_type_id === 1 ? userMailContent.es : userMailContent.en
     };
     try {
         // Envío de los correos

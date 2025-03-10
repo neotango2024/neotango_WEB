@@ -569,6 +569,7 @@ export function buildUserSignUpBodyData(form) {
     email: form["user-email"]?.value,
     rePassword: form["user-re-password"]?.value,
     password: form["user-password"]?.value,
+    payment_type_id: getLocalStorageItem("payment_type_id") 
   };
 }
 export function buildUserLoginBodyData(form) {
