@@ -269,30 +269,11 @@ const controller = {
     } else {
       imagesToDelete = imagesInDb;
     }
-    const objectToDestroyInAws = {
-      files: imagesToDelete,
-      folderName: PRODUCTS_FOLDER_NAME,
-    };
-    const isDeletionInAwsSuccessful = await destroyFilesFromAWS(
-      objectToDestroyInAws
-    );
-    if (!isDeletionInAwsSuccessful) {
+    const isSuccesfulDeletingFiles = await handleProductFilesDestroy(imagesToDelete);
+    if (!isSuccesfulDeletingFiles) {
       return res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR.code).json({
         ok: false,
         msg: updateFailed.es,
-      });
-    }
-    const deleteImagesPromises = imagesToDelete.map(async (img) => {
-      const { id } = img;
-      const deleteResult = await deleteFileInDb(id);
-      return deleteResult;
-    });
-    const results = await Promise.all(deleteImagesPromises);
-    const isAllDeleted = results.every((res) => res === true);
-    if (!isAllDeleted) {
-      return res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR.code).json({
-        ok: false,
-        msg: updateFailed.en,
       });
     }
     let normalizedFilesToUpdateInDb = imagesToKeep.map((file) => ({
@@ -353,8 +334,22 @@ const controller = {
           msg: deleteFailed.es,
         });
       }
+      const product = await findProductsInDb(productId);
+      if(!product){
+        return res.status(HTTP_STATUS.NOT_FOUND.code).json({
+          ok: false,
+          msg: deleteFailed.es,
+        });
+      }
       const isDeletedSuccessfully = await deleteProductInDb(productId);
       if (!isDeletedSuccessfully) {
+        return res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR.code).json({
+          ok: false,
+          msg: deleteFailed.es,
+        });
+      }
+      const isDeletingFilesSuccessful = await handleProductFilesDestroy(product.files);
+      if(!isDeletingFilesSuccessful){
         return res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR.code).json({
           ok: false,
           msg: deleteFailed.es,
@@ -377,6 +372,7 @@ const controller = {
 };
 
 export default controller;
+
 
 let productIncludeArray = ["files", "variations"];
 export async function findProductsInDb(
@@ -558,5 +554,25 @@ export async function setProductKeysToReturn({product, withImages = false, withV
   } catch (error) {
     console.log("falle");
     return console.log(error);
+  }
+}
+
+async function handleProductFilesDestroy(files = []) {
+  try {
+    if (!files.length) return true;
+    const objectToDestroyInAws = {
+      files,
+      folderName: PRODUCTS_FOLDER_NAME,
+    };
+    const isDeletionInAwsSuccessful = await destroyFilesFromAWS(
+      objectToDestroyInAws
+    );
+    if (!isDeletionInAwsSuccessful) return false;
+    const idsToDestroyDB = files.map((img) => img.id);
+    await deleteFileInDb(idsToDestroyDB);
+    return true;
+  } catch (error) {
+    console.log(error);
+    return false;
   }
 }

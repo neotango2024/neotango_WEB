@@ -30,6 +30,7 @@ import {
   setShippingZones,
   setVariationsFromDB,
   shippingZonesFromDB,
+  showCardMessage,
   variationsFromDB,
 } from "./utils.js";
 let cartExportObj = {
@@ -291,7 +292,8 @@ window.addEventListener("DOMContentLoaded", async () => {
               headers: { "Content-Type": "application/json" },
             });
             if (!response.ok) {
-              // TODO:
+              const msg = isInSpanish ? 'Error inesperado, intente nuevamente en unos minutos' : 'Unexpected error, try again in a few minutes';
+              showCardMessage(false, msg);
             }
             card.remove();
             modifyDetailList();

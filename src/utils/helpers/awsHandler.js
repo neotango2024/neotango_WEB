@@ -57,11 +57,7 @@ export async function uploadFilesToAWS(object) {
             {
               name: randomName + "-1x.webp",
               width: Math.round(imageWidth * 0.5),
-            },
-            // {
-            //   name: randomName + "-thumb.webp",
-            //   width: 20,
-            // },
+            }
           ];  
           // Voy por cada size asi lo subo a aws
           for (let j = 0; j < imageSizes.length; j++) {
@@ -141,6 +137,7 @@ export async function destroyFilesFromAWS(object){
                 // Hago el delete de la base de datos
                 console.log('deleting photo...')
                 await s3.send(command);
+                console.log('photo successfully deleted...')
               }
         } else{
             //aca es video

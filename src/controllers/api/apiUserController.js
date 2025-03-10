@@ -62,7 +62,7 @@ const controller = {
         });
       }
       // Datos del body
-      let { first_name, last_name, email, password, language } = req.body;
+      let { first_name, last_name, email, password, payment_type_id } = req.body;
       
 
       //Nombres y apellidos van capitalziados
@@ -75,9 +75,9 @@ const controller = {
         last_name,
         email,
         password: bcrypt.hashSync(password, 10), //encripta la password ingresada ,
-        user_role_id: 2, //User
+        user_role_id: 2, 
         verified_email: false,
-        payment_type_id: 1, //TODO: Ver de corregir esto
+        payment_type_id,
       };
       const userCreated = await insertUserToDB(userDataToDB); //Creo el usuario
       let emailResponse = await generateAndInstertEmailCode(userDataToDB);
@@ -114,27 +114,6 @@ const controller = {
   },
   updateUser: async (req, res) => {
     try {
-      // Traigo errores TODO:
-      // let errors = validationResult(req);
-
-      // if (!errors.isEmpty()) {
-      //   //Si hay errores en el back...
-      //   errors = errors.mapped();
-
-      //   // Ver como definir los errors
-      //   // return res.send(errors)
-      //   return res.status(HTTP_STATUS.BAD_REQUEST.code).json({
-      //       meta: {
-      //           status: HTTP_STATUS.BAD_REQUEST.code,
-      //           url: '/api/user',
-      //           method: "POST"
-      //       },
-      //       ok: false,
-      //       errors,
-      //       msg: systemMessages.formMsg.validationError.es
-      //   });
-      // }
-
       // Datos del body
       let { user_id, first_name, last_name, gender_id } = req.body;
       
