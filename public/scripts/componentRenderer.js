@@ -1632,7 +1632,7 @@ export function generateVariationField(tacoVariations = []) {
     'select[name="product-category-id"]'
   ).value;
   const options = tacosFromDB
-    .filter((taco) => taco.category_id == productCategory)
+    .filter((taco) => taco.category_id == productCategory || taco.category_id === null)
     .map((taco) => ({
       value: taco.id,
       text: taco.name,

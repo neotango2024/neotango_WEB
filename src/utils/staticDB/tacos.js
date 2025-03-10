@@ -33,5 +33,10 @@ export default [
         id: 7,
         category_id: 2,
         name: 'Goma'
+    },
+    {
+        id: 8,
+        category_id: null,
+        name: '1 cm'
     }
 ]
