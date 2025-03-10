@@ -129,7 +129,7 @@ const controller = {
           status: HTTP_STATUS.OK.code,
           url: "/api/address",
           method: "PUT",
-          redirect: "/user/address"
+          redirect: "/"
         },
         ok: true,
         msg: systemMessages.addressMsg.updateSuccesfull,

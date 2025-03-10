@@ -77,7 +77,7 @@ const controller = {
         password: bcrypt.hashSync(password, 10), //encripta la password ingresada ,
         user_role_id: 2, //User
         verified_email: false,
-        preffered_language: language,
+        payment_type_id: 1, //TODO: Ver de corregir esto
       };
       const userCreated = await insertUserToDB(userDataToDB); //Creo el usuario
       let emailResponse = await generateAndInstertEmailCode(userDataToDB);
