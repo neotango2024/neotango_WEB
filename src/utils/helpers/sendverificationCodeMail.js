@@ -47,7 +47,7 @@ async function sendVerificationCodeMail(code,userEmail) {
     const userMailOptions = {
         from: process.env.EMAIL_USER,
         to: userEmail,
-        subject: subject.es,
+        subject: subject.es, //TODO: SETEAR LOS IDIOMAS DEPENDIENDO EL PAYMENT TYPE DEL USER (Primero ver controlador al crear)
         html: userMailContent.es
     };
     try {
