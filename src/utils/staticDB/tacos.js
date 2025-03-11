@@ -36,7 +36,17 @@ export default [
     },
     {
         id: 8,
-        category_id: null,
-        name: '1 cm'
+        category_id: 1,
+        name: '2 cm'
+    },
+    {
+        id: 9,
+        category_id: 1,
+        name: '3 cm'
+    },
+    {
+        id: 10,
+        category_id: 1,
+        name: '4 cm'
     }
 ]
