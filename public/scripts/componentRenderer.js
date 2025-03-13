@@ -687,7 +687,8 @@ export function productCard(prod, infoFontSize, isCarouselCard = false) {
   img.className = "prod-img";
   img.src = imageUrl;
   imgContainer.appendChild(img);
-
+  
+  if(!isCarouselCard){
   const productInfoContainer = document.createElement("div");
   productInfoContainer.className = "product-info-container";
   cardAnchor.appendChild(productInfoContainer);
@@ -699,11 +700,14 @@ export function productCard(prod, infoFontSize, isCarouselCard = false) {
 
   const productPrice = document.createElement("span");
   productPrice.className = "product-price";
-  productPrice.textContent = `$${isInSpanish ? displayBigNumbers(ars_price) : displayBigNumbers(usd_price)}`;
+  
+    productPrice.textContent = `$${isInSpanish ? displayBigNumbers(ars_price) : displayBigNumbers(usd_price)}`;
+ 
   productPrice.style.fontSize = infoFontSize ? `${infoFontSize}%` : "120%";
-
+  
   productInfoContainer.appendChild(productName);
   productInfoContainer.appendChild(productPrice);
+}
   return card;
 }
 
