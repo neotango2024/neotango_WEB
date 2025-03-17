@@ -461,6 +461,7 @@ header.header .item.header-nav-letter {
 
     .user-icon {
         position: relative;
+        left: unset;
     }
 
     .page-link-item a:hover, .user-action-item i:hover {
@@ -604,9 +605,7 @@ header.header .item.header-nav-letter {
         margin-bottom: 0;
     }
 
-    .user-initials {
-        cursor: pointer;
-    }
+
 
     .page-link-item a,
     header.header .item.header-nav-letter {

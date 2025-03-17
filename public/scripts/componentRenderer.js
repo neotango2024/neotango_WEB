@@ -1435,6 +1435,7 @@ export function destroyExistingModal() {
 export function closeModal() {
   $(".ui.modal").modal("hide");
 }
+
 export function userInfoComponent(props) {
   const { first_name, last_name, email } = props;
 
@@ -1868,8 +1869,9 @@ export async function createProductModal(product = undefined) {
         label: "Imagenes",
         name: "product-image",
         allowedExtensions: ["jpg", "jpeg", "png", "webp"],
-        containerClassName: "input-file-container hidden",
+        containerClassName: "input-file-container hidden required",
         // multiple: true,
+        required: true
       },
       {
         type: "field",
