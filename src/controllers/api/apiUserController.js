@@ -518,7 +518,7 @@ export async function generateAndInstertEmailCode(user) {
     // Genero el codigo de verificacion
   const { verificationCode, expirationTime } =
   generateRandomCodeWithExpiration();
-  let emailHasBeenSent = await sendVerificationCodeMail(verificationCode, user.email);
+  let emailHasBeenSent = await sendVerificationCodeMail(verificationCode, user);
   if(!emailHasBeenSent)return false;
   let objectToDB = {
     verification_code: verificationCode,
