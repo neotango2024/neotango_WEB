@@ -101,14 +101,17 @@ window.addEventListener("DOMContentLoaded", async () => {
       cartProductsWrapper.innerHTML = "";
       if (cartProducts?.length) {
         cartProducts.forEach((cartItem) => {
-          //Esto es para que renderize bien
-          cartItem.product.variation_id = cartItem.variation_id;
-          cartItem.product.sizeFromDB = cartItem.size;
-          cartItem.product.tacoFromDB = cartItem.taco;
-          cartItem.product.quantity = cartItem.quantity;
-          cartItem.product.maxQuantityAvailable = cartItem.maxQuantityAvailable;
-          const checkoutCardElement = checkoutCard(cartItem.product);
-          cartProductsWrapper.appendChild(checkoutCardElement);
+          if (cartItem.product) {
+            //Esto es para que renderize bien
+            cartItem.product.variation_id = cartItem.variation_id;
+            cartItem.product.sizeFromDB = cartItem.size;
+            cartItem.product.tacoFromDB = cartItem.taco;
+            cartItem.product.quantity = cartItem.quantity;
+            cartItem.product.maxQuantityAvailable =
+              cartItem.maxQuantityAvailable;
+            const checkoutCardElement = checkoutCard(cartItem.product);
+            cartProductsWrapper.appendChild(checkoutCardElement);
+          }
         });
         return;
       }
@@ -292,7 +295,9 @@ window.addEventListener("DOMContentLoaded", async () => {
               headers: { "Content-Type": "application/json" },
             });
             if (!response.ok) {
-              const msg = isInSpanish ? 'Error inesperado, intente nuevamente en unos minutos' : 'Unexpected error, try again in a few minutes';
+              const msg = isInSpanish
+                ? "Error inesperado, intente nuevamente en unos minutos"
+                : "Unexpected error, try again in a few minutes";
               showCardMessage(false, msg);
             }
             card.remove();
@@ -991,7 +996,9 @@ window.addEventListener("DOMContentLoaded", async () => {
         let shippingAddressObj = addressArrayToLook?.find(
           (dbAddress) => dbAddress.id == shippingAddressId
         );
-        shippingAddressObj ? shippingAddressObj.id = userLogged ? shippingAddressObj?.id : null : null;
+        shippingAddressObj
+          ? (shippingAddressObj.id = userLogged ? shippingAddressObj?.id : null)
+          : null;
         bodyData.shippingAddress = shippingAddressObj || null;
       }
 
