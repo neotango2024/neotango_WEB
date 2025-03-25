@@ -148,7 +148,7 @@
   }
   .product-images-section {
     width: 45%;
-    height: 70vh;
+    height: 60vh;
   }
   .product-detail-section {
     width: 45%;
@@ -253,6 +253,7 @@
   }
   .product-images-section {
     margin-top: 0;
+    height: 70vh;
   }
   .related-products-section {
     margin-top: 10vh;
