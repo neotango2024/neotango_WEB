@@ -147,15 +147,16 @@
     flex-wrap: wrap;
   }
   .product-images-section {
-    width: 45%;
-    height: 60vh;
+    width: 55%;
+    min-height: 600px;
   }
   .product-detail-section {
-    width: 45%;
+    width: 40%;
     max-width: 570px;
     padding: 0;
   }
   .images-wrapper {
+    min-height: 600px;
     height: 100%;
     margin-bottom: 3vh;
     scroll-snap-type: none;
