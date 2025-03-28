@@ -20,6 +20,7 @@ import {
 } from "./localStorage.js";
 import {
   displayBigNumbers,
+  emulateEvent,
   handleNewAddressButtonClick,
   handleNewPhoneButtonClick,
   handleOrderInLocalStorage,
@@ -563,7 +564,7 @@ window.addEventListener("DOMContentLoaded", async () => {
       userPhoneSelect.innerHTML = "";
       let options = userLogged
         ? userLogged.phones
-        : getLocalStorageItem("guestPhones");
+        : getLocalStorageItem("guestPhones") || [];
       //Primera opcion
       let firstOptionElement = document.createElement("option");
       firstOptionElement.value = "";
@@ -612,7 +613,7 @@ window.addEventListener("DOMContentLoaded", async () => {
           select.innerHTML = "";
           let options = userLogged
             ? userLogged.addresses
-            : getLocalStorageItem("guestAddresses");
+            : getLocalStorageItem("guestAddresses") || [];
           //Primera opcion
           let firstOptionElement = document.createElement("option");
           firstOptionElement.value = "";
@@ -641,26 +642,39 @@ window.addEventListener("DOMContentLoaded", async () => {
             select.appendChild(optionElement);
           });
         });
+
         // Agrego la escucha para pintar el estimate cost
-        shippingAddressSelect.addEventListener("change", async () => {
-          // aca seteo el shipping cost
-          setShippingCost();
-          setDetailContainer();
-          return;
-        });
-        // Agrego la escucha para pintar el estimate cost (si es que useSameAddress es true)
-        billingAddressSelect.addEventListener("change", async () => {
-          const useSameAddressCheckbox = document.querySelector(
-            '.checkout-section input[name="use-same-addresses"]'
-          );
-          if (useSameAddressCheckbox.checked) {
+        if (!shippingAddressSelect.dataset.listened) {
+          shippingAddressSelect.dataset.listened = true;
+          shippingAddressSelect.addEventListener("change", async () => {
+            console.log('acaa');
+            
             // aca seteo el shipping cost
             setShippingCost();
             setDetailContainer();
-          }
+            return;
+          });
+        }
+        if (!billingAddressSelect.dataset.listened) {
+          billingAddressSelect.dataset.listened = true;
+          // Agrego la escucha para pintar el estimate cost (si es que useSameAddress es true)
+          billingAddressSelect.addEventListener("change", async () => {
+            const useSameAddressCheckbox = document.querySelector(
+              '.checkout-section input[name="use-same-addresses"]'
+            );
+            if (useSameAddressCheckbox.checked) {
+              // aca seteo el shipping cost
+              setShippingCost();
+              setDetailContainer();
+            }
 
-          return;
-        });
+            return;
+          });
+        }
+
+        // Emulo el cambio
+        emulateEvent(shippingAddressSelect, "change");
+        emulateEvent(billingAddressSelect, "change");
         if (userLogged && userLogged?.addresses.length >= 4) {
           //Aca es un usuario que ya agrego el maximo
           //Despinto los botones de add
@@ -932,7 +946,7 @@ window.addEventListener("DOMContentLoaded", async () => {
       let addressToUse = userLogged
         ? userLogged.addresses
         : getLocalStorageItem("guestAddresses");
-      let address = addressToUse.find((add) => add.id == addressID);
+      let address = addressToUse?.find((add) => add.id == addressID);
 
       if (!address) return (shippingCost = 0);
       const countryFromDB = countriesMap.get(address?.country_id);

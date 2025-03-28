@@ -1190,3 +1190,8 @@ export function handleOrderInLocalStorage({type, orderID = undefined}){
   };
   return returnVar
 }
+
+export function emulateEvent(element = undefined, event = undefined){
+  if(!element || !event) return
+  return element.dispatchEvent(new Event(event));
+}
