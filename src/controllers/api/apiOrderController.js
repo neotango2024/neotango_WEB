@@ -309,7 +309,8 @@ const controller = {
         { entity_payment_id: paymentOrderId },
         { where: { id: orderDataToDB.id } }
       );
-
+      console.log(`ORDER ${orderDataToDB.tra_id} CREATED, REDIRECTING TO: ${paymentURL}`);
+      
       // Mando la respuesta
       return res.status(200).json({
         meta: {
