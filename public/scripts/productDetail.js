@@ -10,6 +10,7 @@ import {
   minDecimalPlaces,
   displayBigNumbers,
   scriptInitiator,
+  emulateEvent,
 } from "./utils.js";
 
 let productDetailExportObj = {
@@ -142,7 +143,7 @@ window.addEventListener("load", async () => {
         productDetailsSection.appendChild(productPrice);
         productDetailsSection.appendChild(productDescription);
         productDetailsSection.appendChild(selectsWrapper);
-        tacoSelect.dispatchEvent(new Event("change")); //Lo pongo despues de agrear al dom
+        emulateEvent(tacoSelect,"change")//Lo pongo despues de agrear al dom
       };
 
       // Ahora como uktimo agrego el boton
