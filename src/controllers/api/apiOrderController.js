@@ -189,6 +189,7 @@ const controller = {
       // Tema total price
       let orderTotalPrice = 0;
       // Tema shipping. Si es envio a domicilio le tengo que sumar el coste de shipping por el country
+      let shippingPrice = null;
       if (orderDataToDB.shipping_type_id == 1) {
         //Envio a domicilio
         let zoneCountryToCheckPrice = orderDataToDB.shippingAddress.country_id;
@@ -198,6 +199,7 @@ const controller = {
         let shippingZonePrices = await getZonePricesFromDB({
           id: dbCountry.zone_id,
         });
+        shippingPrice = parseFloat(shippingZonePrices.ars_price);
         //Le sumo al totalPrice
         orderTotalPrice +=
           orderDataToDB.payment_type_id == 1
@@ -283,7 +285,8 @@ const controller = {
       if (payment_type_id == 1) {
         const mercadoPagoOrderResult = await handleCreateMercadoPagoOrder(
           orderItemsToDB,
-          mpClient
+          mpClient,
+          shippingPrice
         );
         // id es el id de la preferencia
         // init_point a donde hay que redirigir

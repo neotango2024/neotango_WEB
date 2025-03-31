@@ -109,7 +109,7 @@ export function getTokenFromUrl(url) {
   return parsedUrl.searchParams.get("token"); // Obtiene el valor del parámetro 'token'
 }
 
-export async function handleCreateMercadoPagoOrder(orderItemsToDb, mpClient) {
+export async function handleCreateMercadoPagoOrder(orderItemsToDb, mpClient, shippingPrice) {
   try {
     let body = {
       items: [],
@@ -120,8 +120,8 @@ export async function handleCreateMercadoPagoOrder(orderItemsToDb, mpClient) {
       auto_return: "approved",
       payment_methods: {
         excluded_payment_types: [
-          { id: "ticket" }, // Eliminar pagos en efectivo
-          { id: "atm" }, // Eliminar pagos por transferencias
+          { id: "ticket" },
+          { id: "atm" }, 
         ],
       },
     };
@@ -133,6 +133,12 @@ export async function handleCreateMercadoPagoOrder(orderItemsToDb, mpClient) {
         currency_id: "ARS",
       };
       body.items.push(mercadoPagoItemObject);
+    });
+    body.items.push({
+      title: "Costo de envío",
+      quantity: 1,
+      unit_price: shippingPrice ?? 0,
+      currency_id: "ARS",
     });
     const preference = new Preference(mpClient);
     const result = await preference.create({ body });
@@ -150,8 +156,6 @@ export async function captureMercadoPagoPayment(paymentId){
         Authorization: `Bearer ${process.env.MERCADO_PAGO_ACCESS_TOKEN}`
       }
     })
-    console.log('payment mercadopago')
-    console.log(paymentResponseData.data)
     return paymentResponseData.data;
   } catch (error) {
     console.log(`Error in captureMercadoPagoPayment`)
