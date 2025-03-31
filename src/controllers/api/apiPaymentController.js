@@ -120,8 +120,8 @@ export async function handleCreateMercadoPagoOrder(orderItemsToDb, mpClient, shi
       auto_return: "approved",
       payment_methods: {
         excluded_payment_types: [
-          { id: "ticket" },
-          { id: "atm" }, 
+          { id: "ticket" }, // Eliminar pagos en efectivo
+          { id: "atm" }, // Eliminar pagos por transferencias
         ],
       },
     };
@@ -156,6 +156,8 @@ export async function captureMercadoPagoPayment(paymentId){
         Authorization: `Bearer ${process.env.MERCADO_PAGO_ACCESS_TOKEN}`
       }
     })
+    console.log('payment mercadopago')
+    console.log(paymentResponseData.data)
     return paymentResponseData.data;
   } catch (error) {
     console.log(`Error in captureMercadoPagoPayment`)
