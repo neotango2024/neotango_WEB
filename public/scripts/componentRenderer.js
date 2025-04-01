@@ -1865,9 +1865,8 @@ export async function createProductModal(product = undefined) {
         label: "Imagenes",
         name: "product-image",
         allowedExtensions: ["jpg", "jpeg", "png", "webp"],
-        containerClassName: "input-file-container hidden required",
+        containerClassName: "input-file-container hidden",
         // multiple: true,
-        required: true
       },
       {
         type: "field",
