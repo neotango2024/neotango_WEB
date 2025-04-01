@@ -369,7 +369,6 @@ const controller = {
   },
   processLogin: async(req,res)=>{
     try {
-      
       let {email, password} = req.body;
 
       let userToLog = await db.User.findOne({
@@ -420,7 +419,6 @@ const controller = {
             redirect: '/'
           });
         }
-        // Si llego aca es porque esta mal la contrasena
         
       }
       // Si llego aca es porque esta mal el email o password
