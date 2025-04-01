@@ -139,8 +139,7 @@ const controller = {
       }
       const files = req.files;
       if (files && files.length) {
-        console.log(files,filesFromArray);
-        
+
         files?.forEach((multerFile) => {
           const fileFromFilesArrayFiltered = filesFromArray.find(
             (arrFile) => arrFile.filename == multerFile.originalname
@@ -424,6 +423,8 @@ export async function findProductsInDb(
     if (!productToReturn && (!productsToReturn || !productsToReturn.length))
       return null;
     productsToReturn = getDeepCopy(productsToReturn);
+    console.log('products')
+    console.log(productsToReturn)
     for (let i = 0; i < productsToReturn.length; i++) {
       const prod = productsToReturn[i];
       await setProductKeysToReturn({ product: prod, withImages: true, withVariations: true });

@@ -109,7 +109,7 @@ export function getTokenFromUrl(url) {
   return parsedUrl.searchParams.get("token"); // Obtiene el valor del parámetro 'token'
 }
 
-export async function handleCreateMercadoPagoOrder(orderItemsToDb, mpClient) {
+export async function handleCreateMercadoPagoOrder(orderItemsToDb, mpClient, shippingPrice) {
   try {
     let body = {
       items: [],
@@ -133,6 +133,12 @@ export async function handleCreateMercadoPagoOrder(orderItemsToDb, mpClient) {
         currency_id: "ARS",
       };
       body.items.push(mercadoPagoItemObject);
+    });
+    body.items.push({
+      title: "Costo de envío",
+      quantity: 1,
+      unit_price: shippingPrice ?? 0,
+      currency_id: "ARS",
     });
     const preference = new Preference(mpClient);
     const result = await preference.create({ body });
