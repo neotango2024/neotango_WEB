@@ -955,9 +955,14 @@ window.addEventListener("DOMContentLoaded", async () => {
       );
 
       if (!zoneFromDB) return (shippingAddressSelect.value = ""); //Reinicio la direc, no dejo seguir
-      shippingCost = isInSpanish
-        ? zoneFromDB?.price?.ars_price || 0
-        : zoneFromDB?.price?.usd_price || 0;
+      let accumulator = 0;
+        const zonePrice = isInSpanish
+          ? zoneFromDB?.price?.ars_price || 0
+          : zoneFromDB?.price?.usd_price || 0
+        cartProducts.forEach(prod => {
+          accumulator = accumulator + (zonePrice * Number(prod.quantity))
+        })
+        shippingCost = accumulator;
     }
 
     function generateCheckoutFormBodyToFetch(form) {
