@@ -117,6 +117,7 @@ export async function handleCreateMercadoPagoOrder(orderItemsToDb, mpClient, shi
         success: process.env.BASE_URL + '/completar-pago',
         failure: process.env.BASE_URL + '/cancelar-orden',
       },
+      auto_return: "approved",
       payment_methods: {
         excluded_payment_types: [
           { id: "ticket" }, // Eliminar pagos en efectivo
