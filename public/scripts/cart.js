@@ -647,8 +647,6 @@ window.addEventListener("DOMContentLoaded", async () => {
         if (!shippingAddressSelect.dataset.listened) {
           shippingAddressSelect.dataset.listened = true;
           shippingAddressSelect.addEventListener("change", async () => {
-            console.log('acaa');
-            
             // aca seteo el shipping cost
             setShippingCost();
             setDetailContainer();
@@ -955,9 +953,14 @@ window.addEventListener("DOMContentLoaded", async () => {
       );
 
       if (!zoneFromDB) return (shippingAddressSelect.value = ""); //Reinicio la direc, no dejo seguir
-      shippingCost = isInSpanish
+      let accumulator = 0;
+      const zonePrice = isInSpanish
         ? zoneFromDB?.price?.ars_price || 0
-        : zoneFromDB?.price?.usd_price || 0;
+        : zoneFromDB?.price?.usd_price || 0
+      cartProducts.forEach(prod => {
+        accumulator = accumulator + (zonePrice * Number(prod.quantity))
+      })
+      shippingCost = accumulator;
     }
 
     function generateCheckoutFormBodyToFetch(form) {

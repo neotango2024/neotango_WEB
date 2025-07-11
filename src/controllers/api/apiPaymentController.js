@@ -142,6 +142,8 @@ export async function handleCreateMercadoPagoOrder(orderItemsToDb, mpClient, shi
     });
     const preference = new Preference(mpClient);
     const result = await preference.create({ body });
+    console.log('result')
+    console.log(result)
     return result;
   } catch (error) {
     console.log("error in mercadopago create");

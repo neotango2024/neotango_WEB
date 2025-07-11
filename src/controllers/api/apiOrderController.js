@@ -190,6 +190,7 @@ const controller = {
       let orderTotalPrice = 0;
       // Tema shipping. Si es envio a domicilio le tengo que sumar el coste de shipping por el country
       let shippingPrice = null;
+      let shippingAccumulator = 0;
       if (orderDataToDB.shipping_type_id == 1) {
         //Envio a domicilio
         let zoneCountryToCheckPrice = orderDataToDB.shippingAddress.country_id;
@@ -200,14 +201,19 @@ const controller = {
           id: dbCountry.zone_id,
         });
         shippingPrice = parseFloat(shippingZonePrices.ars_price);
-        //Le sumo al totalPrice
-        orderTotalPrice +=
-          orderDataToDB.payment_type_id == 1
+        
+        const baseShippingPrice = orderDataToDB.payment_type_id == 1
             ? parseFloat(shippingZonePrices.ars_price)
             : parseFloat(shippingZonePrices.usd_price);
+        variations.forEach((variation) => {
+          shippingAccumulator = shippingAccumulator + (baseShippingPrice * parseFloat(variation.quantityRequested))
+        })
+        //Le sumo al totalPrice
+        orderTotalPrice += shippingAccumulator
       }
       createOrderEntitiesSnapshot(orderDataToDB); //Funcion que saca "foto" de las entidades
 
+      shippingPrice = shippingAccumulator;
       // armo los orderItems
       let orderItemsToDB = [];
       // Voy por las variaciones para restar stock
