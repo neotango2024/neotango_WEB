@@ -205,16 +205,14 @@ const controller = {
         const baseShippingPrice = orderDataToDB.payment_type_id == 1
             ? parseFloat(shippingZonePrices.ars_price)
             : parseFloat(shippingZonePrices.usd_price);
-        variations.forEach((variation) => {
-          const totalQuantity = variations.reduce((acc, v) => acc + parseFloat(v.quantityRequested), 0);
-          if (totalQuantity <= 1) {
-              shippingAccumulator = baseShippingPrice;
-              console.log(shippingAccumulator)
-            } else {
-              shippingAccumulator = baseShippingPrice + ((totalQuantity - 1) * baseShippingPrice * 0.5);
-              console.log(shippingAccumulator)
-            }
-        })
+        const totalQuantity = variations.reduce((acc, v) => acc + parseFloat(v.quantityRequested), 0);
+        if (totalQuantity <= 1) {
+            shippingAccumulator = baseShippingPrice;
+            console.log(shippingAccumulator)
+          } else {
+            shippingAccumulator = baseShippingPrice + ((totalQuantity - 1) * baseShippingPrice * 0.5);
+            console.log(shippingAccumulator)
+          }
         //Le sumo al totalPrice
         orderTotalPrice += shippingAccumulator
       }
