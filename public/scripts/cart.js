@@ -206,8 +206,8 @@ window.addEventListener("DOMContentLoaded", async () => {
                   });
                   return (window.location.href = preferenceResponse.url);
                 }
-                //Aca dio error por alguna razon, doy refresh
-                return window.location.reload();
+                // //Aca dio error por alguna razon, doy refresh
+                // return window.location.reload();
               }
               return;
             }
@@ -998,7 +998,6 @@ window.addEventListener("DOMContentLoaded", async () => {
         ? userLogged.phones
         : getLocalStorageItem("guestPhones");
       let phoneObj = phoneArrayToLook?.find((dbPhone) => dbPhone.id == phoneID);
-      phoneObj.id = userLogged ? phoneObj.id : null;
       bodyData.phoneObj = phoneObj;
       // Ahora las addresses
       let addressArrayToLook = userLogged
@@ -1008,7 +1007,7 @@ window.addEventListener("DOMContentLoaded", async () => {
       let billingAddressObj = addressArrayToLook?.find(
         (dbAddress) => dbAddress.id == billingAddressId
       );
-      billingAddressObj.id = userLogged ? billingAddressObj.id : null;
+      // billingAddressObj.id = userLogged ? billingAddressObj.id : null;
       bodyData.billingAddress = billingAddressObj;
       const useSameAddress = form["use-same-addresses"].checked;
       if (useSameAddress) {
@@ -1019,12 +1018,13 @@ window.addEventListener("DOMContentLoaded", async () => {
         let shippingAddressObj = addressArrayToLook?.find(
           (dbAddress) => dbAddress.id == shippingAddressId
         );
-        shippingAddressObj
-          ? (shippingAddressObj.id = userLogged ? shippingAddressObj?.id : null)
-          : null;
+        // shippingAddressObj
+        //   ? (shippingAddressObj.id = userLogged ? shippingAddressObj?.id : null)
+        //   : null;
         bodyData.shippingAddress = shippingAddressObj || null;
       }
-
+      console.log('body data')
+      console.log(bodyData)
       return bodyData;
     }
     function modifyBillingLabel(justBilling) {

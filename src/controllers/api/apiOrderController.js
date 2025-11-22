@@ -142,7 +142,7 @@ const controller = {
         if (!createdAddress)
           return res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR.code).json();
         billingAddress.id = billingAddressObjToDB.id; //lo dejo seteado asi despues puedo acceder
-      } else if (billingAddress?.id) {
+      } else if (billingAddress?.id && user_id) {
         //Si vino el id, busco la address y la dejo desde db porlas
         billingAddress = await getAddresesFromDB(billingAddress.id);
       }
@@ -154,7 +154,7 @@ const controller = {
           if (!createdAddress)
             return res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR.code).json();
           shippingAddress.id = shippingAddressObjToDB.id; //lo dejo seteado asi despues puedo acceder
-        } else if (shippingAddress && shippingAddress?.id) {
+        } else if (shippingAddress && shippingAddress?.id && user_id) {
           //Si vino el id, busco la address y la dejo desde db porlas
           shippingAddress = await getAddresesFromDB(shippingAddress.id);
         }
@@ -165,7 +165,7 @@ const controller = {
         let createdPhone = await insertPhoneToDB(phoneObjToDB);
         if (!createdPhone)
           return res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR.code).json();
-      } else if (phoneObj?.id) {
+      } else if (phoneObj?.id && user_id) {
         phoneObj = await getPhonesFromDB(phoneObj.id);
       }
 
