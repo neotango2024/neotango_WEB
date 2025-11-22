@@ -167,7 +167,7 @@ export default {
       }),
   ],
   orderFields: [
-    body(["first_name", "last_name", "email", "dni", "payment_type_id", "shipping_type_id"])
+    body(["first_name", "last_name", "email", "payment_type_id", "shipping_type_id"])
     .notEmpty()
     .withMessage("Complete todos los campos necesarios")
     .bail(),

@@ -198,6 +198,7 @@ window.addEventListener("DOMContentLoaded", async () => {
                   },
                   body: JSON.stringify(body),
                 });
+                console.log('---fetching---')
                 if (response.ok) {
                   const preferenceResponse = await response.json();
                   handleOrderInLocalStorage({
@@ -421,7 +422,7 @@ window.addEventListener("DOMContentLoaded", async () => {
             {
               label: isInSpanish ? "DNI" : "DNI",
               name: "dni",
-              placeholder: isInSpanish ? "Ingresa tu DNI" : "Enter your DNI",
+              placeholder: isInSpanish ? "Ingresa tu DNI" : "Enter your passport",
               required: true,
               width: 100,
               contClassNames: "",
@@ -483,6 +484,9 @@ window.addEventListener("DOMContentLoaded", async () => {
           ],
           formClasses: "checkout-form",
         };
+        if(!isInSpanish){
+          props.inputProps.splice(3,1 )
+        }
         // return
         const formToInsert = form(props);
         formWrapper.innerHTML = "";
@@ -970,14 +974,12 @@ window.addEventListener("DOMContentLoaded", async () => {
     }
 
     function generateCheckoutFormBodyToFetch(form) {
-      console.log('----form----')
-      console.log(form)
       let bodyData = {
         user_id: userLogged ? userLogged.id : null,
         first_name: form["first_name"].value,
         last_name: form["last_name"].value,
         email: form["email"].value,
-        dni: form["dni"].value,
+        dni: isInSpanish ? form["dni"].value : null,
         payment_type_id: userLogged
           ? userLogged.payment_type_id
           : getLocalStorageItem("payment_type_id"), //TODO:
@@ -1025,8 +1027,7 @@ window.addEventListener("DOMContentLoaded", async () => {
         //   : null;
         bodyData.shippingAddress = shippingAddressObj || null;
       }
-      console.log('body data')
-      console.log(bodyData)
+      console.log('---generating body data----')
       return bodyData;
     }
     function modifyBillingLabel(justBilling) {
