@@ -970,6 +970,8 @@ window.addEventListener("DOMContentLoaded", async () => {
     }
 
     function generateCheckoutFormBodyToFetch(form) {
+      console.log('----form----')
+      console.log(form)
       let bodyData = {
         user_id: userLogged ? userLogged.id : null,
         first_name: form["first_name"].value,
