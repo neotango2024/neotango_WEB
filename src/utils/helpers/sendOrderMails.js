@@ -1,12 +1,13 @@
-import nodemailer from "nodemailer";
-import emailConfig from "../staticDB/mailConfig.js";
+
 import dateFormater from "./dateFormater.js";
-// import dateFormater from'./dateFormater';
+import { Resend } from "resend";
+
+//resend config
+const resend = new Resend(process.env.RESEND_API_KEY);
 
 async function sendOrderMails(order) {
   const orderIsInSpanish = order.payment_type_id == 1;
-  // Configuración del transporte del correo
-  const transporter = nodemailer.createTransport(emailConfig);
+
 
   // Contenido del correo
   let userMailContentDeliveryMethod = ``;
@@ -150,7 +151,7 @@ async function sendOrderMails(order) {
   `;
   // Opciones del correo
   const userMailOptions = {
-    from: "contacto@neotangoshoes.com",
+    from: "NeoTango Shoes <contacto@neotangoshoes.com>",
     to: order.email,
     subject: orderIsInSpanish
       ? "¡Gracias por tu compra!"
@@ -158,15 +159,26 @@ async function sendOrderMails(order) {
     html: userMailContent,
   };
   const operatorMailOptions = {
-    from: "contacto@neotangoshoes.com",
+    from: "NeoTango Shoes <contacto@neotangoshoes.com>",
     to: "contacto@neotangoshoes.com",
     subject: `Venta online - ${order.tra_id}`,
     html: operatorMailContent,
   };
   try {
     // Envío de los correos
-    const userMail = await transporter.sendMail(userMailOptions);
-    const operatorMail = await transporter.sendMail(operatorMailOptions);
+    await resend.emails.send({
+      from: userMailOptions.from,
+      to: userMailOptions.to,
+      subject: userMailOptions.subject,
+      html: userMailOptions.html,
+    });
+
+    await resend.emails.send({
+      from: operatorMailOptions.from,
+      to: operatorMailOptions.to,
+      subject: operatorMailOptions.subject,
+      html: operatorMailOptions.html,
+    });
     console.log("Correos enviados");
     return;
   } catch (error) {

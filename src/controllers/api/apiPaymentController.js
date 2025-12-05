@@ -1,18 +1,9 @@
-import db from "../../database/models/index.js";
-// Librerias
-import Sequelize from "sequelize";
-import { Op } from "sequelize";
-import { v4 as uuidv4 } from "uuid";
-import bcrypt from "bcryptjs";
-import jwt from "jsonwebtoken";
-import fs from "fs";
+
 import path from "path";
-import { validationResult } from "express-validator";
 import { fileURLToPath } from "url";
 import axios from "axios";
-import { log } from "console";
 import { Preference } from "mercadopago";
-import { HTTP_STATUS } from "../../utils/staticDB/httpStatusCodes.js";
+import sendOrderMails from '../../utils/helpers/sendOrderMails.js'
 // way to replace __dirname in es modules
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -165,5 +156,55 @@ export async function captureMercadoPagoPayment(paymentId){
     console.log(`Error in captureMercadoPagoPayment`)
     console.log(error);
     return null;
+  }
+}
+
+export async function testMails() {
+ // Objeto order de prueba
+  const testOrder = {
+    tra_id: "TEST-001-2024",
+    payment_type_id: 1, // 1 = español
+    shipping_type_id: 1, // 1 = domicilio, 2 = retiro por local
+    email: "joaco.cataldo3@gmail.com",
+    first_name: "Joaquín",
+    last_name: "Cataldo",
+    phone_code: "54",
+    phone_number: "1123456789",
+    dni: "12345678",
+    shipping_address_street: "Av. Corrientes 1234",
+    shipping_address_detail: "Piso 5, Dto A",
+    shipping_address_zip_code: "1043",
+    shipping_address_city: "CABA",
+    shipping_address_province: "Buenos Aires",
+    total: 85000,
+    createdAt: new Date(),
+    orderItems: [
+      {
+        es_name: "Zapato Tango Classic",
+        eng_name: "Classic Tango Shoe",
+        taco: "7cm",
+        size: "39",
+        price: 35000,
+        quantity: 2
+      },
+      {
+        es_name: "Zapato Tango Premium",
+        eng_name: "Premium Tango Shoe",
+        taco: "9cm",
+        size: "40",
+        price: 45000,
+        quantity: 1
+      }
+    ]
+  };
+
+  try {
+    console.log("Enviando email de prueba...");
+    await sendOrderMails(testOrder);
+    console.log("✅ Email enviado exitosamente");
+    return { success: true, message: "Email enviado correctamente" };
+  } catch (error) {
+    console.error("❌ Error al enviar email:", error);
+    return { success: false, error: error.message };
   }
 }
